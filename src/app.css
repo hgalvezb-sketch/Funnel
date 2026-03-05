@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme {
+  --color-card: #1e293b;
+  --color-card-hover: #334155;
+  --color-card-border: #334155;
+  --color-surface: #0f172a;
+
+  --color-fisa: #f97316;
+  --color-fisa-light: #fb923c;
+  --color-fisa-dark: #ea580c;
+
+  --color-aef: #22c55e;
+  --color-aef-light: #4ade80;
+  --color-aef-dark: #16a34a;
+
+  --color-accent-blue: #3b82f6;
+  --color-accent-blue-light: #60a5fa;
+  --color-accent-purple: #8b5cf6;
+  --color-accent-purple-light: #a78bfa;
+  --color-accent-red: #ef4444;
+  --color-accent-red-light: #f87171;
+  --color-accent-amber: #f59e0b;
+  --color-accent-amber-light: #fbbf24;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: #1e293b;
+}
+
+.recharts-text {
+  fill: #94a3b8;
+  font-size: 12px;
+}
+
+.recharts-tooltip-wrapper {
+  outline: none;
+}
+
+.recharts-default-tooltip {
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+.recharts-tooltip-label {
+  color: #f1f5f9 !important;
+  font-weight: 600 !important;
+}
+
+.recharts-tooltip-item {
+  color: #cbd5e1 !important;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2s ease-in-out infinite;
+}
