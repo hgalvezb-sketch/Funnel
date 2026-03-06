@@ -6,22 +6,22 @@
   --color-card-border: #2c2c2e;
   --color-surface: #141414;
 
-  --color-fisa: #a0a0a0;
-  --color-fisa-light: #b8b8b8;
-  --color-fisa-dark: #888888;
+  --color-fisa: #34d399;
+  --color-fisa-light: #6ee7b7;
+  --color-fisa-dark: #059669;
 
-  --color-aef: #787878;
-  --color-aef-light: #909090;
-  --color-aef-dark: #606060;
+  --color-aef: #60a5fa;
+  --color-aef-light: #93c5fd;
+  --color-aef-dark: #2563eb;
 
-  --color-accent-blue: #8e8e93;
-  --color-accent-blue-light: #a1a1a6;
-  --color-accent-purple: #6e6e73;
-  --color-accent-purple-light: #86868b;
-  --color-accent-red: #b0b0b0;
-  --color-accent-red-light: #c8c8c8;
-  --color-accent-amber: #9a9a9a;
-  --color-accent-amber-light: #aeaeae;
+  --color-accent-blue: #60a5fa;
+  --color-accent-blue-light: #93c5fd;
+  --color-accent-purple: #a78bfa;
+  --color-accent-purple-light: #c4b5fd;
+  --color-accent-red: #f87171;
+  --color-accent-red-light: #fca5a5;
+  --color-accent-amber: #fbbf24;
+  --color-accent-amber-light: #fde68a;
 }
 
 * {

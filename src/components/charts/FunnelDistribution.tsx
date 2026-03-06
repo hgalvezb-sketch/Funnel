@@ -18,18 +18,18 @@ interface FunnelDistributionProps {
 }
 
 const BIN_COLORS = [
-  '#6b7280', // < 12h - gris claro
-  '#5f6672', // 12h-1d
-  '#535964', // 1-2d
-  '#484d57', // 2-3d
-  '#3d424b', // 3-5d
-  '#33373f', // 5-7d
-  '#2a2d34', // 1-2 sem
-  '#22252b', // 2-3 sem
-  '#1c1e23', // 3-4 sem
-  '#16181c', // 1-1.5 mes
-  '#111316', // 1.5-2 mes
-  '#0c0d0f', // > 2 meses - gris más oscuro
+  '#34d399', // < 12h - verde (rapido)
+  '#6ee7b7', // 12h-1d
+  '#a7f3d0', // 1-2d
+  '#60a5fa', // 2-3d
+  '#93c5fd', // 3-5d
+  '#818cf8', // 5-7d
+  '#a78bfa', // 1-2 sem
+  '#c084fc', // 2-3 sem
+  '#f472b6', // 3-4 sem
+  '#fb923c', // 1-1.5 mes
+  '#f87171', // 1.5-2 mes
+  '#ef4444', // > 2 meses - rojo (lento)
 ]
 
 function CustomTooltip({ active, payload }: any) {
