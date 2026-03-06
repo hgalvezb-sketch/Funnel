@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "dashboard-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["dev-server.mjs"],
       "port": 5173
     }
   ]
