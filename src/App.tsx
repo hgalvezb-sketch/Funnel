@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useEffect } from 'react'
 import { DashboardProvider, useDashboard } from './context/DashboardContext'
 import CsvUploader from './components/upload/CsvUploader'
 import Header from './components/layout/Header'
@@ -30,6 +30,24 @@ function AppContent() {
     },
     [handleFileSelect]
   )
+
+  // Cargar datos de muestra automáticamente si existen en public/
+  useEffect(() => {
+    if (state.rawData.length === 0 && !state.isLoading) {
+      fetch('/sample-data.csv')
+        .then(res => {
+          if (res.ok) return res.blob()
+          return null
+        })
+        .then(blob => {
+          if (blob) {
+            const file = new File([blob], 'sample-data.csv', { type: 'text/csv' })
+            loadCsvData(file)
+          }
+        })
+        .catch(() => { /* No sample data available, show uploader */ })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const hasData = state.rawData.length > 0
 
