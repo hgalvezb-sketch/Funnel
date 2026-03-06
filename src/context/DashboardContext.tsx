@@ -109,6 +109,7 @@ interface DashboardContextValue {
   state: DashboardState;
   dispatch: React.Dispatch<DashboardAction>;
   loadCsvData: (file: File) => Promise<void>;
+  loadFromUrl: (url: string) => Promise<void>;
   setFilter: (filterKey: keyof DashboardFilters, value: DashboardFilters[keyof DashboardFilters]) => void;
   clearFilters: () => void;
 }
@@ -153,6 +154,68 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     [parseFile]
   );
 
+  // Extraer ID de archivo desde URL de Google Drive/Sheets
+  const extractGoogleId = (url: string): { id: string; type: 'sheets' | 'drive' } | null => {
+    // Google Sheets: https://docs.google.com/spreadsheets/d/{ID}/...
+    const sheetsMatch = url.match(/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/)
+    if (sheetsMatch) return { id: sheetsMatch[1], type: 'sheets' }
+
+    // Google Drive file: https://drive.google.com/file/d/{ID}/...
+    const driveFileMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/)
+    if (driveFileMatch) return { id: driveFileMatch[1], type: 'drive' }
+
+    // Google Drive open: https://drive.google.com/open?id={ID}
+    const driveOpenMatch = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/)
+    if (driveOpenMatch) return { id: driveOpenMatch[1], type: 'drive' }
+
+    // Google Drive uc: https://drive.google.com/uc?id={ID}
+    const driveUcMatch = url.match(/drive\.google\.com\/uc\?.*id=([a-zA-Z0-9_-]+)/)
+    if (driveUcMatch) return { id: driveUcMatch[1], type: 'drive' }
+
+    return null
+  }
+
+  // Cargar datos desde una URL de Google Drive/Sheets
+  const loadFromUrl = useCallback(
+    async (url: string): Promise<void> => {
+      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({ type: 'SET_ERROR', payload: null })
+
+      try {
+        const extracted = extractGoogleId(url.trim())
+        if (!extracted) {
+          throw new Error(
+            'URL no válida. Usa un enlace de Google Sheets o Google Drive. ' +
+            'Ejemplo: https://docs.google.com/spreadsheets/d/.../edit'
+          )
+        }
+
+        const downloadUrl =
+          extracted.type === 'sheets'
+            ? `https://docs.google.com/spreadsheets/d/${extracted.id}/gviz/tq?tqx=out:csv`
+            : `https://drive.google.com/uc?export=download&id=${extracted.id}`
+
+        const response = await fetch(downloadUrl)
+        if (!response.ok) {
+          throw new Error(
+            `No se pudo descargar el archivo (HTTP ${response.status}). ` +
+            'Verifica que el archivo sea público o esté compartido con "Cualquiera con el enlace".'
+          )
+        }
+
+        const blob = await response.blob()
+        const file = new File([blob], 'google-drive-data.csv', { type: 'text/csv' })
+        const records = await parseFile(file)
+        const options = extractAvailableOptions(records)
+        dispatch({ type: 'SET_DATA', payload: { data: records, options } })
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Error desconocido al cargar desde URL'
+        dispatch({ type: 'SET_ERROR', payload: message })
+      }
+    },
+    [parseFile]
+  )
+
   // Actualizar un filtro individual
   const setFilter = useCallback(
     (filterKey: keyof DashboardFilters, value: DashboardFilters[keyof DashboardFilters]) => {
@@ -173,6 +236,7 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
     state: currentState,
     dispatch,
     loadCsvData,
+    loadFromUrl,
     setFilter,
     clearFilters,
   };

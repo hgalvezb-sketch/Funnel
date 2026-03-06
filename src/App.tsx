@@ -6,7 +6,7 @@ import FilterBar from './components/layout/FilterBar'
 import DashboardGrid from './components/layout/DashboardGrid'
 
 function AppContent() {
-  const { state, loadCsvData } = useDashboard()
+  const { state, loadCsvData, loadFromUrl } = useDashboard()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = useCallback(
@@ -19,6 +19,13 @@ function AppContent() {
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click()
   }, [])
+
+  const handleUrlSubmit = useCallback(
+    (url: string) => {
+      loadFromUrl(url)
+    },
+    [loadFromUrl]
+  )
 
   const handleHiddenFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,6 +62,7 @@ function AppContent() {
     return (
       <CsvUploader
         onFileSelect={handleFileSelect}
+        onUrlSubmit={handleUrlSubmit}
         isLoading={state.isLoading}
         error={state.error}
       />
