@@ -29,16 +29,16 @@ function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
-    <div className="rounded-lg border border-slate-600 bg-slate-800 px-4 py-3 shadow-xl">
-      <p className="mb-2 font-semibold text-slate-200">{d.empresa}</p>
+    <div className="rounded-lg border border-neutral-600 bg-neutral-800 px-4 py-3 shadow-xl">
+      <p className="mb-2 font-semibold text-neutral-200">{d.empresa}</p>
       <div className="space-y-1 text-sm">
-        <p className="text-slate-300">
-          Cantidad: <span className="font-medium text-slate-100">{d.cantidad.toLocaleString('es-MX')}</span>
+        <p className="text-neutral-300">
+          Cantidad: <span className="font-medium text-neutral-100">{d.cantidad.toLocaleString('es-MX')}</span>
         </p>
-        <p className="text-slate-300">
+        <p className="text-neutral-300">
           Promedio: <span className="font-medium text-accent-blue">{d.promedioDias.toFixed(1)} dias</span>
         </p>
-        <p className="text-slate-300">
+        <p className="text-neutral-300">
           Porcentaje: <span className="font-medium text-accent-purple">{d.porcentaje.toFixed(1)}%</span>
         </p>
       </div>
@@ -50,10 +50,10 @@ function CenterLabel({ viewBox, total }: any) {
   const { cx, cy } = viewBox
   return (
     <g>
-      <text x={cx} y={cy - 8} textAnchor="middle" fill="#94a3b8" fontSize={12}>
+      <text x={cx} y={cy - 8} textAnchor="middle" fill="#8e8e93" fontSize={12}>
         Total
       </text>
-      <text x={cx} y={cy + 16} textAnchor="middle" fill="#f1f5f9" fontSize={22} fontWeight="bold">
+      <text x={cx} y={cy + 16} textAnchor="middle" fill="#f2f2f7" fontSize={22} fontWeight="bold">
         {total.toLocaleString('es-MX')}
       </text>
     </g>
@@ -78,7 +78,7 @@ export default function EmpresaBreakdown({ data }: EmpresaBreakdownProps) {
             dataKey="cantidad"
             nameKey="empresa"
             label={({ empresa, porcentaje }) => `${empresa} (${porcentaje.toFixed(0)}%)`}
-            labelLine={{ stroke: '#64748b' }}
+            labelLine={{ stroke: '#636366' }}
           >
             {chartData.map((entry) => (
               <Cell key={entry.empresa} fill={getEmpresaColor(entry.empresa)} />
@@ -87,7 +87,7 @@ export default function EmpresaBreakdown({ data }: EmpresaBreakdownProps) {
           </Pie>
           <Tooltip content={<CustomTooltip />} />
           <Legend
-            formatter={(value) => <span className="text-sm text-slate-300">{value}</span>}
+            formatter={(value) => <span className="text-sm text-neutral-300">{value}</span>}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -96,7 +96,7 @@ export default function EmpresaBreakdown({ data }: EmpresaBreakdownProps) {
         {chartData.map((d) => (
           <div
             key={d.empresa}
-            className="rounded-lg border border-card-border bg-slate-800/50 p-3 text-center"
+            className="rounded-lg border border-card-border bg-neutral-800/50 p-3 text-center"
           >
             <p
               className="text-sm font-semibold"
@@ -104,10 +104,10 @@ export default function EmpresaBreakdown({ data }: EmpresaBreakdownProps) {
             >
               {d.empresa}
             </p>
-            <p className="mt-1 text-lg font-bold text-slate-100">
+            <p className="mt-1 text-lg font-bold text-neutral-100">
               {d.promedioDias.toFixed(1)} dias
             </p>
-            <p className="text-xs text-slate-500">promedio</p>
+            <p className="text-xs text-neutral-500">promedio</p>
           </div>
         ))}
       </div>

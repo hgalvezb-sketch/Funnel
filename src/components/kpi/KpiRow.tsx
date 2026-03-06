@@ -42,7 +42,7 @@ export default function KpiRow({ data }: KpiRowProps) {
         value: formatDays(kpis.medianTimeDays),
         subtitle: 'dias mediana',
         icon: TrendingUp,
-        color: '#06b6d4',
+        color: '#a1a1a6',
       },
       {
         title: 'Minimo',

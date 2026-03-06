@@ -22,13 +22,13 @@ function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
-    <div className="rounded-lg border border-slate-600 bg-slate-800 px-4 py-3 shadow-xl">
-      <p className="mb-2 font-semibold text-slate-200 max-w-[250px] break-words">{d.tarea}</p>
+    <div className="rounded-lg border border-neutral-600 bg-neutral-800 px-4 py-3 shadow-xl">
+      <p className="mb-2 font-semibold text-neutral-200 max-w-[250px] break-words">{d.tarea}</p>
       <div className="space-y-1 text-sm">
-        <p className="text-slate-300">
+        <p className="text-neutral-300">
           Frecuencia: <span className="font-medium text-fisa">{d.frecuencia.toLocaleString('es-MX')}</span>
         </p>
-        <p className="text-slate-300">
+        <p className="text-neutral-300">
           Tiempo promedio: <span className="font-medium text-accent-blue">{d.tiempoPromedioDias.toFixed(1)} dias</span>
         </p>
       </div>
@@ -59,18 +59,18 @@ export default function TopBottlenecks({ data }: TopBottlenecksProps) {
           layout="vertical"
           margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
-          <XAxis type="number" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#1c1c1e" horizontal={false} />
+          <XAxis type="number" tick={{ fill: '#8e8e93', fontSize: 12 }} />
           <YAxis
             dataKey="tareaCorta"
             type="category"
             width={160}
-            tick={{ fill: '#94a3b8', fontSize: 11 }}
+            tick={{ fill: '#8e8e93', fontSize: 11 }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend
             wrapperStyle={{ paddingTop: 10 }}
-            formatter={(value) => <span className="text-sm text-slate-300">{value}</span>}
+            formatter={(value) => <span className="text-sm text-neutral-300">{value}</span>}
           />
           <Bar
             dataKey="frecuencia"

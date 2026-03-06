@@ -22,9 +22,9 @@ export default function KpiCard({ title, value, subtitle, icon: Icon, color }: K
           <Icon className="h-5 w-5" style={{ color }} />
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">{title}</p>
-          <p className="mt-1 text-2xl font-bold text-slate-50">{value}</p>
-          {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
+          <p className="text-xs font-medium text-neutral-400 uppercase tracking-wide">{title}</p>
+          <p className="mt-1 text-2xl font-bold text-neutral-50">{value}</p>
+          {subtitle && <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>}
         </div>
       </div>
     </div>
