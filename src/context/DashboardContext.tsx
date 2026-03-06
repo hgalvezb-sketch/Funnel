@@ -190,12 +190,21 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
           )
         }
 
-        const downloadUrl =
+        const googleUrl =
           extracted.type === 'sheets'
-            ? `https://docs.google.com/spreadsheets/d/${extracted.id}/gviz/tq?tqx=out:csv`
+            ? `https://docs.google.com/spreadsheets/d/${extracted.id}/export?format=csv`
             : `https://drive.google.com/uc?export=download&id=${extracted.id}`
 
-        const response = await fetch(downloadUrl)
+        // Intentar fetch directo primero, si falla por CORS usar proxy
+        let response: Response
+        try {
+          response = await fetch(googleUrl)
+        } catch {
+          // CORS bloqueado — usar proxy
+          const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(googleUrl)}`
+          response = await fetch(proxyUrl)
+        }
+
         if (!response.ok) {
           throw new Error(
             `No se pudo descargar el archivo (HTTP ${response.status}). ` +
