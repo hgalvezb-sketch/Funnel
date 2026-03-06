@@ -36,13 +36,13 @@ function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
-    <div className="rounded-lg border border-slate-600 bg-slate-800 px-4 py-3 shadow-xl">
-      <p className="mb-2 font-semibold text-slate-200">{d.rango}</p>
+    <div className="rounded-lg border border-neutral-600 bg-neutral-800 px-4 py-3 shadow-xl">
+      <p className="mb-2 font-semibold text-neutral-200">{d.rango}</p>
       <div className="space-y-1 text-sm">
-        <p className="text-slate-300">
-          Cantidad: <span className="font-medium text-slate-100">{d.cantidad.toLocaleString('es-MX')}</span>
+        <p className="text-neutral-300">
+          Cantidad: <span className="font-medium text-neutral-100">{d.cantidad.toLocaleString('es-MX')}</span>
         </p>
-        <p className="text-slate-300">
+        <p className="text-neutral-300">
           Porcentaje: <span className="font-medium text-accent-blue">{d.porcentaje.toFixed(1)}%</span>
         </p>
       </div>
@@ -60,16 +60,16 @@ export default function FunnelDistribution({ data }: FunnelDistributionProps) {
     >
       <ResponsiveContainer width="100%" height={350}>
         <BarChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 60 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#1c1c1e" />
           <XAxis
             dataKey="rango"
-            tick={{ fill: '#94a3b8', fontSize: 10 }}
+            tick={{ fill: '#8e8e93', fontSize: 10 }}
             angle={-45}
             textAnchor="end"
             interval={0}
             height={60}
           />
-          <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} />
+          <YAxis tick={{ fill: '#8e8e93', fontSize: 12 }} />
           <Tooltip content={<CustomTooltip />} />
           <Bar dataKey="cantidad" radius={[4, 4, 0, 0]} maxBarSize={50}>
             {chartData.map((_entry, index) => (

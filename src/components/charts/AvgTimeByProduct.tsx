@@ -22,17 +22,17 @@ function CustomTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
-    <div className="rounded-lg border border-slate-600 bg-slate-800 px-4 py-3 shadow-xl">
-      <p className="mb-2 font-semibold text-slate-200">{d.producto}</p>
+    <div className="rounded-lg border border-neutral-600 bg-neutral-800 px-4 py-3 shadow-xl">
+      <p className="mb-2 font-semibold text-neutral-200">{d.producto}</p>
       <div className="space-y-1 text-sm">
-        <p className="text-slate-300">
+        <p className="text-neutral-300">
           Promedio: <span className="font-medium text-accent-blue">{d.promedio.toFixed(1)} dias</span>
         </p>
-        <p className="text-slate-300">
+        <p className="text-neutral-300">
           Mediana: <span className="font-medium text-accent-purple">{d.mediana.toFixed(1)} dias</span>
         </p>
-        <p className="text-slate-300">
-          Cantidad: <span className="font-medium text-slate-100">{d.cantidad.toLocaleString('es-MX')}</span>
+        <p className="text-neutral-300">
+          Cantidad: <span className="font-medium text-neutral-100">{d.cantidad.toLocaleString('es-MX')}</span>
         </p>
       </div>
     </div>
@@ -46,22 +46,22 @@ export default function AvgTimeByProduct({ data }: AvgTimeByProductProps) {
     <ChartCard title="Tiempo Promedio por Producto" subtitle="Ordenado por promedio descendente">
       <ResponsiveContainer width="100%" height={350}>
         <BarChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 80 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#1c1c1e" />
           <XAxis
             dataKey="producto"
-            tick={{ fill: '#94a3b8', fontSize: 11 }}
+            tick={{ fill: '#8e8e93', fontSize: 11 }}
             angle={-45}
             textAnchor="end"
             interval={0}
             height={80}
           />
           <YAxis
-            tick={{ fill: '#94a3b8', fontSize: 12 }}
+            tick={{ fill: '#8e8e93', fontSize: 12 }}
             label={{
               value: 'Dias',
               angle: -90,
               position: 'insideLeft',
-              fill: '#64748b',
+              fill: '#636366',
               fontSize: 12,
             }}
           />

@@ -56,10 +56,10 @@ export default function CsvUploader({ onFileSelect, isLoading, error }: CsvUploa
       <div className="w-full max-w-xl animate-fade-in">
         <div className="mb-8 text-center">
           <FileSpreadsheet className="mx-auto mb-4 h-16 w-16 text-accent-blue" />
-          <h1 className="mb-2 text-3xl font-bold text-slate-50">
+          <h1 className="mb-2 text-3xl font-bold text-neutral-50">
             Dashboard Funnel de Originacion
           </h1>
-          <p className="text-slate-400">
+          <p className="text-neutral-400">
             Carga un archivo CSV con los datos del funnel para comenzar
           </p>
         </div>
@@ -74,7 +74,7 @@ export default function CsvUploader({ onFileSelect, isLoading, error }: CsvUploa
             ${
               isDragOver
                 ? 'border-accent-blue bg-accent-blue/10 scale-[1.02]'
-                : 'border-slate-600 bg-card hover:border-accent-blue/50 hover:bg-card-hover'
+                : 'border-neutral-600 bg-card hover:border-accent-blue/50 hover:bg-card-hover'
             }
             ${isLoading ? 'pointer-events-none opacity-60' : ''}
           `}
@@ -90,19 +90,19 @@ export default function CsvUploader({ onFileSelect, isLoading, error }: CsvUploa
           {isLoading ? (
             <div className="flex flex-col items-center gap-4">
               <Loader2 className="h-12 w-12 animate-spin text-accent-blue" />
-              <p className="text-lg font-medium text-slate-300">Procesando archivo...</p>
-              <p className="text-sm text-slate-500">Esto puede tomar unos segundos</p>
+              <p className="text-lg font-medium text-neutral-300">Procesando archivo...</p>
+              <p className="text-sm text-neutral-500">Esto puede tomar unos segundos</p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-4">
               <Upload
-                className={`h-12 w-12 ${isDragOver ? 'text-accent-blue' : 'text-slate-500'}`}
+                className={`h-12 w-12 ${isDragOver ? 'text-accent-blue' : 'text-neutral-500'}`}
               />
               <div>
-                <p className="text-lg font-medium text-slate-300">
+                <p className="text-lg font-medium text-neutral-300">
                   Arrastra tu archivo CSV aqui
                 </p>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-neutral-500">
                   o haz clic para seleccionar un archivo
                 </p>
               </div>
@@ -120,7 +120,7 @@ export default function CsvUploader({ onFileSelect, isLoading, error }: CsvUploa
           </div>
         )}
 
-        <p className="mt-6 text-center text-xs text-slate-600">
+        <p className="mt-6 text-center text-xs text-neutral-600">
           Formato esperado: CSV con columnas de solicitudes del funnel de originacion
         </p>
       </div>

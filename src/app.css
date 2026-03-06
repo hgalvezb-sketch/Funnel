@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-card: #1e293b;
-  --color-card-hover: #334155;
-  --color-card-border: #334155;
-  --color-surface: #0f172a;
+  --color-card: #1c1c1e;
+  --color-card-hover: #2c2c2e;
+  --color-card-border: #2c2c2e;
+  --color-surface: #141414;
 
-  --color-fisa: #f97316;
-  --color-fisa-light: #fb923c;
-  --color-fisa-dark: #ea580c;
+  --color-fisa: #a0a0a0;
+  --color-fisa-light: #b8b8b8;
+  --color-fisa-dark: #888888;
 
-  --color-aef: #22c55e;
-  --color-aef-light: #4ade80;
-  --color-aef-dark: #16a34a;
+  --color-aef: #787878;
+  --color-aef-light: #909090;
+  --color-aef-dark: #606060;
 
-  --color-accent-blue: #3b82f6;
-  --color-accent-blue-light: #60a5fa;
-  --color-accent-purple: #8b5cf6;
-  --color-accent-purple-light: #a78bfa;
-  --color-accent-red: #ef4444;
-  --color-accent-red-light: #f87171;
-  --color-accent-amber: #f59e0b;
-  --color-accent-amber-light: #fbbf24;
+  --color-accent-blue: #8e8e93;
+  --color-accent-blue-light: #a1a1a6;
+  --color-accent-purple: #6e6e73;
+  --color-accent-purple-light: #86868b;
+  --color-accent-red: #b0b0b0;
+  --color-accent-red-light: #c8c8c8;
+  --color-accent-amber: #9a9a9a;
+  --color-accent-amber-light: #aeaeae;
 }
 
 * {
@@ -35,25 +35,25 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #141414;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #2c2c2e;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #3a3a3c;
 }
 
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
-  stroke: #1e293b;
+  stroke: #1c1c1e;
 }
 
 .recharts-text {
-  fill: #94a3b8;
+  fill: #8e8e93;
   font-size: 12px;
 }
 
@@ -62,19 +62,19 @@
 }
 
 .recharts-default-tooltip {
-  background-color: #1e293b !important;
-  border: 1px solid #334155 !important;
+  background-color: #1c1c1e !important;
+  border: 1px solid #2c2c2e !important;
   border-radius: 8px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4) !important;
 }
 
 .recharts-tooltip-label {
-  color: #f1f5f9 !important;
+  color: #f2f2f7 !important;
   font-weight: 600 !important;
 }
 
 .recharts-tooltip-item {
-  color: #cbd5e1 !important;
+  color: #c7c7cc !important;
 }
 
 @keyframes fade-in {

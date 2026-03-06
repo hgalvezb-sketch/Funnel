@@ -27,18 +27,18 @@ export default function DateRangePicker({
   return (
     <div className="flex items-end gap-2">
       <div>
-        <label className="mb-1 block text-xs font-medium text-slate-400">Desde</label>
+        <label className="mb-1 block text-xs font-medium text-neutral-400">Desde</label>
         <div className="relative">
           <input
             type="date"
             value={toInputValue(startDate)}
             onChange={(e) => onStartChange(fromInputValue(e.target.value))}
-            className="w-[150px] rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-200 transition-colors hover:border-slate-500 focus:border-accent-blue focus:outline-none [color-scheme:dark]"
+            className="w-[150px] rounded-lg border border-neutral-600 bg-neutral-800 px-3 py-2 text-sm text-neutral-200 transition-colors hover:border-neutral-500 focus:border-accent-blue focus:outline-none [color-scheme:dark]"
           />
           {startDate && (
             <button
               onClick={() => onStartChange(null)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+              className="absolute right-2 top-1/2 -tranneutral-y-1/2 text-neutral-500 hover:text-neutral-300"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -46,18 +46,18 @@ export default function DateRangePicker({
         </div>
       </div>
       <div>
-        <label className="mb-1 block text-xs font-medium text-slate-400">Hasta</label>
+        <label className="mb-1 block text-xs font-medium text-neutral-400">Hasta</label>
         <div className="relative">
           <input
             type="date"
             value={toInputValue(endDate)}
             onChange={(e) => onEndChange(fromInputValue(e.target.value))}
-            className="w-[150px] rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-200 transition-colors hover:border-slate-500 focus:border-accent-blue focus:outline-none [color-scheme:dark]"
+            className="w-[150px] rounded-lg border border-neutral-600 bg-neutral-800 px-3 py-2 text-sm text-neutral-200 transition-colors hover:border-neutral-500 focus:border-accent-blue focus:outline-none [color-scheme:dark]"
           />
           {endDate && (
             <button
               onClick={() => onEndChange(null)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+              className="absolute right-2 top-1/2 -tranneutral-y-1/2 text-neutral-500 hover:text-neutral-300"
             >
               <X className="h-3.5 w-3.5" />
             </button>

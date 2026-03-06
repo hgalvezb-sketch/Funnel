@@ -49,7 +49,7 @@ export default function FilterBar() {
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-600 px-3 py-2 text-sm text-slate-400 transition-colors hover:border-accent-red/50 hover:text-accent-red"
+            className="flex items-center gap-1.5 rounded-lg border border-neutral-600 px-3 py-2 text-sm text-neutral-400 transition-colors hover:border-accent-red/50 hover:text-accent-red"
           >
             <FilterX className="h-4 w-4" />
             Limpiar Filtros

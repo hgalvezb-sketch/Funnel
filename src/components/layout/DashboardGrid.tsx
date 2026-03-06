@@ -16,7 +16,7 @@ export default function DashboardGrid({ data }: DashboardGridProps) {
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center p-20">
-        <p className="text-slate-500">No hay datos que coincidan con los filtros seleccionados.</p>
+        <p className="text-neutral-500">No hay datos que coincidan con los filtros seleccionados.</p>
       </div>
     )
   }

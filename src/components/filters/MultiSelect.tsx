@@ -42,10 +42,10 @@ export default function MultiSelect({ label, options, selected, onChange }: Mult
 
   return (
     <div ref={containerRef} className="relative">
-      <label className="mb-1 block text-xs font-medium text-slate-400">{label}</label>
+      <label className="mb-1 block text-xs font-medium text-neutral-400">{label}</label>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full min-w-[160px] items-center justify-between gap-2 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-200 transition-colors hover:border-slate-500"
+        className="flex w-full min-w-[160px] items-center justify-between gap-2 rounded-lg border border-neutral-600 bg-neutral-800 px-3 py-2 text-sm text-neutral-200 transition-colors hover:border-neutral-500"
       >
         <span className="truncate">{displayText}</span>
         <div className="flex items-center gap-1">
@@ -55,14 +55,14 @@ export default function MultiSelect({ label, options, selected, onChange }: Mult
             </span>
           )}
           <ChevronDown
-            className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            className={`h-4 w-4 text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           />
         </div>
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-full min-w-[200px] rounded-lg border border-slate-600 bg-slate-800 py-1 shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-700 px-3 py-2">
+        <div className="absolute z-50 mt-1 w-full min-w-[200px] rounded-lg border border-neutral-600 bg-neutral-800 py-1 shadow-xl">
+          <div className="flex items-center justify-between border-b border-neutral-700 px-3 py-2">
             <button
               onClick={selectAll}
               className="text-xs font-medium text-accent-blue hover:text-accent-blue-light"
@@ -71,7 +71,7 @@ export default function MultiSelect({ label, options, selected, onChange }: Mult
             </button>
             <button
               onClick={clearAll}
-              className="text-xs font-medium text-slate-400 hover:text-slate-300"
+              className="text-xs font-medium text-neutral-400 hover:text-neutral-300"
             >
               Limpiar
             </button>
@@ -83,18 +83,18 @@ export default function MultiSelect({ label, options, selected, onChange }: Mult
                 <button
                   key={option}
                   onClick={() => toggleOption(option)}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-slate-700"
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-neutral-700"
                 >
                   <div
                     className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
                       isSelected
                         ? 'border-accent-blue bg-accent-blue'
-                        : 'border-slate-500 bg-slate-700'
+                        : 'border-neutral-500 bg-neutral-700'
                     }`}
                   >
                     {isSelected && <Check className="h-3 w-3 text-white" />}
                   </div>
-                  <span className={isSelected ? 'text-slate-200' : 'text-slate-400'}>
+                  <span className={isSelected ? 'text-neutral-200' : 'text-neutral-400'}>
                     {option}
                   </span>
                 </button>
