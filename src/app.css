@@ -6,22 +6,22 @@
   --color-card-border: #2c2c2e;
   --color-surface: #141414;
 
-  --color-fisa: #a0a0a0;
-  --color-fisa-light: #b8b8b8;
-  --color-fisa-dark: #888888;
+  --color-fisa: #f97316;
+  --color-fisa-light: #fb923c;
+  --color-fisa-dark: #ea580c;
 
-  --color-aef: #787878;
-  --color-aef-light: #909090;
-  --color-aef-dark: #606060;
+  --color-aef: #22c55e;
+  --color-aef-light: #4ade80;
+  --color-aef-dark: #16a34a;
 
-  --color-accent-blue: #8e8e93;
-  --color-accent-blue-light: #a1a1a6;
-  --color-accent-purple: #6e6e73;
-  --color-accent-purple-light: #86868b;
-  --color-accent-red: #b0b0b0;
-  --color-accent-red-light: #c8c8c8;
-  --color-accent-amber: #9a9a9a;
-  --color-accent-amber-light: #aeaeae;
+  --color-accent-blue: #3b82f6;
+  --color-accent-blue-light: #60a5fa;
+  --color-accent-purple: #a855f7;
+  --color-accent-purple-light: #c084fc;
+  --color-accent-red: #ef4444;
+  --color-accent-red-light: #f87171;
+  --color-accent-amber: #eab308;
+  --color-accent-amber-light: #facc15;
 }
 
 * {
@@ -53,7 +53,7 @@
 }
 
 .recharts-text {
-  fill: #8e8e93;
+  fill: #a1a1aa;
   font-size: 12px;
 }
 

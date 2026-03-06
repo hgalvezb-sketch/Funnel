@@ -34,7 +34,7 @@ function AppContent() {
   // Cargar datos de muestra automáticamente si existen en public/
   useEffect(() => {
     if (state.rawData.length === 0 && !state.isLoading) {
-      fetch('/sample-data.csv')
+      fetch(import.meta.env.BASE_URL + 'sample-data.csv')
         .then(res => {
           if (res.ok) return res.blob()
           return null
