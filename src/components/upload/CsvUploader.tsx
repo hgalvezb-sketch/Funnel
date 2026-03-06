@@ -1,14 +1,16 @@
 import { useState, useRef, useCallback } from 'react'
-import { Upload, FileSpreadsheet, AlertCircle, Loader2 } from 'lucide-react'
+import { Upload, FileSpreadsheet, AlertCircle, Loader2, Link } from 'lucide-react'
 
 interface CsvUploaderProps {
   onFileSelect: (file: File) => void
+  onUrlSubmit: (url: string) => void
   isLoading: boolean
   error: string | null
 }
 
-export default function CsvUploader({ onFileSelect, isLoading, error }: CsvUploaderProps) {
+export default function CsvUploader({ onFileSelect, onUrlSubmit, isLoading, error }: CsvUploaderProps) {
   const [isDragOver, setIsDragOver] = useState(false)
+  const [driveUrl, setDriveUrl] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -50,6 +52,16 @@ export default function CsvUploader({ onFileSelect, isLoading, error }: CsvUploa
   const handleClick = () => {
     fileInputRef.current?.click()
   }
+
+  const handleUrlSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+      if (driveUrl.trim()) {
+        onUrlSubmit(driveUrl.trim())
+      }
+    },
+    [driveUrl, onUrlSubmit]
+  )
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface p-8">
@@ -109,6 +121,35 @@ export default function CsvUploader({ onFileSelect, isLoading, error }: CsvUploa
             </div>
           )}
         </div>
+
+        {/* Separador */}
+        <div className="my-6 flex items-center gap-4">
+          <div className="h-px flex-1 bg-neutral-700" />
+          <span className="text-sm font-medium text-neutral-500">o</span>
+          <div className="h-px flex-1 bg-neutral-700" />
+        </div>
+
+        {/* Input de URL de Google Drive */}
+        <form onSubmit={handleUrlSubmit} className="flex gap-3">
+          <div className="relative flex-1">
+            <Link className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+            <input
+              type="text"
+              value={driveUrl}
+              onChange={(e) => setDriveUrl(e.target.value)}
+              placeholder="Pega aquí la URL de Google Sheets o Drive"
+              disabled={isLoading}
+              className="w-full rounded-lg border border-neutral-600 bg-card py-3 pl-10 pr-4 text-sm text-neutral-200 placeholder-neutral-500 transition-colors focus:border-accent-blue focus:outline-none disabled:opacity-60"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading || !driveUrl.trim()}
+            className="rounded-lg bg-accent-blue px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-blue-light disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Cargar
+          </button>
+        </form>
 
         {error && (
           <div className="mt-4 flex items-start gap-3 rounded-lg bg-accent-red/10 border border-accent-red/30 px-4 py-3">
