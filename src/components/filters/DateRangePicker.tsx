@@ -38,7 +38,7 @@ export default function DateRangePicker({
           {startDate && (
             <button
               onClick={() => onStartChange(null)}
-              className="absolute right-2 top-1/2 -tranneutral-y-1/2 text-neutral-500 hover:text-neutral-300"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -57,7 +57,7 @@ export default function DateRangePicker({
           {endDate && (
             <button
               onClick={() => onEndChange(null)}
-              className="absolute right-2 top-1/2 -tranneutral-y-1/2 text-neutral-500 hover:text-neutral-300"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300"
             >
               <X className="h-3.5 w-3.5" />
             </button>
