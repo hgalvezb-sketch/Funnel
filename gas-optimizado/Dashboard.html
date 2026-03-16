@@ -163,18 +163,26 @@ table.data-table tr.has-incident { background:rgba(239,83,80,0.08); }
 </div></div></div>
 
 <script>
-google.charts.load('current',{packages:['corechart','gauge','bar']});
+google.charts.load('current',{packages:['corechart','gauge']});
 
 // ===== DATOS PRE-CARGADOS DESDE EL SERVIDOR =====
-var DB = <?!= dashboardData ?>;
-if (typeof DB === 'string') DB = JSON.parse(DB);
+var DB;
+try {
+  DB = <?!= dashboardData ?>;
+  if (typeof DB === 'string') DB = JSON.parse(DB);
+} catch(e) {
+  document.getElementById('loading').innerHTML='<p style="color:#ef5350">Error cargando datos. Recarga la pagina.</p>';
+  throw e;
+}
 
-var CURRENT_DATA = DB; // KPIs/charts/risks actuales (cambia con filtros)
+var CURRENT_DATA = DB;
 var TBL_PAGE = 0;
 var TBL_TOTAL = 0;
 var TBL_HEADERS = DB.headers || [];
 var FILTERS_ACTIVE = false;
+var CHAT_BUSY = false;
 
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fmt$(n){return '$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtN(n){return Number(n||0).toLocaleString('es-MX');}
 
@@ -320,9 +328,11 @@ function renderIncidenceChart(data){
 function renderGauge(tasa){
   var dt=new google.visualization.DataTable();
   dt.addColumn('string','Label');dt.addColumn('number','Value');
-  dt.addRow(['Riesgo',Math.round((tasa||0)*10)/10]);
+  var val=Math.round((tasa||0)*10)/10;
+  dt.addRow(['Riesgo',val]);
+  var mx=Math.max(50,Math.ceil(val/10)*10);
   new google.visualization.Gauge(document.getElementById('chart6')).draw(dt,{
-    width:350,height:300,redFrom:30,redTo:50,yellowFrom:15,yellowTo:30,greenFrom:0,greenTo:15,minorTicks:5,max:50
+    width:350,height:300,redFrom:mx*0.6,redTo:mx,yellowFrom:mx*0.3,yellowTo:mx*0.6,greenFrom:0,greenTo:mx*0.3,minorTicks:5,max:mx
   });
 }
 
@@ -376,12 +386,12 @@ function renderRisks(risks,kpis){
   } else {
     risks.forEach(function(r){
       var cls=r.level==='high'?'':' medium';if(r.level==='low')cls=' low';
-      html+='<div class="risk-item'+cls+'"><div class="risk-title">'+r.title;
-      if(r.details&&r.details.length>0)html+=' <button class="toggle-detail" onclick="toggleDetail(\''+r.id+'\')">Ver Detalle ('+r.count+')</button>';
-      html+='</div><div class="risk-desc">'+r.desc+'</div>';
+      html+='<div class="risk-item'+cls+'"><div class="risk-title">'+esc(r.title);
+      if(r.details&&r.details.length>0)html+=' <button class="toggle-detail" onclick="toggleDetail(\''+esc(r.id)+'\')">Ver Detalle ('+r.count+')</button>';
+      html+='</div><div class="risk-desc">'+esc(r.desc)+'</div>';
       if(r.details&&r.details.length>0){
-        html+='<div class="risk-detail-wrap" id="detail_'+r.id+'" style="display:none"><table><thead><tr><th>Sucursal</th><th>Contrato</th><th>Folio</th><th>Monto</th><th>Tipo</th><th>Empresa</th></tr></thead><tbody>';
-        r.details.forEach(function(d){html+='<tr><td>'+d.suc+'</td><td>'+d.contrato+'</td><td>'+d.folio+'</td><td>'+fmt$(d.monto)+'</td><td>'+d.tipo+'</td><td>'+d.empresa+'</td></tr>';});
+        html+='<div class="risk-detail-wrap" id="detail_'+esc(r.id)+'" style="display:none"><table><thead><tr><th>Sucursal</th><th>Contrato</th><th>Folio</th><th>Monto</th><th>Tipo</th><th>Empresa</th></tr></thead><tbody>';
+        r.details.forEach(function(d){html+='<tr><td>'+esc(d.suc)+'</td><td>'+esc(d.contrato)+'</td><td>'+esc(d.folio)+'</td><td>'+fmt$(d.monto)+'</td><td>'+esc(d.tipo)+'</td><td>'+esc(d.empresa)+'</td></tr>';});
         html+='</tbody></table></div>';
       }
       html+='</div>';
@@ -403,7 +413,7 @@ function renderTableFromData(tp){
   document.getElementById('tblNext').disabled=(start+pageSize)>=TBL_TOTAL;
 
   var html='<table class="data-table"><thead><tr>';
-  for(var i=0;i<h.length;i++)html+='<th>'+h[i]+'</th>';
+  for(var i=0;i<h.length;i++)html+='<th>'+esc(h[i])+'</th>';
   html+='</tr></thead><tbody>';
   (tp.rows||[]).forEach(function(r){
     var hasInc=false;
@@ -413,7 +423,7 @@ function renderTableFromData(tp){
     for(var i=0;i<r.length;i++){
       var val=r[i]===null||r[i]===undefined?'':r[i];
       var cls='';if(typeof val==='string'&&val.toUpperCase()==='SI')cls=' class="td-flag-si"';
-      html+='<td'+cls+'>'+val+'</td>';
+      html+='<td'+cls+'>'+esc(val)+'</td>';
     }
     html+='</tr>';
   });
@@ -507,12 +517,14 @@ function clearChat(){
 }
 
 function sendChat(){
+  if(CHAT_BUSY)return;
   var input=document.getElementById('chatInput');var msg=input.value.trim();if(!msg)return;
+  CHAT_BUSY=true;
   input.value='';
   document.getElementById('chatSuggestions').style.display='none';
   var msgDiv=document.getElementById('chatMessages');
-  msgDiv.innerHTML+='<div class="chat-msg user">'+msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>';
-  msgDiv.innerHTML+='<div class="chat-typing" id="chatTyping">Agente analizando...</div>';
+  msgDiv.insertAdjacentHTML('beforeend','<div class="chat-msg user">'+esc(msg)+'</div>');
+  msgDiv.insertAdjacentHTML('beforeend','<div class="chat-typing" id="chatTyping">Agente analizando...</div>');
   msgDiv.scrollTop=msgDiv.scrollHeight;
   document.getElementById('chatSendBtn').disabled=true;
   var context=getAnalysisContext();
@@ -523,14 +535,16 @@ function sendChat(){
     if(resp.reply){
       CHAT_HISTORY.push({role:'user',text:msg});
       CHAT_HISTORY.push({role:'model',text:resp.reply});
-      msgDiv.innerHTML+='<div class="chat-msg bot">'+formatBotReply(resp.reply)+'</div>';
+      msgDiv.insertAdjacentHTML('beforeend','<div class="chat-msg bot">'+formatBotReply(resp.reply)+'</div>');
     } else if(resp.error){
-      msgDiv.innerHTML+='<div class="chat-msg error">Error: '+resp.error+'</div>';
+      msgDiv.insertAdjacentHTML('beforeend','<div class="chat-msg error">Error: '+esc(resp.error)+'</div>');
     }
+    CHAT_BUSY=false;
     msgDiv.scrollTop=msgDiv.scrollHeight;document.getElementById('chatSendBtn').disabled=false;
   }).withFailureHandler(function(e){
     var el=document.getElementById('chatTyping');if(el)el.remove();
-    msgDiv.innerHTML+='<div class="chat-msg error">Error: '+e.message+'</div>';
+    msgDiv.insertAdjacentHTML('beforeend','<div class="chat-msg error">Error: '+esc(e.message)+'</div>');
+    CHAT_BUSY=false;
     msgDiv.scrollTop=msgDiv.scrollHeight;document.getElementById('chatSendBtn').disabled=false;
   }).chatWithGemini(msg,context,historyToSend);
 }

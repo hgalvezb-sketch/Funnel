@@ -81,8 +81,8 @@ function precomputeAll() {
   // === SINGLE PASS ===
   var totalMonto=0, totalInc=0, montoInc=0, sucSet={};
   var sucCount={}, sucMonto={}, sucTotal={};
-  var montoRanges={"0-500":0,"501-1000":0,"1001-5000":0,"5001-10000":0,"10001-25000":0,">25000":0};
-  var edadRanges={"18-25":0,"26-35":0,"36-45":0,"46-55":0,"56-65":0,">65":0};
+  var montoRanges={"Negativo":0,"0-500":0,"501-1000":0,"1001-5000":0,"5001-10000":0,"10001-25000":0,">25000":0};
+  var edadRanges={"N/D":0,"18-25":0,"26-35":0,"36-45":0,"46-55":0,"56-65":0,">65":0};
   var incTypes={};
   var flagCounts={}; for(var fi=0;fi<flagColNames.length;fi++) flagCounts[flagColNames[fi]]=0;
   var rc={fueraHorario:0,mismodia:0,foraneas:0,telRepetido:0,telColab:0,contratosRapidos:0,pagoSpei:0,montoDup:0,disp24k:0,calif5:0,dias120:0,reversados:0,highMonto:0};
@@ -107,8 +107,8 @@ function precomputeAll() {
     if(suc)sucSet[suc]=1;
     if(suc){sucCount[suc]=(sucCount[suc]||0)+1;sucMonto[suc]=(sucMonto[suc]||0)+monto;if(!sucTotal[suc])sucTotal[suc]={t:0,i:0,m:0};sucTotal[suc].t++;sucTotal[suc].m+=monto;if(cnt>0)sucTotal[suc].i++;}
 
-    if(monto<=500)montoRanges["0-500"]++;else if(monto<=1000)montoRanges["501-1000"]++;else if(monto<=5000)montoRanges["1001-5000"]++;else if(monto<=10000)montoRanges["5001-10000"]++;else if(monto<=25000)montoRanges["10001-25000"]++;else montoRanges[">25000"]++;
-    if(edad>=18&&edad<=25)edadRanges["18-25"]++;else if(edad<=35)edadRanges["26-35"]++;else if(edad<=45)edadRanges["36-45"]++;else if(edad<=55)edadRanges["46-55"]++;else if(edad<=65)edadRanges["56-65"]++;else if(edad>65)edadRanges[">65"]++;
+    if(monto<0)montoRanges["Negativo"]++;else if(monto<=500)montoRanges["0-500"]++;else if(monto<=1000)montoRanges["501-1000"]++;else if(monto<=5000)montoRanges["1001-5000"]++;else if(monto<=10000)montoRanges["5001-10000"]++;else if(monto<=25000)montoRanges["10001-25000"]++;else montoRanges[">25000"]++;
+    if(edad<18)edadRanges["N/D"]++;else if(edad<=25)edadRanges["18-25"]++;else if(edad<=35)edadRanges["26-35"]++;else if(edad<=45)edadRanges["36-45"]++;else if(edad<=55)edadRanges["46-55"]++;else if(edad<=65)edadRanges["56-65"]++;else edadRanges[">65"]++;
 
     if(inc){var ps=inc.split('|');for(var pi=0;pi<ps.length;pi++){var p=ps[pi].trim();if(p)incTypes[p]=(incTypes[p]||0)+1;}}
 
@@ -237,8 +237,8 @@ function getFilteredDashboard(filtersJson) {
 
 function aggregateSlimData_(rows,SC,flagColNames,flagStartSC){
   var totalReg=rows.length,totalMonto=0,totalInc=0,montoInc=0,sucSet={},sucCount={},sucMonto={},sucTotal={};
-  var montoRanges={"0-500":0,"501-1000":0,"1001-5000":0,"5001-10000":0,"10001-25000":0,">25000":0};
-  var edadRanges={"18-25":0,"26-35":0,"36-45":0,"46-55":0,"56-65":0,">65":0};
+  var montoRanges={"Negativo":0,"0-500":0,"501-1000":0,"1001-5000":0,"5001-10000":0,"10001-25000":0,">25000":0};
+  var edadRanges={"N/D":0,"18-25":0,"26-35":0,"36-45":0,"46-55":0,"56-65":0,">65":0};
   var incTypes={},flagCnts={};for(var fi=0;fi<flagColNames.length;fi++)flagCnts[flagColNames[fi]]=0;
   var rc={fueraHorario:0,mismodia:0,foraneas:0,telRepetido:0,telColab:0,contratosRapidos:0,pagoSpei:0,montoDup:0,disp24k:0,calif5:0,dias120:0,reversados:0,highMonto:0};
   var rdet={fueraHorario:[],mismodia:[],foraneas:[],telRepetido:[],telColab:[],contratosRapidos:[],pagoSpei:[],montoDup:[],disp24k:[],calif5:[],dias120:[],reversados:[],highMonto:[]};
@@ -255,8 +255,8 @@ function aggregateSlimData_(rows,SC,flagColNames,flagStartSC){
     totalMonto+=monto;if(cnt>0){totalInc++;montoInc+=monto;}
     if(suc){sucSet[suc]=1;sucCount[suc]=(sucCount[suc]||0)+1;sucMonto[suc]=(sucMonto[suc]||0)+monto;if(!sucTotal[suc])sucTotal[suc]={t:0,i:0,m:0};sucTotal[suc].t++;sucTotal[suc].m+=monto;if(cnt>0)sucTotal[suc].i++;}
 
-    if(monto<=500)montoRanges["0-500"]++;else if(monto<=1000)montoRanges["501-1000"]++;else if(monto<=5000)montoRanges["1001-5000"]++;else if(monto<=10000)montoRanges["5001-10000"]++;else if(monto<=25000)montoRanges["10001-25000"]++;else montoRanges[">25000"]++;
-    if(edad>=18&&edad<=25)edadRanges["18-25"]++;else if(edad<=35)edadRanges["26-35"]++;else if(edad<=45)edadRanges["36-45"]++;else if(edad<=55)edadRanges["46-55"]++;else if(edad<=65)edadRanges["56-65"]++;else if(edad>65)edadRanges[">65"]++;
+    if(monto<0)montoRanges["Negativo"]++;else if(monto<=500)montoRanges["0-500"]++;else if(monto<=1000)montoRanges["501-1000"]++;else if(monto<=5000)montoRanges["1001-5000"]++;else if(monto<=10000)montoRanges["5001-10000"]++;else if(monto<=25000)montoRanges["10001-25000"]++;else montoRanges[">25000"]++;
+    if(edad<18)edadRanges["N/D"]++;else if(edad<=25)edadRanges["18-25"]++;else if(edad<=35)edadRanges["26-35"]++;else if(edad<=45)edadRanges["36-45"]++;else if(edad<=55)edadRanges["46-55"]++;else if(edad<=65)edadRanges["56-65"]++;else edadRanges[">65"]++;
     if(inc){var ps=inc.split('|');for(var pi=0;pi<ps.length;pi++){var p=ps[pi].trim();if(p)incTypes[p]=(incTypes[p]||0)+1;}}
 
     var det={suc:suc,contrato:contrato,folio:folio,monto:monto,tipo:tipo,empresa:emp};
@@ -362,11 +362,16 @@ function getTablePage(page,filtersJson,sortCol,sortAsc,searchJson){
   var total=matching.length;var startIdx=page*pageSize;var pageRowNums=matching.slice(startIdx,startIdx+pageSize);
   if(pageRowNums.length===0)return JSON.stringify({rows:[],total:total,page:page,headers:headers});
 
-  // Read rows in batch: find min/max and read range
+  // Read rows: batch if dense, individual if sparse (avoids reading huge ranges)
   var minRow=pageRowNums[0],maxRow=pageRowNums[0];
   for(var i=1;i<pageRowNums.length;i++){if(pageRowNums[i]<minRow)minRow=pageRowNums[i];if(pageRowNums[i]>maxRow)maxRow=pageRowNums[i];}
-  var batchData=sh.getRange(minRow,1,maxRow-minRow+1,headers.length).getValues();
-  var rowMap={};for(var i=0;i<batchData.length;i++)rowMap[minRow+i]=batchData[i];
+  var rowMap={};
+  if(maxRow-minRow+1 > pageRowNums.length*10){
+    for(var i=0;i<pageRowNums.length;i++){var rw=sh.getRange(pageRowNums[i],1,1,headers.length).getValues()[0];rowMap[pageRowNums[i]]=rw;}
+  } else {
+    var batchData=sh.getRange(minRow,1,maxRow-minRow+1,headers.length).getValues();
+    for(var i=0;i<batchData.length;i++)rowMap[minRow+i]=batchData[i];
+  }
 
   var rows=[];
   for(var i=0;i<pageRowNums.length;i++){
