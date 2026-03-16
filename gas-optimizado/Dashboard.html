@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Roboto,sans-serif; background:#0a0f1a; color:#e0e0e0; overflow-x:hidden; }
+.top-bar { background:linear-gradient(135deg,#0d1b2a,#1b2a4a); padding:12px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 10px rgba(0,0,0,0.5); }
+.top-bar h1 { font-size:20px; color:#fff; letter-spacing:2px; }
+.filters-bar { background:#0d1520; padding:12px 24px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; border-bottom:1px solid #1e293b; position:sticky; top:48px; z-index:99; }
+.filter-group { display:flex; align-items:center; gap:6px; }
+.filter-group label { font-size:11px; color:#90a4ae; text-transform:uppercase; font-weight:bold; }
+.filter-group select { background:#1a2332; color:#fff; border:1px solid #2a3a4a; padding:6px 10px; border-radius:6px; font-size:12px; min-width:120px; }
+.filter-group select:focus { border-color:#4fc3f7; outline:none; }
+.btn-clear { background:#ef5350; color:#fff; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold; }
+.btn-clear:hover { background:#f44336; }
+.scroll-wrapper { overflow-x:auto; width:100%; padding-bottom:40px; }
+.dashboard { min-width:1800px; padding:20px; }
+.kpi-row { display:grid; grid-template-columns:repeat(6,1fr); gap:16px; margin-bottom:20px; }
+.kpi-card { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:18px; text-align:center; border-left:4px solid #2196f3; box-shadow:0 4px 15px rgba(0,0,0,0.3); }
+.kpi-card.danger { border-left-color:#ef5350; }
+.kpi-card.warning { border-left-color:#ff9800; }
+.kpi-card.success { border-left-color:#4caf50; }
+.kpi-card .kpi-value { font-size:26px; font-weight:bold; color:#4fc3f7; }
+.kpi-card .kpi-label { font-size:11px; color:#90a4ae; margin-top:4px; text-transform:uppercase; }
+.charts-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:20px; }
+.chart-card { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:16px; box-shadow:0 4px 15px rgba(0,0,0,0.3); min-height:420px; }
+.chart-card.full-width { grid-column:span 2; }
+.chart-card h3 { color:#90caf9; font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #1e293b; padding-bottom:6px; }
+.spinner { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; }
+.spinner::after { content:''; width:50px; height:50px; border:5px solid #1e293b; border-top:5px solid #4fc3f7; border-radius:50%; animation:spin 1s linear infinite; }
+@keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+.loading-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(10,15,26,0.7); z-index:200; justify-content:center; align-items:center; font-size:14px; color:#4fc3f7; }
+.loading-overlay.active { display:flex; }
+.table-section { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:16px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.3); }
+.table-section h3 { color:#90caf9; font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+.table-filters { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; align-items:center; }
+.table-filters input { background:#0d1520; color:#fff; border:1px solid #2a3a4a; padding:6px 10px; border-radius:6px; font-size:12px; width:200px; }
+.table-filters input:focus { border-color:#4fc3f7; outline:none; }
+.data-table-wrap { max-height:500px; overflow:auto; }
+table.data-table { width:100%; border-collapse:collapse; font-size:11px; }
+table.data-table th { background:#0d1b2a; color:#90caf9; padding:8px 6px; text-align:left; position:sticky; top:0; z-index:1; border-bottom:2px solid #1e293b; white-space:nowrap; cursor:pointer; }
+table.data-table th:hover { background:#1a2a3a; }
+table.data-table td { padding:6px; border-bottom:1px solid #1a2332; white-space:nowrap; }
+table.data-table tr:hover { background:rgba(79,195,247,0.05); }
+table.data-table tr.has-incident { background:rgba(239,83,80,0.08); }
+.td-flag-si { color:#ef5350; font-weight:bold; }
+.analysis-box { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.3); border-left:4px solid #ff9800; }
+.analysis-box h3 { color:#ffb74d; font-size:14px; margin-bottom:12px; text-transform:uppercase; }
+.analysis-box .analysis-content { font-size:12px; line-height:1.8; color:#cfd8dc; }
+.analysis-box .risk-item { padding:8px 12px; margin:6px 0; background:#0d1520; border-radius:8px; border-left:3px solid #ef5350; }
+.analysis-box .risk-item.medium { border-left-color:#ff9800; }
+.analysis-box .risk-item.low { border-left-color:#4caf50; }
+.analysis-box .risk-item .risk-title { font-weight:bold; color:#fff; margin-bottom:4px; }
+.analysis-box .risk-item .risk-desc { color:#90a4ae; font-size:11px; }
+.gauge-container { display:flex; justify-content:center; align-items:center; }
+.page-info { display:flex; gap:8px; align-items:center; margin-top:8px; font-size:11px; color:#90a4ae; }
+.page-info button { background:#1a2332; color:#fff; border:1px solid #2a3a4a; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:11px; }
+.page-info button:hover { background:#2a3a4a; }
+.page-info button:disabled { opacity:0.4; cursor:default; }
+.risk-detail-wrap { max-height:200px; max-width:100%; overflow:auto; margin-top:8px; background:#0a0f1a; border-radius:6px; border:1px solid #1e293b; }
+.risk-detail-wrap table { width:100%; border-collapse:collapse; font-size:10px; }
+.risk-detail-wrap th { background:#1a2332; color:#4fc3f7; padding:5px 8px; text-align:left; position:sticky; top:0; white-space:nowrap; }
+.risk-detail-wrap td { padding:4px 8px; border-bottom:1px solid #1a2332; white-space:nowrap; color:#cfd8dc; }
+.risk-detail-wrap tr:hover { background:rgba(79,195,247,0.08); }
+.toggle-detail { background:none; border:1px solid #4fc3f7; color:#4fc3f7; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:10px; margin-left:8px; }
+.toggle-detail:hover { background:#4fc3f7; color:#0a0f1a; }
+.chat-section { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:16px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.3); border-left:4px solid #7c4dff; }
+.chat-section h3 { color:#b388ff; font-size:14px; margin-bottom:12px; text-transform:uppercase; display:flex; align-items:center; gap:8px; }
+.chat-messages { max-height:400px; overflow-y:auto; padding:10px; background:#0a0f1a; border-radius:8px; margin-bottom:12px; min-height:150px; }
+.chat-msg { margin:8px 0; padding:8px 12px; border-radius:8px; font-size:12px; line-height:1.6; max-width:85%; }
+.chat-msg.user { background:#1a3a5c; color:#e0e0e0; margin-left:auto; text-align:right; border-bottom-right-radius:2px; }
+.chat-msg.bot { background:#1a2332; color:#cfd8dc; border-left:3px solid #7c4dff; border-bottom-left-radius:2px; }
+.chat-msg.error { background:#2a1520; color:#ef9a9a; border-left:3px solid #ef5350; }
+.chat-msg.system { background:#1a2a1a; color:#a5d6a7; font-style:italic; text-align:center; max-width:100%; font-size:11px; }
+.chat-input-row { display:flex; gap:8px; }
+.chat-input-row input { flex:1; background:#0d1520; color:#fff; border:1px solid #2a3a4a; padding:10px 14px; border-radius:8px; font-size:12px; }
+.chat-input-row input:focus { border-color:#7c4dff; outline:none; }
+.chat-input-row button { background:linear-gradient(135deg,#7c4dff,#536dfe); color:#fff; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px; }
+.chat-input-row button:hover { opacity:0.9; }
+.chat-input-row button:disabled { opacity:0.5; cursor:default; }
+.chat-typing { color:#7c4dff; font-size:11px; padding:4px 12px; }
+.chat-suggestions { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.chat-suggest-btn { background:#0d1520; color:#b388ff; border:1px solid #3a2a5a; padding:6px 12px; border-radius:16px; cursor:pointer; font-size:11px; transition:all 0.2s; }
+.chat-suggest-btn:hover { background:#2a1a4a; border-color:#7c4dff; }
+.chat-msg.bot strong { color:#90caf9; }
+.chat-msg.bot ul,.chat-msg.bot ol { margin:4px 0 4px 16px; }
+.chat-msg.bot li { margin:2px 0; }
+</style>
+</head>
+<body>
+<div id="loading" class="spinner"><p style="margin-top:20px;color:#4fc3f7">Cargando datos del monitor...</p></div>
+<div id="filterOverlay" class="loading-overlay"><p>Aplicando filtros...</p></div>
+<div id="app" style="display:none">
+<div class="top-bar">
+ <h1>MONITOR DE DISPOSICIONES</h1>
+ <span style="font-size:11px;color:#90a4ae" id="lastUpdate"></span>
+</div>
+<div class="filters-bar">
+ <div class="filter-group"><label>Sucursal:</label><select id="fSucursal" onchange="applyFilters()"><option value="">Todas</option></select></div>
+ <div class="filter-group"><label>Contrato:</label><select id="fContrato" onchange="applyFilters()"><option value="">Todos</option></select></div>
+ <div class="filter-group"><label>Folio:</label><select id="fFolio" onchange="applyFilters()"><option value="">Todos</option></select></div>
+ <div class="filter-group"><label>Tipo Disp:</label><select id="fTipoDisp" onchange="applyFilters()"><option value="">Todos</option></select></div>
+ <div class="filter-group"><label>Estatus:</label><select id="fEstatus" onchange="applyFilters()"><option value="">Todos</option></select></div>
+ <div class="filter-group"><label>Incidencia:</label><select id="fIncidencia" onchange="applyFilters()"><option value="">Todas</option></select></div>
+ <div class="filter-group"><label>Calificacion:</label><select id="fCalif" onchange="applyFilters()"><option value="">Todas</option></select></div>
+ <div class="filter-group"><label>Empresa:</label><select id="fEmpresa" onchange="applyFilters()"><option value="">Todas</option></select></div>
+ <button class="btn-clear" onclick="clearFilters()">Limpiar Filtros</button>
+</div>
+<div class="scroll-wrapper">
+<div class="dashboard">
+<div class="kpi-row">
+ <div class="kpi-card"><div class="kpi-value" id="kTotalReg">0</div><div class="kpi-label">Total Registros</div></div>
+ <div class="kpi-card"><div class="kpi-value" id="kTotalMonto">$0</div><div class="kpi-label">Monto Total</div></div>
+ <div class="kpi-card danger"><div class="kpi-value" id="kTotalInc">0</div><div class="kpi-label">Con Incidencias</div></div>
+ <div class="kpi-card warning"><div class="kpi-value" id="kTasaInc">0%</div><div class="kpi-label">Tasa Incidencia</div></div>
+ <div class="kpi-card success"><div class="kpi-value" id="kMontoPromedio">$0</div><div class="kpi-label">Monto Promedio</div></div>
+ <div class="kpi-card"><div class="kpi-value" id="kSucursales">0</div><div class="kpi-label">Sucursales</div></div>
+</div>
+<div class="charts-grid">
+ <div class="chart-card"><h3>Registros por Sucursal (Top 20)</h3><div id="chart1" style="width:100%;height:380px"></div></div>
+ <div class="chart-card"><h3>Monto por Sucursal (Top 20)</h3><div id="chart2" style="width:100%;height:380px"></div></div>
+ <div class="chart-card"><h3>Distribucion por Rango de Monto</h3><div id="chart3" style="width:100%;height:380px"></div></div>
+ <div class="chart-card"><h3>Distribucion por Edad</h3><div id="chart4" style="width:100%;height:380px"></div></div>
+ <div class="chart-card"><h3>Tipos de Incidencia</h3><div id="chart5" style="width:100%;height:380px"></div></div>
+ <div class="chart-card"><h3>Indicador de Riesgo Global</h3><div id="chart6" class="gauge-container" style="width:100%;height:380px"></div></div>
+ <div class="chart-card full-width"><h3>Tasa de Incidencia por Sucursal (Top 15 con >= 3 registros)</h3><div id="chart7" style="width:100%;height:380px"></div></div>
+ <div class="chart-card"><h3>Promedio Monto por Sucursal (Top 15)</h3><div id="chart8" style="width:100%;height:380px"></div></div>
+ <div class="chart-card"><h3>Banderas de Riesgo</h3><div id="chart9" style="width:100%;height:380px"></div></div>
+ <div class="chart-card full-width"><h3>Top Sucursales por Riesgo</h3><div id="chart10" style="width:100%;height:380px"></div></div>
+</div>
+<div class="analysis-box"><h3>Resumen de Analisis de Anomalias y Riesgos</h3><div class="analysis-content" id="analysisContent">Analizando datos...</div></div>
+<div class="chat-section">
+ <h3><span style="font-size:18px">&#129302;</span> Agente de Analisis - Disposiciones de Caja Unica</h3>
+ <div class="chat-messages" id="chatMessages"><div class="chat-msg system">Agente de analisis de fraude y riesgos operativos listo. Puedo analizar anomalias, incidencias por sucursal, patrones sospechosos y darte recomendaciones. Pregunta lo que necesites.</div></div>
+ <div class="chat-suggestions" id="chatSuggestions">
+  <button class="chat-suggest-btn" onclick="askSuggestion(this)">Cuales son las sucursales con mayor riesgo?</button>
+  <button class="chat-suggest-btn" onclick="askSuggestion(this)">Resume las anomalias de severidad alta</button>
+  <button class="chat-suggest-btn" onclick="askSuggestion(this)">Hay indicios de fraude interno?</button>
+  <button class="chat-suggest-btn" onclick="askSuggestion(this)">Que acciones recomiendas?</button>
+ </div>
+ <div class="chat-input-row">
+  <input type="text" id="chatInput" placeholder="Escribe tu pregunta al agente..." onkeydown="if(event.key==='Enter')sendChat()">
+  <button id="chatSendBtn" onclick="sendChat()">Enviar</button>
+  <button class="btn-clear" onclick="clearChat()" style="font-size:10px;padding:6px 10px" title="Limpiar conversacion">Limpiar</button>
+ </div>
+</div>
+<div class="table-section">
+ <h3>Detalle de Registros (A - DG)</h3>
+ <div class="table-filters">
+  <input type="text" id="tblSearchContrato" placeholder="Buscar por Contrato...">
+  <input type="text" id="tblSearchFolio" placeholder="Buscar por Folio...">
+  <input type="text" id="tblSearchGeneral" placeholder="Busqueda general...">
+  <button style="background:#1a2332;color:#4fc3f7;border:1px solid #4fc3f7;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:11px" onclick="searchTable()">Buscar</button>
+  <span class="page-info"><span id="tblInfo"></span>
+   <button id="tblPrev" onclick="tablePage(-1)">Anterior</button>
+   <button id="tblNext" onclick="tablePage(1)">Siguiente</button>
+  </span>
+ </div>
+ <div class="data-table-wrap" id="tableWrap"></div>
+</div>
+</div></div></div>
+
+<script>
+google.charts.load('current',{packages:['corechart','gauge','bar']});
+
+// ===== DATOS PRE-CARGADOS DESDE EL SERVIDOR =====
+var DB = <?!= dashboardData ?>;
+if (typeof DB === 'string') DB = JSON.parse(DB);
+
+var CURRENT_DATA = DB; // KPIs/charts/risks actuales (cambia con filtros)
+var TBL_PAGE = 0;
+var TBL_TOTAL = 0;
+var TBL_HEADERS = DB.headers || [];
+var FILTERS_ACTIVE = false;
+
+function fmt$(n){return '$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtN(n){return Number(n||0).toLocaleString('es-MX');}
+
+// ===== INICIALIZACION =====
+google.charts.setOnLoadCallback(function(){
+  populateFilters();
+  renderDashboard(DB);
+  document.getElementById('loading').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('lastUpdate').textContent='Actualizado: '+(DB.lastUpdate||new Date().toLocaleString('es-MX'));
+});
+
+function populateFilters(){
+  var opts=DB.filterOptions||{};
+  var map={fSucursal:'sucursal2',fContrato:'contrato',fFolio:'folio',fTipoDisp:'tipo_dispo',fEstatus:'estatus_destino',fIncidencia:'A1',fCalif:'CALIFICACION',fEmpresa:'empresa'};
+  for(var selId in map){
+    var sel=document.getElementById(selId);
+    var vals=opts[map[selId]]||[];
+    for(var i=0;i<vals.length;i++){var o=document.createElement('option');o.value=vals[i];o.textContent=vals[i];sel.appendChild(o);}
+  }
+}
+
+// ===== FILTROS =====
+function getFilterValues(){
+  return{
+    sucursal2:document.getElementById('fSucursal').value,
+    contrato:document.getElementById('fContrato').value,
+    folio:document.getElementById('fFolio').value,
+    tipo_dispo:document.getElementById('fTipoDisp').value,
+    estatus_destino:document.getElementById('fEstatus').value,
+    A1:document.getElementById('fIncidencia').value,
+    CALIFICACION:document.getElementById('fCalif').value,
+    empresa:document.getElementById('fEmpresa').value
+  };
+}
+
+function hasActiveFilters(){
+  var f=getFilterValues();
+  for(var k in f)if(f[k])return true;
+  return false;
+}
+
+function applyFilters(){
+  if(!hasActiveFilters()){
+    FILTERS_ACTIVE=false;
+    CURRENT_DATA=DB;
+    renderDashboard(DB);
+    TBL_PAGE=0;
+    renderTableFromData(DB.tablePage);
+    return;
+  }
+  FILTERS_ACTIVE=true;
+  document.getElementById('filterOverlay').classList.add('active');
+
+  google.script.run.withSuccessHandler(function(json){
+    document.getElementById('filterOverlay').classList.remove('active');
+    var result=JSON.parse(json);
+    if(result.error){alert(result.error);return;}
+    CURRENT_DATA=result;
+    renderDashboard(result);
+    TBL_PAGE=0;
+    requestTablePage(0);
+  }).withFailureHandler(function(e){
+    document.getElementById('filterOverlay').classList.remove('active');
+    alert('Error aplicando filtros: '+e.message);
+  }).getFilteredDashboard(JSON.stringify(getFilterValues()));
+}
+
+function clearFilters(){
+  ['fSucursal','fContrato','fFolio','fTipoDisp','fEstatus','fIncidencia','fCalif','fEmpresa'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('tblSearchContrato').value='';
+  document.getElementById('tblSearchFolio').value='';
+  document.getElementById('tblSearchGeneral').value='';
+  applyFilters();
+}
+
+// ===== RENDERIZADO PRINCIPAL =====
+function renderDashboard(data){
+  renderKPIs(data.kpis);
+  renderAllCharts(data.charts);
+  renderRisks(data.risks,data.kpis);
+}
+
+function renderKPIs(kpis){
+  if(!kpis)return;
+  document.getElementById('kTotalReg').textContent=fmtN(kpis.totalReg);
+  document.getElementById('kTotalMonto').textContent=fmt$(kpis.totalMonto);
+  document.getElementById('kTotalInc').textContent=fmtN(kpis.totalInc);
+  document.getElementById('kTasaInc').textContent=(kpis.tasaInc||0).toFixed(1)+'%';
+  document.getElementById('kMontoPromedio').textContent=fmt$(kpis.montoPromedio);
+  document.getElementById('kSucursales').textContent=kpis.sucursalesCount||0;
+}
+
+// ===== GRAFICAS =====
+var chartOpts={backgroundColor:'transparent',animation:{startup:true,duration:500}};
+
+function renderAllCharts(charts){
+  if(!charts)return;
+  renderBarChart('chart1',charts.topSucByCount,'Sucursal','Registros','#9c27b0');
+  renderBarChart('chart2',charts.topSucByMonto,'Sucursal','Monto','#4caf50','short');
+  renderPieChart('chart3',charts.montoRanges,'Rango','Cantidad',['#4caf50','#8bc34a','#ffeb3b','#ff9800','#f44336','#9c27b0']);
+  renderPieChart('chart4',charts.edadRanges,'Edad','Cantidad',['#2196f3','#03a9f4','#00bcd4','#009688','#4caf50','#8bc34a']);
+  renderIncidenceChart(charts.incidenceTypes);
+  renderGauge(charts.tasaRiesgo);
+  renderTasaChart(charts.topSucByTasa);
+  renderBarChart('chart8',charts.topSucByPromedio,'Sucursal','Promedio','#4caf50','short');
+  renderFlagChart(charts.flagCounts);
+  renderBubbleChart(charts.topSucByRiesgo);
+}
+
+function renderBarChart(elId,data,label1,label2,color,fmt){
+  if(!data||!data.length){document.getElementById(elId).innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin datos</p>';return;}
+  var dt=new google.visualization.DataTable();
+  dt.addColumn('string',label1);dt.addColumn('number',label2);
+  data.forEach(function(a){dt.addRow(['Suc '+a[0],typeof a[1]==='number'?Math.round(a[1]):a[1]]);});
+  new google.visualization.ColumnChart(document.getElementById(elId)).draw(dt,Object.assign({},chartOpts,{
+    chartArea:{width:'85%',height:'75%'},legend:'none',hAxis:{textStyle:{color:'#90a4ae'},slantedText:true},
+    vAxis:{textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'},format:fmt||''},colors:[color]
+  }));
+}
+
+function renderPieChart(elId,data,label1,label2,colors){
+  if(!data){document.getElementById(elId).innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin datos</p>';return;}
+  var dt=new google.visualization.DataTable();
+  dt.addColumn('string',label1);dt.addColumn('number',label2);
+  for(var k in data)dt.addRow([k,data[k]]);
+  new google.visualization.PieChart(document.getElementById(elId)).draw(dt,Object.assign({},chartOpts,{
+    chartArea:{width:'90%',height:'85%'},legend:{position:'right',textStyle:{color:'#90a4ae',fontSize:11}},colors:colors,pieHole:0.4
+  }));
+}
+
+function renderIncidenceChart(data){
+  if(!data||!data.length){document.getElementById('chart5').innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin incidencias</p>';return;}
+  var dt=new google.visualization.DataTable();
+  dt.addColumn('string','Tipo');dt.addColumn('number','Cantidad');
+  data.forEach(function(a){dt.addRow(a);});
+  new google.visualization.BarChart(document.getElementById('chart5')).draw(dt,Object.assign({},chartOpts,{
+    chartArea:{width:'55%',height:'80%'},legend:'none',hAxis:{textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'}},
+    vAxis:{textStyle:{color:'#90a4ae',fontSize:10}},colors:['#ef5350']
+  }));
+}
+
+function renderGauge(tasa){
+  var dt=new google.visualization.DataTable();
+  dt.addColumn('string','Label');dt.addColumn('number','Value');
+  dt.addRow(['Riesgo',Math.round((tasa||0)*10)/10]);
+  new google.visualization.Gauge(document.getElementById('chart6')).draw(dt,{
+    width:350,height:300,redFrom:30,redTo:50,yellowFrom:15,yellowTo:30,greenFrom:0,greenTo:15,minorTicks:5,max:50
+  });
+}
+
+function renderTasaChart(data){
+  if(!data||!data.length){document.getElementById('chart7').innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin datos</p>';return;}
+  var dt=new google.visualization.DataTable();
+  dt.addColumn('string','Sucursal');dt.addColumn('number','Tasa %');dt.addColumn({type:'string',role:'tooltip'});
+  data.forEach(function(a){dt.addRow(['Suc '+a.suc,Math.round(a.tasa*10)/10,'Suc '+a.suc+': '+a.tasa.toFixed(1)+'% ('+a.inc+'/'+a.total+')']);});
+  new google.visualization.ColumnChart(document.getElementById('chart7')).draw(dt,Object.assign({},chartOpts,{
+    chartArea:{width:'90%',height:'70%'},legend:'none',hAxis:{textStyle:{color:'#90a4ae'},slantedText:true},
+    vAxis:{textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'},title:'Tasa %',titleTextStyle:{color:'#90a4ae'}},colors:['#ff5722']
+  }));
+}
+
+function renderFlagChart(data){
+  if(!data||!data.length){document.getElementById('chart9').innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin banderas activas</p>';return;}
+  var dt=new google.visualization.DataTable();
+  dt.addColumn('string','Bandera');dt.addColumn('number','Cantidad');
+  data.forEach(function(a){dt.addRow(a);});
+  new google.visualization.BarChart(document.getElementById('chart9')).draw(dt,Object.assign({},chartOpts,{
+    chartArea:{width:'50%',height:'80%'},legend:'none',hAxis:{textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'}},
+    vAxis:{textStyle:{color:'#90a4ae',fontSize:9}},colors:['#ff9800']
+  }));
+}
+
+function renderBubbleChart(data){
+  if(!data||!data.length){document.getElementById('chart10').innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin datos</p>';return;}
+  var dt=new google.visualization.DataTable();
+  dt.addColumn('string','Sucursal');dt.addColumn('number','Tasa Riesgo');dt.addColumn('number','Total Registros');
+  dt.addColumn('number','Monto');dt.addColumn('number','Incidencias');
+  data.forEach(function(a){dt.addRow(['Suc '+a.suc,Math.round(a.tasa*10)/10,a.reg,Math.round(a.monto),a.inc]);});
+  new google.visualization.BubbleChart(document.getElementById('chart10')).draw(dt,Object.assign({},chartOpts,{
+    chartArea:{width:'80%',height:'75%'},
+    hAxis:{title:'Tasa de Riesgo %',textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'},titleTextStyle:{color:'#90a4ae'}},
+    vAxis:{title:'Total Registros',textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'},titleTextStyle:{color:'#90a4ae'}},
+    bubble:{textStyle:{color:'#e0e0e0',fontSize:10}},colorAxis:{colors:['#4caf50','#ff9800','#f44336']}
+  }));
+}
+
+// ===== ANALISIS DE RIESGOS =====
+function renderRisks(risks,kpis){
+  if(!kpis||!kpis.totalReg){document.getElementById('analysisContent').innerHTML='<p>No hay datos para analizar.</p>';return;}
+  var html='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">';
+  html+='<div style="background:#0d1520;padding:10px;border-radius:8px"><b style="color:#4fc3f7">'+kpis.totalReg+'</b> registros analizados</div>';
+  html+='<div style="background:#0d1520;padding:10px;border-radius:8px"><b style="color:#ef5350">'+kpis.totalInc+'</b> con incidencias ('+(kpis.tasaInc||0).toFixed(1)+'%)</div>';
+  html+='<div style="background:#0d1520;padding:10px;border-radius:8px">Monto en riesgo: <b style="color:#ff9800">'+fmt$(kpis.montoInc||0)+'</b></div>';
+  html+='</div>';
+
+  if(!risks||!risks.length){
+    html+='<div class="risk-item low"><div class="risk-title">Sin anomalias significativas detectadas</div><div class="risk-desc">Indicadores dentro de parametros normales.</div></div>';
+  } else {
+    risks.forEach(function(r){
+      var cls=r.level==='high'?'':' medium';if(r.level==='low')cls=' low';
+      html+='<div class="risk-item'+cls+'"><div class="risk-title">'+r.title;
+      if(r.details&&r.details.length>0)html+=' <button class="toggle-detail" onclick="toggleDetail(\''+r.id+'\')">Ver Detalle ('+r.count+')</button>';
+      html+='</div><div class="risk-desc">'+r.desc+'</div>';
+      if(r.details&&r.details.length>0){
+        html+='<div class="risk-detail-wrap" id="detail_'+r.id+'" style="display:none"><table><thead><tr><th>Sucursal</th><th>Contrato</th><th>Folio</th><th>Monto</th><th>Tipo</th><th>Empresa</th></tr></thead><tbody>';
+        r.details.forEach(function(d){html+='<tr><td>'+d.suc+'</td><td>'+d.contrato+'</td><td>'+d.folio+'</td><td>'+fmt$(d.monto)+'</td><td>'+d.tipo+'</td><td>'+d.empresa+'</td></tr>';});
+        html+='</tbody></table></div>';
+      }
+      html+='</div>';
+    });
+  }
+  document.getElementById('analysisContent').innerHTML=html;
+}
+
+function toggleDetail(id){var el=document.getElementById('detail_'+id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+
+// ===== TABLA SERVER-SIDE =====
+function renderTableFromData(tp){
+  if(!tp){document.getElementById('tableWrap').innerHTML='';return;}
+  TBL_TOTAL=tp.total||0;TBL_PAGE=tp.page||0;
+  var h=tp.headers||TBL_HEADERS;
+  var pageSize=50;var start=TBL_PAGE*pageSize;
+  document.getElementById('tblInfo').textContent='Mostrando '+(start+1)+'-'+Math.min(start+pageSize,TBL_TOTAL)+' de '+TBL_TOTAL;
+  document.getElementById('tblPrev').disabled=TBL_PAGE<=0;
+  document.getElementById('tblNext').disabled=(start+pageSize)>=TBL_TOTAL;
+
+  var html='<table class="data-table"><thead><tr>';
+  for(var i=0;i<h.length;i++)html+='<th>'+h[i]+'</th>';
+  html+='</tr></thead><tbody>';
+  (tp.rows||[]).forEach(function(r){
+    var hasInc=false;
+    // Try to find COUNT column
+    for(var ci=0;ci<h.length;ci++){if(h[ci]==='COUNT'&&parseInt(r[ci])>0){hasInc=true;break;}}
+    html+='<tr'+(hasInc?' class="has-incident"':'')+'>';
+    for(var i=0;i<r.length;i++){
+      var val=r[i]===null||r[i]===undefined?'':r[i];
+      var cls='';if(typeof val==='string'&&val.toUpperCase()==='SI')cls=' class="td-flag-si"';
+      html+='<td'+cls+'>'+val+'</td>';
+    }
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('tableWrap').innerHTML=html;
+}
+
+function requestTablePage(page){
+  document.getElementById('tblInfo').textContent='Cargando...';
+  var filters=hasActiveFilters()?JSON.stringify(getFilterValues()):null;
+  var search=JSON.stringify({
+    contrato:document.getElementById('tblSearchContrato').value,
+    folio:document.getElementById('tblSearchFolio').value,
+    general:document.getElementById('tblSearchGeneral').value
+  });
+  google.script.run.withSuccessHandler(function(json){
+    var tp=JSON.parse(json);
+    renderTableFromData(tp);
+  }).withFailureHandler(function(e){
+    document.getElementById('tblInfo').textContent='Error: '+e.message;
+  }).getTablePage(page,filters,-1,true,search);
+}
+
+function tablePage(dir){
+  TBL_PAGE+=dir;
+  if(TBL_PAGE<0)TBL_PAGE=0;
+  var maxPage=Math.max(0,Math.ceil(TBL_TOTAL/50)-1);
+  if(TBL_PAGE>maxPage)TBL_PAGE=maxPage;
+  requestTablePage(TBL_PAGE);
+}
+
+function searchTable(){
+  TBL_PAGE=0;
+  requestTablePage(0);
+}
+
+// Render first table page from pre-computed data
+renderTableFromData(DB.tablePage);
+
+// ===== CHAT =====
+var CHAT_HISTORY = [];
+
+function getAnalysisContext(){
+  var k=CURRENT_DATA.kpis||{};
+  var ctx='## KPIs Actuales\n';
+  ctx+='- Total registros: '+(k.totalReg||0)+'\n';
+  ctx+='- Monto total: $'+(k.totalMonto||0).toFixed(2)+'\n';
+  ctx+='- Con incidencias: '+(k.totalInc||0)+' ('+(k.tasaInc||0).toFixed(1)+'%)\n';
+  ctx+='- Monto en riesgo: $'+(k.montoInc||0).toFixed(2)+'\n';
+  ctx+='- Monto promedio: $'+(k.montoPromedio||0).toFixed(2)+'\n';
+  ctx+='- Sucursales: '+(k.sucursalesCount||0)+'\n';
+  var filtros=[];
+  var fIds=['fSucursal','fContrato','fFolio','fTipoDisp','fEstatus','fIncidencia','fCalif','fEmpresa'];
+  var fLabels=['Sucursal','Contrato','Folio','Tipo Disp','Estatus','Incidencia','Calificacion','Empresa'];
+  for(var i=0;i<fIds.length;i++){var v=document.getElementById(fIds[i]).value;if(v)filtros.push(fLabels[i]+': '+v);}
+  if(filtros.length>0){ctx+='\n## Filtros activos\n';filtros.forEach(function(f){ctx+='- '+f+'\n';});}
+  var risks=CURRENT_DATA.risks||[];
+  if(risks.length>0){ctx+='\n## Riesgos detectados\n';risks.forEach(function(r){ctx+='- ['+r.level.toUpperCase()+'] '+r.title+': '+r.desc+'\n';});}
+  var charts=CURRENT_DATA.charts||{};
+  if(charts.topSucByTasa&&charts.topSucByTasa.length>0){
+    ctx+='\n## Top 5 sucursales mayor riesgo\n';
+    charts.topSucByTasa.slice(0,5).forEach(function(s){ctx+='- Suc '+s.suc+': '+s.tasa.toFixed(1)+'% ('+s.inc+'/'+s.total+')\n';});
+  }
+  if(charts.flagCounts&&charts.flagCounts.length>0){
+    ctx+='\n## Banderas activas\n';
+    charts.flagCounts.forEach(function(f){ctx+='- '+f[0]+': '+f[1]+' casos\n';});
+  }
+  return ctx;
+}
+
+function formatBotReply(text){
+  var s=text;
+  s=s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  s=s.replace(/^[\-\*]\s+(.+)$/gm,'<li>$1</li>');
+  s=s.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
+  s=s.replace(/^\d+\.\s+(.+)$/gm,'<li>$1</li>');
+  s=s.replace(/^###\s+(.+)$/gm,'<strong style="color:#ffb74d;font-size:12px">$1</strong>');
+  s=s.replace(/^##\s+(.+)$/gm,'<strong style="color:#90caf9;font-size:13px">$1</strong>');
+  s=s.replace(/\n/g,'<br>');
+  s=s.replace(/<\/li><br><li>/g,'</li><li>');
+  return s;
+}
+
+function askSuggestion(btn){document.getElementById('chatInput').value=btn.textContent;sendChat();}
+
+function clearChat(){
+  CHAT_HISTORY=[];
+  document.getElementById('chatMessages').innerHTML='<div class="chat-msg system">Conversacion limpiada. El agente esta listo para nuevas consultas.</div>';
+  document.getElementById('chatSuggestions').style.display='flex';
+}
+
+function sendChat(){
+  var input=document.getElementById('chatInput');var msg=input.value.trim();if(!msg)return;
+  input.value='';
+  document.getElementById('chatSuggestions').style.display='none';
+  var msgDiv=document.getElementById('chatMessages');
+  msgDiv.innerHTML+='<div class="chat-msg user">'+msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>';
+  msgDiv.innerHTML+='<div class="chat-typing" id="chatTyping">Agente analizando...</div>';
+  msgDiv.scrollTop=msgDiv.scrollHeight;
+  document.getElementById('chatSendBtn').disabled=true;
+  var context=getAnalysisContext();
+  var historyToSend=CHAT_HISTORY.slice(-6);
+  google.script.run.withSuccessHandler(function(json){
+    var el=document.getElementById('chatTyping');if(el)el.remove();
+    var resp=JSON.parse(json);
+    if(resp.reply){
+      CHAT_HISTORY.push({role:'user',text:msg});
+      CHAT_HISTORY.push({role:'model',text:resp.reply});
+      msgDiv.innerHTML+='<div class="chat-msg bot">'+formatBotReply(resp.reply)+'</div>';
+    } else if(resp.error){
+      msgDiv.innerHTML+='<div class="chat-msg error">Error: '+resp.error+'</div>';
+    }
+    msgDiv.scrollTop=msgDiv.scrollHeight;document.getElementById('chatSendBtn').disabled=false;
+  }).withFailureHandler(function(e){
+    var el=document.getElementById('chatTyping');if(el)el.remove();
+    msgDiv.innerHTML+='<div class="chat-msg error">Error: '+e.message+'</div>';
+    msgDiv.scrollTop=msgDiv.scrollHeight;document.getElementById('chatSendBtn').disabled=false;
+  }).chatWithGemini(msg,context,historyToSend);
+}
+</script>
+</body>
+</html>
