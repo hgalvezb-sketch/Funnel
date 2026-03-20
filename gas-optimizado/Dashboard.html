@@ -778,6 +778,15 @@ function toggleVoice(){
     showToast('Tu navegador no soporta entrada de voz. Usa Chrome o Edge.','error');return;
   }
   if(VOICE_ACTIVE){stopVoice();return;}
+  // Solicitar permiso de microfono primero (requerido en iframes)
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    stream.getTracks().forEach(function(t){t.stop();});
+    startVoiceRecognition_();
+  }).catch(function(err){
+    showToast('Permiso de microfono denegado. Haz click en el icono de candado en la barra de direcciones y permite el microfono.','error');
+  });
+}
+function startVoiceRecognition_(){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   VOICE_RECOGNITION=new SR();
   VOICE_RECOGNITION.lang='es-MX';
