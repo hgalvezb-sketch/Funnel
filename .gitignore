@@ -2,3 +2,16 @@ node_modules
 dist
 .vite
 *.local
+
+# Playwright MCP logs/assets
+.playwright-mcp/
+
+# VS Code
+.vscode/
+
+# Credentials (NEVER commit)
+creds.json
+
+# Screenshots
+*.png
+*.svg
