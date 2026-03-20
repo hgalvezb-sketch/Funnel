@@ -29,8 +29,29 @@ var SLIM_COL_NAMES = [
 // ================================================================
 
 function doGet() {
+  var cachedData = getPrecomputedData();
+  if (cachedData === null) {
+    // No cache exists yet - show loading page and ensure trigger is set up
+    ensureTriggerExists_();
+    return HtmlService.createHtmlOutput(
+      '<html><head><meta charset="utf-8">' +
+      '<style>body{font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f5f5f5;}' +
+      '.box{text-align:center;padding:40px;background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);max-width:500px;}' +
+      'h2{color:#1a73e8;margin-bottom:16px;}p{color:#555;line-height:1.6;}.spinner{border:4px solid #e0e0e0;border-top:4px solid #1a73e8;' +
+      'border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:20px auto;}' +
+      '@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>' +
+      '</head><body><div class="box"><div class="spinner"></div>' +
+      '<h2>Inicializando Dashboard</h2>' +
+      '<p>Es la primera vez que se abre el dashboard o el cache expir&oacute;.<br>' +
+      'Los datos se est&aacute;n pre-calculando en segundo plano (50,000+ filas).<br><br>' +
+      '<strong>Esta p&aacute;gina se recargar&aacute; autom&aacute;ticamente en 90 segundos.</strong><br>' +
+      'Tambi&eacute;n puedes recargar manualmente despu&eacute;s de 1-2 minutos.</p>' +
+      '</div><script>setTimeout(function(){location.reload();},90000);</script></body></html>'
+    ).setTitle('Monitor - Inicializando...')
+     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
   var template = HtmlService.createTemplateFromFile('Dashboard');
-  template.dashboardData = getPrecomputedData();
+  template.dashboardData = cachedData;
   return template.evaluate()
     .setTitle('Monitor de Disposiciones')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -45,7 +66,7 @@ function getPrecomputedData() {
     var data = chunks.join('');
     if (data.length > 10) return data;
   }
-  return precomputeAll();
+  return null;
 }
 
 // ================================================================
@@ -208,31 +229,35 @@ function precomputeAll() {
 // ================================================================
 
 function getFilteredDashboard(filtersJson) {
-  var filters=JSON.parse(filtersJson);
-  var ss=SpreadsheetApp.getActiveSpreadsheet();
-  var slimSheet=ss.getSheetByName(CONFIG.SLIM_SHEET);
-  if(!slimSheet||slimSheet.getLastRow()<1)return JSON.stringify({error:'Sin datos en cache.'});
+  try {
+    var filters=JSON.parse(filtersJson);
+    var ss=SpreadsheetApp.getActiveSpreadsheet();
+    var slimSheet=ss.getSheetByName(CONFIG.SLIM_SHEET);
+    if(!slimSheet||slimSheet.getLastRow()<1)return JSON.stringify({error:'Sin datos en cache. Espera a que el trigger pre-compute los datos (cada 10 min).'});
 
-  var slimData=slimSheet.getDataRange().getValues();
-  var slimHeaders=slimData[0];var slimRows=slimData.slice(1);
-  var SC={};for(var i=0;i<slimHeaders.length;i++)SC[slimHeaders[i]]=i;
+    var slimData=slimSheet.getDataRange().getValues();
+    var slimHeaders=slimData[0];var slimRows=slimData.slice(1);
+    var SC={};for(var i=0;i<slimHeaders.length;i++)SC[slimHeaders[i]]=i;
 
-  var filtered=slimRows.filter(function(r){
-    if(filters.sucursal2&&String(r[SC['sucursal2']])!==filters.sucursal2)return false;
-    if(filters.contrato&&String(r[SC['contrato']])!==filters.contrato)return false;
-    if(filters.folio&&String(r[SC['folio']])!==filters.folio)return false;
-    if(filters.tipo_dispo&&String(r[SC['tipo_dispo']])!==filters.tipo_dispo)return false;
-    if(filters.estatus_destino&&String(r[SC['estatus_destino']])!==filters.estatus_destino)return false;
-    if(filters.A1&&String(r[SC['A1']]).indexOf(filters.A1)===-1)return false;
-    if(filters.CALIFICACION&&String(r[SC['CALIFICACION']])!==filters.CALIFICACION)return false;
-    if(filters.empresa&&String(r[SC['empresa']])!==filters.empresa)return false;
-    return true;
-  });
+    var filtered=slimRows.filter(function(r){
+      if(filters.sucursal2&&String(r[SC['sucursal2']])!==filters.sucursal2)return false;
+      if(filters.contrato&&String(r[SC['contrato']])!==filters.contrato)return false;
+      if(filters.folio&&String(r[SC['folio']])!==filters.folio)return false;
+      if(filters.tipo_dispo&&String(r[SC['tipo_dispo']])!==filters.tipo_dispo)return false;
+      if(filters.estatus_destino&&String(r[SC['estatus_destino']])!==filters.estatus_destino)return false;
+      if(filters.A1&&String(r[SC['A1']]).indexOf(filters.A1)===-1)return false;
+      if(filters.CALIFICACION&&String(r[SC['CALIFICACION']])!==filters.CALIFICACION)return false;
+      if(filters.empresa&&String(r[SC['empresa']])!==filters.empresa)return false;
+      return true;
+    });
 
-  var flagColNames=[];var flagStartSC=-1;
-  for(var i=0;i<slimHeaders.length;i++){if(SLIM_COL_NAMES.indexOf(slimHeaders[i])===-1&&slimHeaders[i]!=='rowNum'){if(flagStartSC===-1)flagStartSC=i;flagColNames.push(slimHeaders[i]);}}
+    var flagColNames=[];var flagStartSC=-1;
+    for(var i=0;i<slimHeaders.length;i++){if(SLIM_COL_NAMES.indexOf(slimHeaders[i])===-1&&slimHeaders[i]!=='rowNum'){if(flagStartSC===-1)flagStartSC=i;flagColNames.push(slimHeaders[i]);}}
 
-  return JSON.stringify(aggregateSlimData_(filtered,SC,flagColNames,flagStartSC)).replace(/<\//g,'<\\/');
+    return JSON.stringify(aggregateSlimData_(filtered,SC,flagColNames,flagStartSC)).replace(/<\//g,'<\\/');
+  } catch(err) {
+    return JSON.stringify({error:'Error en filtros: '+(err.message||String(err))});
+  }
 }
 
 function aggregateSlimData_(rows,SC,flagColNames,flagStartSC){
@@ -390,7 +415,8 @@ function chatWithGemini(userMessage, context, chatHistory) {
   var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
   if (!apiKey) return JSON.stringify({error: 'API Key de Gemini no configurada. Ve a Configuracion del proyecto > Propiedades de script y agrega GEMINI_API_KEY'});
 
-  var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey;
+  var model = PropertiesService.getScriptProperties().getProperty('GEMINI_MODEL') || 'gemini-2.0-flash';
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
 
   var systemPrompt = [
     'Eres un agente analista experto en prevencion de fraude, lavado de dinero (PLD) y riesgos operativos',
@@ -473,6 +499,16 @@ function setupTrigger(){
 function removeTrigger(){
   var triggers=ScriptApp.getProjectTriggers();
   for(var i=0;i<triggers.length;i++){if(triggers[i].getHandlerFunction()==='precomputeAll')ScriptApp.deleteTrigger(triggers[i]);}
+}
+
+function ensureTriggerExists_(){
+  var triggers=ScriptApp.getProjectTriggers();
+  for(var i=0;i<triggers.length;i++){
+    if(triggers[i].getHandlerFunction()==='precomputeAll') return;
+  }
+  ScriptApp.newTrigger('precomputeAll').timeBased().everyMinutes(CONFIG.TRIGGER_MINUTES).create();
+  // Also run precomputeAll immediately via a one-time trigger (runs async, won't block doGet)
+  ScriptApp.newTrigger('precomputeAll').timeBased().after(1).create();
 }
 
 // ================================================================

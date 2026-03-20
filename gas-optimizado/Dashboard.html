@@ -8,6 +8,10 @@
 body { font-family:'Segoe UI',Roboto,sans-serif; background:#0a0f1a; color:#e0e0e0; overflow-x:hidden; }
 .top-bar { background:linear-gradient(135deg,#0d1b2a,#1b2a4a); padding:12px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 10px rgba(0,0,0,0.5); }
 .top-bar h1 { font-size:20px; color:#fff; letter-spacing:2px; }
+.top-bar-actions { display:flex; align-items:center; gap:10px; }
+.top-bar-actions span { font-size:11px; color:#90a4ae; }
+.btn-incidencia { background:linear-gradient(135deg,#ff9800,#f57c00); color:#fff; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:11px; font-weight:bold; letter-spacing:0.5px; }
+.btn-incidencia:hover { opacity:0.9; }
 .filters-bar { background:#0d1520; padding:12px 24px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; border-bottom:1px solid #1e293b; position:sticky; top:48px; z-index:99; }
 .filter-group { display:flex; align-items:center; gap:6px; }
 .filter-group label { font-size:11px; color:#90a4ae; text-transform:uppercase; font-weight:bold; }
@@ -15,7 +19,7 @@ body { font-family:'Segoe UI',Roboto,sans-serif; background:#0a0f1a; color:#e0e0
 .filter-group select:focus { border-color:#4fc3f7; outline:none; }
 .btn-clear { background:#ef5350; color:#fff; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold; }
 .btn-clear:hover { background:#f44336; }
-.scroll-wrapper { overflow-x:auto; width:100%; padding-bottom:40px; }
+.scroll-wrapper { overflow-x:auto; width:100%; padding-bottom:80px; }
 .dashboard { min-width:1800px; padding:20px; }
 .kpi-row { display:grid; grid-template-columns:repeat(6,1fr); gap:16px; margin-bottom:20px; }
 .kpi-card { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:18px; text-align:center; border-left:4px solid #2196f3; box-shadow:0 4px 15px rgba(0,0,0,0.3); }
@@ -25,16 +29,21 @@ body { font-family:'Segoe UI',Roboto,sans-serif; background:#0a0f1a; color:#e0e0
 .kpi-card .kpi-value { font-size:26px; font-weight:bold; color:#4fc3f7; }
 .kpi-card .kpi-label { font-size:11px; color:#90a4ae; margin-top:4px; text-transform:uppercase; }
 .charts-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:20px; }
-.chart-card { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:16px; box-shadow:0 4px 15px rgba(0,0,0,0.3); min-height:420px; }
+.chart-card { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:16px; box-shadow:0 4px 15px rgba(0,0,0,0.3); min-height:520px; display:flex; flex-direction:column; position:relative; }
 .chart-card.full-width { grid-column:span 2; }
-.chart-card h3 { color:#90caf9; font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #1e293b; padding-bottom:6px; }
+.chart-card h3 { color:#90caf9; font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #1e293b; padding-bottom:6px; flex-shrink:0; padding-right:30px; }
+.chart-card > div:last-child { flex:1; min-height:0; }
+.section-header { position:relative; }
+.btn-export { position:absolute; top:0; right:0; background:none; border:1px solid #4fc3f7; color:#4fc3f7; width:26px; height:26px; border-radius:6px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; opacity:0.6; transition:all 0.2s; z-index:5; }
+.btn-export:hover { opacity:1; background:#4fc3f7; color:#0a0f1a; }
+.btn-export:disabled { opacity:0.3; cursor:default; }
 .spinner { display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; }
 .spinner::after { content:''; width:50px; height:50px; border:5px solid #1e293b; border-top:5px solid #4fc3f7; border-radius:50%; animation:spin 1s linear infinite; }
 @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
 .loading-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(10,15,26,0.7); z-index:200; justify-content:center; align-items:center; font-size:14px; color:#4fc3f7; }
 .loading-overlay.active { display:flex; }
-.table-section { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:16px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.3); }
-.table-section h3 { color:#90caf9; font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+.table-section { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:16px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.3); position:relative; }
+.table-section h3 { color:#90caf9; font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; padding-right:30px; }
 .table-filters { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; align-items:center; }
 .table-filters input { background:#0d1520; color:#fff; border:1px solid #2a3a4a; padding:6px 10px; border-radius:6px; font-size:12px; width:200px; }
 .table-filters input:focus { border-color:#4fc3f7; outline:none; }
@@ -46,8 +55,8 @@ table.data-table td { padding:6px; border-bottom:1px solid #1a2332; white-space:
 table.data-table tr:hover { background:rgba(79,195,247,0.05); }
 table.data-table tr.has-incident { background:rgba(239,83,80,0.08); }
 .td-flag-si { color:#ef5350; font-weight:bold; }
-.analysis-box { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.3); border-left:4px solid #ff9800; }
-.analysis-box h3 { color:#ffb74d; font-size:14px; margin-bottom:12px; text-transform:uppercase; }
+.analysis-box { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.3); border-left:4px solid #ff9800; position:relative; }
+.analysis-box h3 { color:#ffb74d; font-size:14px; margin-bottom:12px; text-transform:uppercase; padding-right:30px; }
 .analysis-box .analysis-content { font-size:12px; line-height:1.8; color:#cfd8dc; }
 .analysis-box .risk-item { padding:8px 12px; margin:6px 0; background:#0d1520; border-radius:8px; border-left:3px solid #ef5350; }
 .analysis-box .risk-item.medium { border-left-color:#ff9800; }
@@ -66,27 +75,91 @@ table.data-table tr.has-incident { background:rgba(239,83,80,0.08); }
 .risk-detail-wrap tr:hover { background:rgba(79,195,247,0.08); }
 .toggle-detail { background:none; border:1px solid #4fc3f7; color:#4fc3f7; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:10px; margin-left:8px; }
 .toggle-detail:hover { background:#4fc3f7; color:#0a0f1a; }
-.chat-section { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:16px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.3); border-left:4px solid #7c4dff; }
-.chat-section h3 { color:#b388ff; font-size:14px; margin-bottom:12px; text-transform:uppercase; display:flex; align-items:center; gap:8px; }
-.chat-messages { max-height:400px; overflow-y:auto; padding:10px; background:#0a0f1a; border-radius:8px; margin-bottom:12px; min-height:150px; }
+
+/* ===== INCIDENCIAS SECTION ===== */
+.incidencias-section { background:linear-gradient(145deg,#1a2332,#0f172a); border-radius:12px; padding:16px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,0,0,0.3); border-left:4px solid #26c6da; position:relative; }
+.incidencias-section h3 { color:#4dd0e1; font-size:14px; margin-bottom:12px; text-transform:uppercase; padding-right:30px; }
+.inc-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+.inc-stat { background:#0d1520; padding:10px; border-radius:8px; text-align:center; }
+.inc-stat .stat-val { font-size:20px; font-weight:bold; }
+.inc-stat .stat-val.open { color:#4fc3f7; }
+.inc-stat .stat-val.review { color:#ff9800; }
+.inc-stat .stat-val.closed { color:#4caf50; }
+.inc-stat .stat-val.overdue { color:#ef5350; }
+.inc-stat .stat-lbl { font-size:10px; color:#90a4ae; margin-top:2px; text-transform:uppercase; }
+.inc-filters { display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; align-items:center; }
+.inc-filters select { background:#0d1520; color:#fff; border:1px solid #2a3a4a; padding:5px 8px; border-radius:6px; font-size:11px; }
+table.inc-table { width:100%; border-collapse:collapse; font-size:11px; }
+table.inc-table th { background:#0d1b2a; color:#4dd0e1; padding:8px 6px; text-align:left; position:sticky; top:0; border-bottom:2px solid #1e293b; white-space:nowrap; }
+table.inc-table td { padding:6px; border-bottom:1px solid #1a2332; white-space:nowrap; }
+table.inc-table tr:hover { background:rgba(38,198,218,0.05); }
+.inc-table-wrap { max-height:350px; overflow:auto; }
+.badge-estado { padding:3px 8px; border-radius:10px; font-size:10px; font-weight:bold; }
+.badge-estado.abierta { background:#1a3a5c; color:#4fc3f7; }
+.badge-estado.en-revision { background:#3a2a00; color:#ff9800; }
+.badge-estado.cerrada { background:#1a3a1a; color:#4caf50; }
+.btn-estado { background:none; border:1px solid #4dd0e1; color:#4dd0e1; padding:2px 6px; border-radius:4px; cursor:pointer; font-size:10px; }
+.btn-estado:hover { background:#4dd0e1; color:#0a0f1a; }
+
+/* ===== MODAL ===== */
+.modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:500; justify-content:center; align-items:center; }
+.modal-overlay.active { display:flex; }
+.modal { background:#1a2332; border-radius:12px; padding:24px; width:550px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.5); border:1px solid #2a3a4a; }
+.modal h2 { color:#fff; font-size:16px; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid #2a3a4a; }
+.modal-field { margin-bottom:12px; }
+.modal-field label { display:block; font-size:11px; color:#90a4ae; text-transform:uppercase; margin-bottom:4px; font-weight:bold; }
+.modal-field input,.modal-field select,.modal-field textarea { width:100%; background:#0d1520; color:#fff; border:1px solid #2a3a4a; padding:8px 10px; border-radius:6px; font-size:12px; font-family:inherit; }
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus { border-color:#4fc3f7; outline:none; }
+.modal-field textarea { min-height:60px; resize:vertical; }
+.modal-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:16px; padding-top:12px; border-top:1px solid #2a3a4a; }
+.modal-actions button { padding:8px 20px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer; border:none; }
+.btn-save { background:linear-gradient(135deg,#4caf50,#388e3c); color:#fff; }
+.btn-save:hover { opacity:0.9; }
+.btn-cancel { background:#2a3a4a; color:#cfd8dc; }
+.btn-cancel:hover { background:#3a4a5a; }
+
+/* ===== CHAT FLOTANTE ===== */
+.chat-fab { position:fixed; bottom:24px; right:24px; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#7c4dff,#536dfe); color:#fff; border:none; cursor:pointer; font-size:24px; box-shadow:0 4px 20px rgba(124,77,255,0.4); z-index:900; display:flex; align-items:center; justify-content:center; transition:transform 0.2s; }
+.chat-fab:hover { transform:scale(1.1); }
+.chat-fab .fab-badge { position:absolute; top:-2px; right:-2px; width:18px; height:18px; border-radius:50%; background:#ef5350; color:#fff; font-size:10px; font-weight:bold; display:none; align-items:center; justify-content:center; }
+.chat-popup { display:none; position:fixed; bottom:90px; right:24px; width:400px; height:520px; background:#1a2332; border-radius:16px; box-shadow:0 8px 40px rgba(0,0,0,0.5); z-index:901; flex-direction:column; border:1px solid #2a3a4a; overflow:hidden; }
+.chat-popup.active { display:flex; }
+.chat-popup-header { background:linear-gradient(135deg,#7c4dff,#536dfe); padding:12px 16px; display:flex; align-items:center; justify-content:space-between; cursor:move; flex-shrink:0; user-select:none; }
+.chat-popup-header h4 { color:#fff; font-size:13px; margin:0; }
+.chat-popup-header .chat-header-btns { display:flex; gap:6px; }
+.chat-popup-header button { background:rgba(255,255,255,0.2); border:none; color:#fff; width:24px; height:24px; border-radius:4px; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; }
+.chat-popup-header button:hover { background:rgba(255,255,255,0.3); }
+.chat-popup-body { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.chat-messages { flex:1; overflow-y:auto; padding:10px; min-height:0; }
 .chat-msg { margin:8px 0; padding:8px 12px; border-radius:8px; font-size:12px; line-height:1.6; max-width:85%; }
 .chat-msg.user { background:#1a3a5c; color:#e0e0e0; margin-left:auto; text-align:right; border-bottom-right-radius:2px; }
-.chat-msg.bot { background:#1a2332; color:#cfd8dc; border-left:3px solid #7c4dff; border-bottom-left-radius:2px; }
+.chat-msg.bot { background:#0d1520; color:#cfd8dc; border-left:3px solid #7c4dff; border-bottom-left-radius:2px; }
 .chat-msg.error { background:#2a1520; color:#ef9a9a; border-left:3px solid #ef5350; }
 .chat-msg.system { background:#1a2a1a; color:#a5d6a7; font-style:italic; text-align:center; max-width:100%; font-size:11px; }
-.chat-input-row { display:flex; gap:8px; }
-.chat-input-row input { flex:1; background:#0d1520; color:#fff; border:1px solid #2a3a4a; padding:10px 14px; border-radius:8px; font-size:12px; }
-.chat-input-row input:focus { border-color:#7c4dff; outline:none; }
-.chat-input-row button { background:linear-gradient(135deg,#7c4dff,#536dfe); color:#fff; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px; }
-.chat-input-row button:hover { opacity:0.9; }
-.chat-input-row button:disabled { opacity:0.5; cursor:default; }
-.chat-typing { color:#7c4dff; font-size:11px; padding:4px 12px; }
-.chat-suggestions { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
-.chat-suggest-btn { background:#0d1520; color:#b388ff; border:1px solid #3a2a5a; padding:6px 12px; border-radius:16px; cursor:pointer; font-size:11px; transition:all 0.2s; }
-.chat-suggest-btn:hover { background:#2a1a4a; border-color:#7c4dff; }
 .chat-msg.bot strong { color:#90caf9; }
 .chat-msg.bot ul,.chat-msg.bot ol { margin:4px 0 4px 16px; }
 .chat-msg.bot li { margin:2px 0; }
+.chat-suggestions { display:flex; flex-wrap:wrap; gap:4px; padding:6px 10px; flex-shrink:0; }
+.chat-suggest-btn { background:#0d1520; color:#b388ff; border:1px solid #3a2a5a; padding:4px 10px; border-radius:12px; cursor:pointer; font-size:10px; transition:all 0.2s; }
+.chat-suggest-btn:hover { background:#2a1a4a; border-color:#7c4dff; }
+.chat-input-row { display:flex; gap:6px; padding:10px; background:#0d1520; flex-shrink:0; }
+.chat-input-row input { flex:1; background:#1a2332; color:#fff; border:1px solid #2a3a4a; padding:8px 12px; border-radius:8px; font-size:12px; }
+.chat-input-row input:focus { border-color:#7c4dff; outline:none; }
+.chat-input-row button { background:linear-gradient(135deg,#7c4dff,#536dfe); color:#fff; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px; }
+.chat-input-row button:hover { opacity:0.9; }
+.chat-input-row button:disabled { opacity:0.5; cursor:default; }
+.chat-mic-btn { background:#1a2332; border:1px solid #2a3a4a; color:#90a4ae; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:14px; transition:all 0.2s; }
+.chat-mic-btn:hover { border-color:#7c4dff; color:#b388ff; }
+.chat-mic-btn.recording { background:#ef5350; border-color:#ef5350; color:#fff; animation:mic-pulse 1s ease-in-out infinite; }
+@keyframes mic-pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+.chat-typing { color:#7c4dff; font-size:11px; padding:4px 12px; }
+
+/* ===== TOAST ===== */
+.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#4caf50; color:#fff; padding:10px 24px; border-radius:8px; font-size:12px; z-index:1000; box-shadow:0 4px 12px rgba(0,0,0,0.3); display:none; }
+.toast.error { background:#ef5350; }
+.toast.active { display:block; animation:fadeInOut 3s ease; }
+@keyframes fadeInOut { 0%{opacity:0;transform:translateX(-50%) translateY(10px)} 10%{opacity:1;transform:translateX(-50%) translateY(0)} 80%{opacity:1} 100%{opacity:0} }
 </style>
 </head>
 <body>
@@ -95,7 +168,10 @@ table.data-table tr.has-incident { background:rgba(239,83,80,0.08); }
 <div id="app" style="display:none">
 <div class="top-bar">
  <h1>MONITOR DE DISPOSICIONES</h1>
- <span style="font-size:11px;color:#90a4ae" id="lastUpdate"></span>
+ <div class="top-bar-actions">
+  <button class="btn-incidencia" onclick="openIncidenciaModal()">+ Registrar Incidencia</button>
+  <span id="lastUpdate"></span>
+ </div>
 </div>
 <div class="filters-bar">
  <div class="filter-group"><label>Sucursal:</label><select id="fSucursal" onchange="applyFilters()"><option value="">Todas</option></select></div>
@@ -110,44 +186,63 @@ table.data-table tr.has-incident { background:rgba(239,83,80,0.08); }
 </div>
 <div class="scroll-wrapper">
 <div class="dashboard">
-<div class="kpi-row">
- <div class="kpi-card"><div class="kpi-value" id="kTotalReg">0</div><div class="kpi-label">Total Registros</div></div>
- <div class="kpi-card"><div class="kpi-value" id="kTotalMonto">$0</div><div class="kpi-label">Monto Total</div></div>
- <div class="kpi-card danger"><div class="kpi-value" id="kTotalInc">0</div><div class="kpi-label">Con Incidencias</div></div>
- <div class="kpi-card warning"><div class="kpi-value" id="kTasaInc">0%</div><div class="kpi-label">Tasa Incidencia</div></div>
- <div class="kpi-card success"><div class="kpi-value" id="kMontoPromedio">$0</div><div class="kpi-label">Monto Promedio</div></div>
- <div class="kpi-card"><div class="kpi-value" id="kSucursales">0</div><div class="kpi-label">Sucursales</div></div>
+
+<!-- KPI ROW con boton export -->
+<div style="position:relative">
+ <button class="btn-export" onclick="exportSection('kpis')" title="Exportar KPIs a Google Sheet">&#11015;</button>
+ <div class="kpi-row">
+  <div class="kpi-card"><div class="kpi-value" id="kTotalReg">0</div><div class="kpi-label">Total Registros</div></div>
+  <div class="kpi-card"><div class="kpi-value" id="kTotalMonto">$0</div><div class="kpi-label">Monto Total</div></div>
+  <div class="kpi-card danger"><div class="kpi-value" id="kTotalInc">0</div><div class="kpi-label">Con Incidencias</div></div>
+  <div class="kpi-card warning"><div class="kpi-value" id="kTasaInc">0%</div><div class="kpi-label">Tasa Incidencia</div></div>
+  <div class="kpi-card success"><div class="kpi-value" id="kMontoPromedio">$0</div><div class="kpi-label">Monto Promedio</div></div>
+  <div class="kpi-card"><div class="kpi-value" id="kSucursales">0</div><div class="kpi-label">Sucursales</div></div>
+ </div>
 </div>
+
 <div class="charts-grid">
- <div class="chart-card"><h3>Registros por Sucursal (Top 20)</h3><div id="chart1" style="width:100%;height:380px"></div></div>
- <div class="chart-card"><h3>Monto por Sucursal (Top 20)</h3><div id="chart2" style="width:100%;height:380px"></div></div>
- <div class="chart-card"><h3>Distribucion por Rango de Monto</h3><div id="chart3" style="width:100%;height:380px"></div></div>
- <div class="chart-card"><h3>Distribucion por Edad</h3><div id="chart4" style="width:100%;height:380px"></div></div>
- <div class="chart-card"><h3>Tipos de Incidencia</h3><div id="chart5" style="width:100%;height:380px"></div></div>
- <div class="chart-card"><h3>Indicador de Riesgo Global</h3><div id="chart6" class="gauge-container" style="width:100%;height:380px"></div></div>
- <div class="chart-card full-width"><h3>Tasa de Incidencia por Sucursal (Top 15 con >= 3 registros)</h3><div id="chart7" style="width:100%;height:380px"></div></div>
- <div class="chart-card"><h3>Promedio Monto por Sucursal (Top 15)</h3><div id="chart8" style="width:100%;height:380px"></div></div>
- <div class="chart-card"><h3>Banderas de Riesgo</h3><div id="chart9" style="width:100%;height:380px"></div></div>
- <div class="chart-card full-width"><h3>Top Sucursales por Riesgo</h3><div id="chart10" style="width:100%;height:380px"></div></div>
+ <div class="chart-card"><h3>Registros por Sucursal (Top 20)</h3><button class="btn-export" onclick="exportSection('chart1')" title="Exportar a Sheet">&#11015;</button><div id="chart1"></div></div>
+ <div class="chart-card"><h3>Monto por Sucursal (Top 20)</h3><button class="btn-export" onclick="exportSection('chart2')" title="Exportar a Sheet">&#11015;</button><div id="chart2"></div></div>
+ <div class="chart-card"><h3>Distribucion por Rango de Monto</h3><button class="btn-export" onclick="exportSection('chart3')" title="Exportar a Sheet">&#11015;</button><div id="chart3"></div></div>
+ <div class="chart-card"><h3>Distribucion por Edad</h3><button class="btn-export" onclick="exportSection('chart4')" title="Exportar a Sheet">&#11015;</button><div id="chart4"></div></div>
+ <div class="chart-card"><h3>Tipos de Incidencia</h3><button class="btn-export" onclick="exportSection('chart5')" title="Exportar a Sheet">&#11015;</button><div id="chart5"></div></div>
+ <div class="chart-card"><h3>Indicador de Riesgo Global</h3><button class="btn-export" onclick="exportSection('chart6')" title="Exportar a Sheet">&#11015;</button><div id="chart6" class="gauge-container"></div></div>
+ <div class="chart-card full-width"><h3>Tasa de Incidencia por Sucursal (Top 15 con >= 3 registros)</h3><button class="btn-export" onclick="exportSection('chart7')" title="Exportar a Sheet">&#11015;</button><div id="chart7"></div></div>
+ <div class="chart-card"><h3>Promedio Monto por Sucursal (Top 15)</h3><button class="btn-export" onclick="exportSection('chart8')" title="Exportar a Sheet">&#11015;</button><div id="chart8"></div></div>
+ <div class="chart-card"><h3>Banderas de Riesgo</h3><button class="btn-export" onclick="exportSection('chart9')" title="Exportar a Sheet">&#11015;</button><div id="chart9"></div></div>
+ <div class="chart-card full-width"><h3>Top Sucursales por Riesgo</h3><button class="btn-export" onclick="exportSection('chart10')" title="Exportar a Sheet">&#11015;</button><div id="chart10"></div></div>
 </div>
-<div class="analysis-box"><h3>Resumen de Analisis de Anomalias y Riesgos</h3><div class="analysis-content" id="analysisContent">Analizando datos...</div></div>
-<div class="chat-section">
- <h3><span style="font-size:18px">&#129302;</span> Agente de Analisis - Disposiciones de Caja Unica</h3>
- <div class="chat-messages" id="chatMessages"><div class="chat-msg system">Agente de analisis de fraude y riesgos operativos listo. Puedo analizar anomalias, incidencias por sucursal, patrones sospechosos y darte recomendaciones. Pregunta lo que necesites.</div></div>
- <div class="chat-suggestions" id="chatSuggestions">
-  <button class="chat-suggest-btn" onclick="askSuggestion(this)">Cuales son las sucursales con mayor riesgo?</button>
-  <button class="chat-suggest-btn" onclick="askSuggestion(this)">Resume las anomalias de severidad alta</button>
-  <button class="chat-suggest-btn" onclick="askSuggestion(this)">Hay indicios de fraude interno?</button>
-  <button class="chat-suggest-btn" onclick="askSuggestion(this)">Que acciones recomiendas?</button>
- </div>
- <div class="chat-input-row">
-  <input type="text" id="chatInput" placeholder="Escribe tu pregunta al agente..." onkeydown="if(event.key==='Enter')sendChat()">
-  <button id="chatSendBtn" onclick="sendChat()">Enviar</button>
-  <button class="btn-clear" onclick="clearChat()" style="font-size:10px;padding:6px 10px" title="Limpiar conversacion">Limpiar</button>
- </div>
+
+<!-- ANALISIS DE RIESGOS -->
+<div class="analysis-box">
+ <h3>Resumen de Analisis de Anomalias y Riesgos</h3>
+ <button class="btn-export" onclick="exportSection('risks')" title="Exportar a Sheet">&#11015;</button>
+ <div class="analysis-content" id="analysisContent">Analizando datos...</div>
 </div>
+
+<!-- SEGUIMIENTO DE INCIDENCIAS -->
+<div class="incidencias-section">
+ <h3>Seguimiento de Incidencias</h3>
+ <button class="btn-export" onclick="exportSection('incidencias')" title="Exportar a Sheet">&#11015;</button>
+ <div class="inc-stats" id="incStats">
+  <div class="inc-stat"><div class="stat-val open" id="incAbiertas">0</div><div class="stat-lbl">Abiertas</div></div>
+  <div class="inc-stat"><div class="stat-val review" id="incEnRevision">0</div><div class="stat-lbl">En Revision</div></div>
+  <div class="inc-stat"><div class="stat-val closed" id="incCerradas">0</div><div class="stat-lbl">Cerradas</div></div>
+  <div class="inc-stat"><div class="stat-val overdue" id="incVencidas">0</div><div class="stat-lbl">Vencidas</div></div>
+ </div>
+ <div class="inc-filters">
+  <select id="incFiltroTipo" onchange="loadIncidencias()"><option value="">Todos los tipos</option><option value="Control">Control</option><option value="Proceso">Proceso</option><option value="Riesgo">Riesgo</option></select>
+  <select id="incFiltroSeveridad" onchange="loadIncidencias()"><option value="">Todas las severidades</option><option value="Alta">Alta</option><option value="Media">Media</option><option value="Baja">Baja</option></select>
+  <select id="incFiltroEstado" onchange="loadIncidencias()"><option value="">Todos los estados</option><option value="Abierta">Abierta</option><option value="En Revision">En Revision</option><option value="Cerrada">Cerrada</option></select>
+  <button style="background:#26c6da;color:#0a0f1a;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:bold" onclick="loadIncidencias()">Actualizar</button>
+ </div>
+ <div class="inc-table-wrap" id="incTableWrap"><p style="color:#90a4ae;text-align:center;padding:20px;font-size:12px">Cargando incidencias...</p></div>
+</div>
+
+<!-- TABLA DE DETALLE -->
 <div class="table-section">
  <h3>Detalle de Registros (A - DG)</h3>
+ <button class="btn-export" onclick="exportSection('table')" title="Exportar a Sheet">&#11015;</button>
  <div class="table-filters">
   <input type="text" id="tblSearchContrato" placeholder="Buscar por Contrato...">
   <input type="text" id="tblSearchFolio" placeholder="Buscar por Folio...">
@@ -160,12 +255,68 @@ table.data-table tr.has-incident { background:rgba(239,83,80,0.08); }
  </div>
  <div class="data-table-wrap" id="tableWrap"></div>
 </div>
+
 </div></div></div>
+
+<!-- MODAL: Registrar Incidencia -->
+<div class="modal-overlay" id="modalIncidencia">
+ <div class="modal">
+  <h2>Registrar Incidencia</h2>
+  <div class="modal-row">
+   <div class="modal-field"><label>Sucursal</label><select id="incSucursal"><option value="">Seleccionar...</option></select></div>
+   <div class="modal-field"><label>Tipo de Hallazgo</label><select id="incTipo"><option value="">Seleccionar...</option><option value="Control">Control</option><option value="Proceso">Proceso</option><option value="Riesgo">Riesgo</option></select></div>
+  </div>
+  <div class="modal-row">
+   <div class="modal-field"><label>Contrato</label><input type="text" id="incContrato" placeholder="Numero de contrato"></div>
+   <div class="modal-field"><label>Folio</label><input type="text" id="incFolio" placeholder="Numero de folio"></div>
+  </div>
+  <div class="modal-row">
+   <div class="modal-field"><label>Severidad</label><select id="incSeveridad"><option value="">Seleccionar...</option><option value="Alta">Alta</option><option value="Media">Media</option><option value="Baja">Baja</option></select></div>
+   <div class="modal-field"><label>Responsable</label><input type="text" id="incResponsable" placeholder="Nombre del responsable"></div>
+  </div>
+  <div class="modal-field"><label>Descripcion del hallazgo</label><textarea id="incDescripcion" placeholder="Describe la debilidad identificada en el control, proceso o riesgo..."></textarea></div>
+  <div class="modal-field"><label>Accion recomendada</label><textarea id="incAccion" placeholder="Accion correctiva o preventiva recomendada..."></textarea></div>
+  <div class="modal-field"><label>Fecha compromiso</label><input type="date" id="incFechaCompromiso"></div>
+  <div class="modal-actions">
+   <button class="btn-cancel" onclick="closeIncidenciaModal()">Cancelar</button>
+   <button class="btn-save" id="btnGuardarInc" onclick="guardarIncidencia()">Guardar Incidencia</button>
+  </div>
+ </div>
+</div>
+
+<!-- CHAT FLOTANTE -->
+<button class="chat-fab" id="chatFab" onclick="toggleChat()">&#129302;<span class="fab-badge" id="chatBadge">!</span></button>
+<div class="chat-popup" id="chatPopup">
+ <div class="chat-popup-header" id="chatDragHandle">
+  <h4>Agente de Analisis</h4>
+  <div class="chat-header-btns">
+   <button onclick="clearChat()" title="Limpiar">&#128465;</button>
+   <button onclick="toggleChat()" title="Cerrar">&#10005;</button>
+  </div>
+ </div>
+ <div class="chat-popup-body">
+  <div class="chat-messages" id="chatMessages"><div class="chat-msg system">Agente de analisis de fraude y riesgos operativos listo. Puedo analizar anomalias, incidencias por sucursal, patrones sospechosos y darte recomendaciones.</div></div>
+  <div class="chat-suggestions" id="chatSuggestions">
+   <button class="chat-suggest-btn" onclick="askSuggestion(this)">Sucursales con mayor riesgo?</button>
+   <button class="chat-suggest-btn" onclick="askSuggestion(this)">Anomalias de severidad alta</button>
+   <button class="chat-suggest-btn" onclick="askSuggestion(this)">Indicios de fraude interno?</button>
+   <button class="chat-suggest-btn" onclick="askSuggestion(this)">Acciones recomendadas</button>
+  </div>
+  <div class="chat-input-row">
+   <input type="text" id="chatInput" placeholder="Pregunta al agente..." onkeydown="if(event.key==='Enter')sendChat()">
+   <button class="chat-mic-btn" id="chatMicBtn" onclick="toggleVoice()" title="Entrada de voz">&#127908;</button>
+   <button id="chatSendBtn" onclick="sendChat()">Enviar</button>
+  </div>
+ </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
 google.charts.load('current',{packages:['corechart','gauge']});
 
-// ===== DATOS PRE-CARGADOS DESDE EL SERVIDOR =====
+// ===== DATOS PRE-CARGADOS =====
 var DB;
 try {
   DB = <?!= dashboardData ?>;
@@ -181,10 +332,18 @@ var TBL_TOTAL = 0;
 var TBL_HEADERS = DB.headers || [];
 var FILTERS_ACTIVE = false;
 var CHAT_BUSY = false;
+var INC_DATA = [];
 
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fmt$(n){return '$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtN(n){return Number(n||0).toLocaleString('es-MX');}
+
+function showToast(msg,isError){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast'+(isError?' error':'')+' active';
+  setTimeout(function(){t.className='toast';},3000);
+}
 
 // ===== INICIALIZACION =====
 google.charts.setOnLoadCallback(function(){
@@ -193,6 +352,7 @@ google.charts.setOnLoadCallback(function(){
   document.getElementById('loading').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('lastUpdate').textContent='Actualizado: '+(DB.lastUpdate||new Date().toLocaleString('es-MX'));
+  loadIncidencias();
 });
 
 function populateFilters(){
@@ -203,6 +363,10 @@ function populateFilters(){
     var vals=opts[map[selId]]||[];
     for(var i=0;i<vals.length;i++){var o=document.createElement('option');o.value=vals[i];o.textContent=vals[i];sel.appendChild(o);}
   }
+  // Populate incidencia modal sucursal dropdown
+  var incSuc=document.getElementById('incSucursal');
+  var sucVals=opts['sucursal2']||[];
+  for(var i=0;i<sucVals.length;i++){var o=document.createElement('option');o.value=sucVals[i];o.textContent=sucVals[i];incSuc.appendChild(o);}
 }
 
 // ===== FILTROS =====
@@ -247,7 +411,8 @@ function applyFilters(){
     requestTablePage(0);
   }).withFailureHandler(function(e){
     document.getElementById('filterOverlay').classList.remove('active');
-    alert('Error aplicando filtros: '+e.message);
+    var msg=e&&e.message?e.message:(typeof e==='string'?e:JSON.stringify(e));
+    alert('Error aplicando filtros: '+msg);
   }).getFilteredDashboard(JSON.stringify(getFilterValues()));
 }
 
@@ -279,6 +444,11 @@ function renderKPIs(kpis){
 // ===== GRAFICAS =====
 var chartOpts={backgroundColor:'transparent',animation:{startup:true,duration:500}};
 
+function getElSize(elId){
+  var el=document.getElementById(elId);
+  return {w:el.offsetWidth||800, h:el.offsetHeight||480};
+}
+
 function renderAllCharts(charts){
   if(!charts)return;
   renderBarChart('chart1',charts.topSucByCount,'Sucursal','Registros','#9c27b0');
@@ -295,80 +465,96 @@ function renderAllCharts(charts){
 
 function renderBarChart(elId,data,label1,label2,color,fmt){
   if(!data||!data.length){document.getElementById(elId).innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin datos</p>';return;}
+  var sz=getElSize(elId);
   var dt=new google.visualization.DataTable();
   dt.addColumn('string',label1);dt.addColumn('number',label2);
   data.forEach(function(a){dt.addRow(['Suc '+a[0],typeof a[1]==='number'?Math.round(a[1]):a[1]]);});
   new google.visualization.ColumnChart(document.getElementById(elId)).draw(dt,Object.assign({},chartOpts,{
-    chartArea:{width:'85%',height:'75%'},legend:'none',hAxis:{textStyle:{color:'#90a4ae'},slantedText:true},
+    width:sz.w,height:sz.h,
+    chartArea:{left:60,top:20,width:sz.w-80,height:sz.h-80},legend:'none',hAxis:{textStyle:{color:'#90a4ae',fontSize:11},slantedText:true,slantedTextAngle:45},
     vAxis:{textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'},format:fmt||''},colors:[color]
   }));
 }
 
 function renderPieChart(elId,data,label1,label2,colors){
   if(!data){document.getElementById(elId).innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin datos</p>';return;}
+  var sz=getElSize(elId);
   var dt=new google.visualization.DataTable();
   dt.addColumn('string',label1);dt.addColumn('number',label2);
   for(var k in data)dt.addRow([k,data[k]]);
   new google.visualization.PieChart(document.getElementById(elId)).draw(dt,Object.assign({},chartOpts,{
-    chartArea:{width:'90%',height:'85%'},legend:{position:'right',textStyle:{color:'#90a4ae',fontSize:11}},colors:colors,pieHole:0.4
+    width:sz.w,height:sz.h,
+    chartArea:{left:10,top:10,width:sz.w-20,height:sz.h-20},legend:{position:'right',textStyle:{color:'#90a4ae',fontSize:12}},colors:colors,pieHole:0.4
   }));
 }
 
 function renderIncidenceChart(data){
   if(!data||!data.length){document.getElementById('chart5').innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin incidencias</p>';return;}
+  var sz=getElSize('chart5');
   var dt=new google.visualization.DataTable();
   dt.addColumn('string','Tipo');dt.addColumn('number','Cantidad');
   data.forEach(function(a){dt.addRow(a);});
+  var leftMargin=Math.round(sz.w*0.32);
   new google.visualization.BarChart(document.getElementById('chart5')).draw(dt,Object.assign({},chartOpts,{
-    chartArea:{width:'55%',height:'80%'},legend:'none',hAxis:{textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'}},
-    vAxis:{textStyle:{color:'#90a4ae',fontSize:10}},colors:['#ef5350']
+    width:sz.w,height:sz.h,
+    chartArea:{left:leftMargin,top:20,width:sz.w-leftMargin-30,height:sz.h-50},legend:'none',hAxis:{textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'}},
+    vAxis:{textStyle:{color:'#90a4ae',fontSize:11}},colors:['#ef5350']
   }));
 }
 
 function renderGauge(tasa){
+  var sz=getElSize('chart6');
   var dt=new google.visualization.DataTable();
   dt.addColumn('string','Label');dt.addColumn('number','Value');
   var val=Math.round((tasa||0)*10)/10;
   dt.addRow(['Riesgo',val]);
   var mx=Math.max(50,Math.ceil(val/10)*10);
+  var gSize=Math.min(sz.w,sz.h);
   new google.visualization.Gauge(document.getElementById('chart6')).draw(dt,{
-    width:350,height:300,redFrom:mx*0.6,redTo:mx,yellowFrom:mx*0.3,yellowTo:mx*0.6,greenFrom:0,greenTo:mx*0.3,minorTicks:5,max:mx
+    width:gSize,height:gSize,redFrom:mx*0.6,redTo:mx,yellowFrom:mx*0.3,yellowTo:mx*0.6,greenFrom:0,greenTo:mx*0.3,minorTicks:5,max:mx
   });
 }
 
 function renderTasaChart(data){
   if(!data||!data.length){document.getElementById('chart7').innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin datos</p>';return;}
+  var sz=getElSize('chart7');
   var dt=new google.visualization.DataTable();
   dt.addColumn('string','Sucursal');dt.addColumn('number','Tasa %');dt.addColumn({type:'string',role:'tooltip'});
   data.forEach(function(a){dt.addRow(['Suc '+a.suc,Math.round(a.tasa*10)/10,'Suc '+a.suc+': '+a.tasa.toFixed(1)+'% ('+a.inc+'/'+a.total+')']);});
   new google.visualization.ColumnChart(document.getElementById('chart7')).draw(dt,Object.assign({},chartOpts,{
-    chartArea:{width:'90%',height:'70%'},legend:'none',hAxis:{textStyle:{color:'#90a4ae'},slantedText:true},
+    width:sz.w,height:sz.h,
+    chartArea:{left:50,top:20,width:sz.w-70,height:sz.h-80},legend:'none',hAxis:{textStyle:{color:'#90a4ae',fontSize:11},slantedText:true,slantedTextAngle:45},
     vAxis:{textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'},title:'Tasa %',titleTextStyle:{color:'#90a4ae'}},colors:['#ff5722']
   }));
 }
 
 function renderFlagChart(data){
   if(!data||!data.length){document.getElementById('chart9').innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin banderas activas</p>';return;}
+  var sz=getElSize('chart9');
   var dt=new google.visualization.DataTable();
   dt.addColumn('string','Bandera');dt.addColumn('number','Cantidad');
   data.forEach(function(a){dt.addRow(a);});
+  var leftMargin=Math.round(sz.w*0.38);
   new google.visualization.BarChart(document.getElementById('chart9')).draw(dt,Object.assign({},chartOpts,{
-    chartArea:{width:'50%',height:'80%'},legend:'none',hAxis:{textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'}},
-    vAxis:{textStyle:{color:'#90a4ae',fontSize:9}},colors:['#ff9800']
+    width:sz.w,height:sz.h,
+    chartArea:{left:leftMargin,top:20,width:sz.w-leftMargin-30,height:sz.h-50},legend:'none',hAxis:{textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'}},
+    vAxis:{textStyle:{color:'#90a4ae',fontSize:11}},colors:['#ff9800']
   }));
 }
 
 function renderBubbleChart(data){
   if(!data||!data.length){document.getElementById('chart10').innerHTML='<p style="color:#90a4ae;text-align:center;padding:40px">Sin datos</p>';return;}
+  var sz=getElSize('chart10');
   var dt=new google.visualization.DataTable();
   dt.addColumn('string','Sucursal');dt.addColumn('number','Tasa Riesgo');dt.addColumn('number','Total Registros');
   dt.addColumn('number','Monto');dt.addColumn('number','Incidencias');
   data.forEach(function(a){dt.addRow(['Suc '+a.suc,Math.round(a.tasa*10)/10,a.reg,Math.round(a.monto),a.inc]);});
   new google.visualization.BubbleChart(document.getElementById('chart10')).draw(dt,Object.assign({},chartOpts,{
-    chartArea:{width:'80%',height:'75%'},
+    width:sz.w,height:sz.h,
+    chartArea:{left:70,top:20,width:sz.w-100,height:sz.h-70},
     hAxis:{title:'Tasa de Riesgo %',textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'},titleTextStyle:{color:'#90a4ae'}},
     vAxis:{title:'Total Registros',textStyle:{color:'#90a4ae'},gridlines:{color:'#1e293b'},titleTextStyle:{color:'#90a4ae'}},
-    bubble:{textStyle:{color:'#e0e0e0',fontSize:10}},colorAxis:{colors:['#4caf50','#ff9800','#f44336']}
+    bubble:{textStyle:{color:'#e0e0e0',fontSize:11}},colorAxis:{colors:['#4caf50','#ff9800','#f44336']}
   }));
 }
 
@@ -417,7 +603,6 @@ function renderTableFromData(tp){
   html+='</tr></thead><tbody>';
   (tp.rows||[]).forEach(function(r){
     var hasInc=false;
-    // Try to find COUNT column
     for(var ci=0;ci<h.length;ci++){if(h[ci]==='COUNT'&&parseInt(r[ci])>0){hasInc=true;break;}}
     html+='<tr'+(hasInc?' class="has-incident"':'')+'>';
     for(var i=0;i<r.length;i++){
@@ -455,16 +640,51 @@ function tablePage(dir){
   requestTablePage(TBL_PAGE);
 }
 
-function searchTable(){
-  TBL_PAGE=0;
-  requestTablePage(0);
-}
+function searchTable(){TBL_PAGE=0;requestTablePage(0);}
 
-// Render first table page from pre-computed data
 renderTableFromData(DB.tablePage);
 
-// ===== CHAT =====
+var resizeTimer;
+window.addEventListener('resize',function(){
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(function(){renderAllCharts(CURRENT_DATA.charts);},300);
+});
+
+// ===== CHAT FLOTANTE =====
 var CHAT_HISTORY = [];
+var CHAT_OPEN = false;
+
+function toggleChat(){
+  CHAT_OPEN=!CHAT_OPEN;
+  document.getElementById('chatPopup').classList.toggle('active',CHAT_OPEN);
+  if(CHAT_OPEN){
+    document.getElementById('chatBadge').style.display='none';
+    document.getElementById('chatInput').focus();
+  }
+}
+
+// Draggable chat
+(function(){
+  var popup=document.getElementById('chatPopup');
+  var handle=document.getElementById('chatDragHandle');
+  var dragging=false,ox=0,oy=0,sx=0,sy=0;
+  handle.addEventListener('mousedown',function(e){
+    dragging=true;
+    var rect=popup.getBoundingClientRect();
+    ox=e.clientX-rect.left;oy=e.clientY-rect.top;
+    popup.style.transition='none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!dragging)return;
+    var x=e.clientX-ox,y=e.clientY-oy;
+    x=Math.max(0,Math.min(x,window.innerWidth-popup.offsetWidth));
+    y=Math.max(0,Math.min(y,window.innerHeight-popup.offsetHeight));
+    popup.style.left=x+'px';popup.style.top=y+'px';
+    popup.style.right='auto';popup.style.bottom='auto';
+  });
+  document.addEventListener('mouseup',function(){dragging=false;popup.style.transition='';});
+})();
 
 function getAnalysisContext(){
   var k=CURRENT_DATA.kpis||{};
@@ -536,6 +756,7 @@ function sendChat(){
       CHAT_HISTORY.push({role:'user',text:msg});
       CHAT_HISTORY.push({role:'model',text:resp.reply});
       msgDiv.insertAdjacentHTML('beforeend','<div class="chat-msg bot">'+formatBotReply(resp.reply)+'</div>');
+      if(!CHAT_OPEN){document.getElementById('chatBadge').style.display='flex';}
     } else if(resp.error){
       msgDiv.insertAdjacentHTML('beforeend','<div class="chat-msg error">Error: '+esc(resp.error)+'</div>');
     }
@@ -547,6 +768,232 @@ function sendChat(){
     CHAT_BUSY=false;
     msgDiv.scrollTop=msgDiv.scrollHeight;document.getElementById('chatSendBtn').disabled=false;
   }).chatWithGemini(msg,context,historyToSend);
+}
+
+// ===== VOZ (Web Speech API) =====
+var VOICE_RECOGNITION=null;
+var VOICE_ACTIVE=false;
+function toggleVoice(){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    showToast('Tu navegador no soporta entrada de voz. Usa Chrome o Edge.','error');return;
+  }
+  if(VOICE_ACTIVE){stopVoice();return;}
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  VOICE_RECOGNITION=new SR();
+  VOICE_RECOGNITION.lang='es-MX';
+  VOICE_RECOGNITION.interimResults=true;
+  VOICE_RECOGNITION.continuous=false;
+  var input=document.getElementById('chatInput');
+  var btn=document.getElementById('chatMicBtn');
+  var finalTranscript='';
+  VOICE_RECOGNITION.onstart=function(){VOICE_ACTIVE=true;btn.classList.add('recording');input.placeholder='Escuchando...';};
+  VOICE_RECOGNITION.onresult=function(e){
+    var interim='';
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal){finalTranscript+=e.results[i][0].transcript;}
+      else{interim+=e.results[i][0].transcript;}
+    }
+    input.value=finalTranscript+interim;
+  };
+  VOICE_RECOGNITION.onend=function(){
+    VOICE_ACTIVE=false;btn.classList.remove('recording');input.placeholder='Pregunta al agente...';
+    if(finalTranscript.trim()){input.value=finalTranscript.trim();sendChat();}
+  };
+  VOICE_RECOGNITION.onerror=function(e){
+    VOICE_ACTIVE=false;btn.classList.remove('recording');input.placeholder='Pregunta al agente...';
+    if(e.error!=='no-speech'&&e.error!=='aborted')showToast('Error de voz: '+e.error,'error');
+  };
+  VOICE_RECOGNITION.start();
+}
+function stopVoice(){
+  if(VOICE_RECOGNITION){VOICE_RECOGNITION.stop();}
+  VOICE_ACTIVE=false;
+  document.getElementById('chatMicBtn').classList.remove('recording');
+  document.getElementById('chatInput').placeholder='Pregunta al agente...';
+}
+
+// ===== SISTEMA DE INCIDENCIAS =====
+function openIncidenciaModal(){
+  document.getElementById('modalIncidencia').classList.add('active');
+}
+
+function closeIncidenciaModal(){
+  document.getElementById('modalIncidencia').classList.remove('active');
+  // Reset form
+  ['incSucursal','incTipo','incContrato','incFolio','incSeveridad','incResponsable','incDescripcion','incAccion','incFechaCompromiso'].forEach(function(id){
+    document.getElementById(id).value='';
+  });
+}
+
+function guardarIncidencia(){
+  var data={
+    sucursal:document.getElementById('incSucursal').value,
+    tipoHallazgo:document.getElementById('incTipo').value,
+    contrato:document.getElementById('incContrato').value,
+    folio:document.getElementById('incFolio').value,
+    severidad:document.getElementById('incSeveridad').value,
+    responsable:document.getElementById('incResponsable').value,
+    descripcion:document.getElementById('incDescripcion').value,
+    accionRecomendada:document.getElementById('incAccion').value,
+    fechaCompromiso:document.getElementById('incFechaCompromiso').value
+  };
+
+  if(!data.tipoHallazgo||!data.severidad||!data.descripcion){
+    showToast('Completa los campos obligatorios: Tipo, Severidad y Descripcion',true);
+    return;
+  }
+
+  document.getElementById('btnGuardarInc').disabled=true;
+  document.getElementById('btnGuardarInc').textContent='Guardando...';
+
+  google.script.run.withSuccessHandler(function(json){
+    var resp=JSON.parse(json);
+    document.getElementById('btnGuardarInc').disabled=false;
+    document.getElementById('btnGuardarInc').textContent='Guardar Incidencia';
+    if(resp.success){
+      showToast('Incidencia '+resp.id+' registrada exitosamente');
+      closeIncidenciaModal();
+      loadIncidencias();
+    } else {
+      showToast('Error: '+(resp.error||'desconocido'),true);
+    }
+  }).withFailureHandler(function(e){
+    document.getElementById('btnGuardarInc').disabled=false;
+    document.getElementById('btnGuardarInc').textContent='Guardar Incidencia';
+    showToast('Error: '+e.message,true);
+  }).registrarIncidencia(JSON.stringify(data));
+}
+
+function loadIncidencias(){
+  var filtros={
+    tipo:document.getElementById('incFiltroTipo').value,
+    severidad:document.getElementById('incFiltroSeveridad').value,
+    estado:document.getElementById('incFiltroEstado').value
+  };
+
+  google.script.run.withSuccessHandler(function(json){
+    var resp=JSON.parse(json);
+    if(resp.error){document.getElementById('incTableWrap').innerHTML='<p style="color:#ef5350;padding:10px">Error: '+esc(resp.error)+'</p>';return;}
+    INC_DATA=resp.incidencias||[];
+    var stats=resp.stats||{};
+    document.getElementById('incAbiertas').textContent=stats.abiertas||0;
+    document.getElementById('incEnRevision').textContent=stats.enRevision||0;
+    document.getElementById('incCerradas').textContent=stats.cerradas||0;
+    document.getElementById('incVencidas').textContent=stats.vencidas||0;
+    renderIncidenciasTable(INC_DATA);
+  }).withFailureHandler(function(e){
+    document.getElementById('incTableWrap').innerHTML='<p style="color:#ef5350;padding:10px">Error: '+esc(e.message)+'</p>';
+  }).getIncidencias(JSON.stringify(filtros));
+}
+
+function renderIncidenciasTable(data){
+  if(!data||data.length===0){
+    document.getElementById('incTableWrap').innerHTML='<p style="color:#90a4ae;text-align:center;padding:20px;font-size:12px">No hay incidencias registradas.</p>';
+    return;
+  }
+  var html='<table class="inc-table"><thead><tr><th>ID</th><th>Fecha</th><th>Sucursal</th><th>Tipo</th><th>Severidad</th><th>Descripcion</th><th>Responsable</th><th>Compromiso</th><th>Estado</th><th>Accion</th></tr></thead><tbody>';
+  data.forEach(function(inc){
+    var estadoCls=inc.estado==='Abierta'?'abierta':(inc.estado==='En Revision'?'en-revision':'cerrada');
+    var sevColor=inc.severidad==='Alta'?'#ef5350':(inc.severidad==='Media'?'#ff9800':'#4caf50');
+    html+='<tr>';
+    html+='<td style="color:#4fc3f7;font-weight:bold">'+esc(inc.id)+'</td>';
+    html+='<td>'+esc(inc.fecha)+'</td>';
+    html+='<td>'+esc(inc.sucursal)+'</td>';
+    html+='<td>'+esc(inc.tipoHallazgo)+'</td>';
+    html+='<td style="color:'+sevColor+';font-weight:bold">'+esc(inc.severidad)+'</td>';
+    html+='<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="'+esc(inc.descripcion)+'">'+esc(inc.descripcion)+'</td>';
+    html+='<td>'+esc(inc.responsable)+'</td>';
+    html+='<td>'+esc(inc.fechaCompromiso)+'</td>';
+    html+='<td><span class="badge-estado '+estadoCls+'">'+esc(inc.estado)+'</span></td>';
+    html+='<td>';
+    if(inc.estado==='Abierta')html+='<button class="btn-estado" onclick="cambiarEstado('+inc.rowIndex+',\'En Revision\')">Revisar</button>';
+    else if(inc.estado==='En Revision')html+='<button class="btn-estado" onclick="cambiarEstado('+inc.rowIndex+',\'Cerrada\')">Cerrar</button>';
+    else html+='<span style="color:#4caf50;font-size:10px">Finalizada</span>';
+    html+='</td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('incTableWrap').innerHTML=html;
+}
+
+function cambiarEstado(rowIndex,nuevoEstado){
+  google.script.run.withSuccessHandler(function(json){
+    var resp=JSON.parse(json);
+    if(resp.success){
+      showToast('Estado actualizado a: '+nuevoEstado);
+      loadIncidencias();
+    } else {
+      showToast('Error: '+(resp.error||'desconocido'),true);
+    }
+  }).withFailureHandler(function(e){
+    showToast('Error: '+e.message,true);
+  }).updateIncidenciaEstado(rowIndex,nuevoEstado);
+}
+
+// ===== EXPORTACION DE SECCIONES =====
+function exportSection(sectionId){
+  var data=buildExportData(sectionId);
+  if(!data){showToast('Sin datos para exportar',true);return;}
+
+  showToast('Generando reporte...');
+
+  google.script.run.withSuccessHandler(function(json){
+    var resp=JSON.parse(json);
+    if(resp.success&&resp.url){
+      showToast('Reporte generado exitosamente');
+      window.open(resp.url,'_blank');
+    } else {
+      showToast('Error: '+(resp.error||'desconocido'),true);
+    }
+  }).withFailureHandler(function(e){
+    showToast('Error: '+e.message,true);
+  }).exportSectionToSheet(sectionId,JSON.stringify(data));
+}
+
+function buildExportData(sectionId){
+  var d=CURRENT_DATA;var k=d.kpis||{};var c=d.charts||{};
+
+  switch(sectionId){
+    case 'kpis':
+      return{title:'KPIs',headers:['Indicador','Valor'],rows:[
+        ['Total Registros',k.totalReg||0],['Monto Total',k.totalMonto||0],
+        ['Con Incidencias',k.totalInc||0],['Tasa Incidencia (%)',(k.tasaInc||0).toFixed(1)],
+        ['Monto Promedio',k.montoPromedio||0],['Sucursales',k.sucursalesCount||0],
+        ['Monto en Riesgo',k.montoInc||0]
+      ]};
+    case 'chart1':
+      return{title:'Registros por Sucursal',headers:['Sucursal','Registros'],rows:(c.topSucByCount||[]).map(function(a){return[a[0],a[1]];})};
+    case 'chart2':
+      return{title:'Monto por Sucursal',headers:['Sucursal','Monto'],rows:(c.topSucByMonto||[]).map(function(a){return[a[0],a[1]];})};
+    case 'chart3':
+      if(!c.montoRanges)return null;
+      var rows3=[];for(var k3 in c.montoRanges)rows3.push([k3,c.montoRanges[k3]]);
+      return{title:'Distribucion por Monto',headers:['Rango','Cantidad'],rows:rows3};
+    case 'chart4':
+      if(!c.edadRanges)return null;
+      var rows4=[];for(var k4 in c.edadRanges)rows4.push([k4,c.edadRanges[k4]]);
+      return{title:'Distribucion por Edad',headers:['Rango Edad','Cantidad'],rows:rows4};
+    case 'chart5':
+      return{title:'Tipos de Incidencia',headers:['Tipo','Cantidad'],rows:(c.incidenceTypes||[])};
+    case 'chart6':
+      return{title:'Indicador de Riesgo',headers:['Indicador','Valor'],rows:[['Tasa de Riesgo Global (%)',(c.tasaRiesgo||0).toFixed(1)]]};
+    case 'chart7':
+      return{title:'Tasa Incidencia por Sucursal',headers:['Sucursal','Tasa %','Incidencias','Total'],rows:(c.topSucByTasa||[]).map(function(a){return[a.suc,a.tasa.toFixed(1),a.inc,a.total];})};
+    case 'chart8':
+      return{title:'Promedio Monto por Sucursal',headers:['Sucursal','Promedio'],rows:(c.topSucByPromedio||[]).map(function(a){return[a[0],a[1]];})};
+    case 'chart9':
+      return{title:'Banderas de Riesgo',headers:['Bandera','Cantidad'],rows:(c.flagCounts||[])};
+    case 'chart10':
+      return{title:'Top Sucursales por Riesgo',headers:['Sucursal','Tasa %','Registros','Incidencias','Monto'],rows:(c.topSucByRiesgo||[]).map(function(a){return[a.suc,a.tasa.toFixed(1),a.reg,a.inc,a.monto];})};
+    case 'risks':
+      var riskRows=(d.risks||[]).map(function(r){return[r.level.toUpperCase(),r.title,r.desc,r.count||0];});
+      return{title:'Analisis de Riesgos',headers:['Severidad','Titulo','Descripcion','Casos'],rows:riskRows};
+    case 'incidencias':
+      var incRows=INC_DATA.map(function(i){return[i.id,i.fecha,i.sucursal,i.contrato,i.folio,i.tipoHallazgo,i.severidad,i.descripcion,i.accionRecomendada,i.responsable,i.fechaCompromiso,i.estado];});
+      return{title:'Seguimiento de Incidencias',headers:['ID','Fecha','Sucursal','Contrato','Folio','Tipo','Severidad','Descripcion','Accion','Responsable','Compromiso','Estado'],rows:incRows};
+    case 'table':
+      return{title:'Detalle de Registros',headers:TBL_HEADERS,rows:(DB.tablePage||{}).rows||[]};
+    default:return null;
+  }
 }
 </script>
 </body>
