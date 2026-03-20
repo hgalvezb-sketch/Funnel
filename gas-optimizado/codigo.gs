@@ -15,6 +15,7 @@ var CONFIG = {
   SLIM_SHEET: '_dashboard_slim',
   INCIDENCIAS_SHEET: '_incidencias',
   AUTH_SHEET: '_usuarios_autorizados',
+  HIST_SHEET: '_historico',
   DATA_RANGE_END: 'DG',
   FLAG_RANGE: 'CR1:DD1',
   TRIGGER_MINUTES: 10,
@@ -28,6 +29,14 @@ var AUTH_HEADERS = ['Email', 'Rol', 'Activo'];
 var SLIM_COL_NAMES = [
   'sucursal2','contrato','folio','tipo_dispo','estatus_destino',
   'A1','CALIFICACION','empresa','total_disposicion','COUNT','Edad'
+];
+
+var HISTORICO_HEADERS = [
+  'fecha','totalReg','totalMonto','totalInc','tasaInc','montoInc','sucursalesCount',
+  'capitalInsoluto','saldoVencido',
+  'flagFueraHorario','flagMismodia','flagForaneas','flagTelRepetido','flagTelColab',
+  'flagContratosRapidos','flagPagoSpei','flagMontoDup','flagDisp24k','flagCalif5',
+  'flagDias120','flagReversados','flagHighMonto'
 ];
 
 var INCIDENCIA_HEADERS = [
@@ -241,11 +250,45 @@ function precomputeAll() {
   var firstPageRows=[];var pageLimit=Math.min(CONFIG.TABLE_PAGE_SIZE,allData.length);
   for(var i=0;i<pageLimit;i++){var row=[];for(var j=0;j<headers.length;j++){var val=allData[i][j];if(val instanceof Date)val=Utilities.formatDate(val,tz,'dd/MM/yyyy HH:mm:ss');row.push(val);}firstPageRows.push(row);}
 
+  // === EXECUTIVE DATA (new tabs) ===
+  var executive = computeExecutiveData_(allData, COL, rc, sucTotal, sucCount, flagColNames, flagStartIdx);
+
+  // === HISTORIC SNAPSHOT ===
+  var histRow = [
+    new Date(), allData.length, totalMonto, totalInc,
+    allData.length > 0 ? (totalInc / allData.length * 100) : 0,
+    montoInc, Object.keys(sucSet).length,
+    executive.financial.capitalInsoluto, executive.financial.saldoVencido,
+    rc.fueraHorario, rc.mismodia, rc.foraneas, rc.telRepetido, rc.telColab,
+    rc.contratosRapidos, rc.pagoSpei, rc.montoDup, rc.disp24k, rc.calif5,
+    rc.dias120, rc.reversados, rc.highMonto
+  ];
+  saveHistoricSnapshot_(histRow);
+
+  // === HISTORIC COMPARISON (vs yesterday) ===
+  var vsAyer = { regDiff: 0, montoDiff: 0, incDiff: 0, tasaDiff: 0 };
+  try {
+    var histSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.HIST_SHEET);
+    if (histSheet && histSheet.getLastRow() >= 3) {
+      var histData = histSheet.getRange(2, 1, histSheet.getLastRow() - 1, 5).getValues();
+      histData.sort(function(a, b) { return new Date(b[0]) - new Date(a[0]); });
+      if (histData.length >= 2) {
+        var ayer = histData[1];
+        vsAyer.regDiff = allData.length - (ayer[1] || 0);
+        vsAyer.montoDiff = totalMonto - (ayer[2] || 0);
+        vsAyer.incDiff = totalInc - (ayer[3] || 0);
+        vsAyer.tasaDiff = (allData.length > 0 ? totalInc / allData.length * 100 : 0) - (ayer[4] || 0);
+      }
+    }
+  } catch(e) { /* no historic yet, ignore */ }
+  executive.vsAyer = vsAyer;
+
   var result={
     kpis:{totalReg:allData.length,totalMonto:totalMonto,totalInc:totalInc,tasaInc:allData.length>0?(totalInc/allData.length*100):0,montoPromedio:allData.length>0?(totalMonto/allData.length):0,montoInc:montoInc,sucursalesCount:Object.keys(sucSet).length},
     charts:charts,risks:risks,filterOptions:filterOptions,headers:headers,flagNames:flagColNames,
     tablePage:{rows:firstPageRows,total:allData.length,page:0},
-    lastUpdate:new Date().toLocaleString('es-MX')
+    lastUpdate:new Date().toLocaleString('es-MX'),
+    executive:executive
   };
   var json=JSON.stringify(result).replace(/<\//g,'<\\/');
   saveToCacheSheet_(ss,json);
@@ -754,6 +797,220 @@ function removeAuthorizedUser(rowIndex) {
   var sh = ensureAuthSheet_();
   sh.getRange(rowIndex, 3).setValue('NO');
   return JSON.stringify({ success: true });
+}
+
+// ================================================================
+// DATOS EJECUTIVOS (tabs nuevos)
+// ================================================================
+
+function computeExecutiveData_(allData, COL, rc, sucTotal, sucCount, flagColNames, flagStartIdx) {
+  var totalReg = allData.length;
+
+  // --- Financial KPIs ---
+  var capitalInsoluto = 0, saldoVencido = 0, diasVencidosSum = 0, diasVencidosCount = 0;
+  var dispEfectivo = 0, dispCheque = 0, montoEfectivo = 0, montoCheque = 0;
+  var montoConFlags = 0, montoSinFlags = 0, totalReversados = 0;
+  var calificacionDist = {};
+  var diasVencidosDist = {'0':0,'1-30':0,'31-60':0,'61-90':0,'91-120':0,'>120':0};
+
+  for (var i = 0; i < allData.length; i++) {
+    var r = allData[i];
+    var monto = parseFloat(String(r[COL['total_disposicion']]).replace(/[^0-9.\-]/g, '')) || 0;
+    var cnt = parseInt(r[COL['COUNT']]) || 0;
+
+    // Capital insoluto & saldo vencido
+    var ci = parseFloat(r[COL['capital_insoluto']]) || 0;
+    var sv = parseFloat(r[COL['saldo_vencido']]) || 0;
+    capitalInsoluto += ci;
+    saldoVencido += sv;
+
+    // Dias vencidos
+    var dv = parseInt(r[COL['dias_vencidos']]) || 0;
+    if (dv > 0) { diasVencidosSum += dv; diasVencidosCount++; }
+    if (dv === 0) diasVencidosDist['0']++;
+    else if (dv <= 30) diasVencidosDist['1-30']++;
+    else if (dv <= 60) diasVencidosDist['31-60']++;
+    else if (dv <= 90) diasVencidosDist['61-90']++;
+    else if (dv <= 120) diasVencidosDist['91-120']++;
+    else diasVencidosDist['>120']++;
+
+    // Tipo dispersion
+    var tipo = String(r[COL['tipo_dispersion']] || '').toLowerCase();
+    if (tipo.indexOf('cheque') >= 0) { dispCheque++; montoCheque += monto; }
+    else { dispEfectivo++; montoEfectivo += monto; }
+
+    // Monto con/sin flags
+    if (cnt > 0) montoConFlags += monto;
+    else montoSinFlags += monto;
+
+    // Calificacion distribucion
+    var calif = String(r[COL['CALIFICACION']] || 'N/D').trim();
+    if (!calif || calif === '0' || calif === 'undefined') calif = 'N/D';
+    calificacionDist[calif] = (calificacionDist[calif] || 0) + 1;
+  }
+
+  totalReversados = rc.reversados || 0;
+
+  // --- Risk Score per sucursal ---
+  var sucFlags = {};
+  for (var i = 0; i < allData.length; i++) {
+    var r = allData[i];
+    var suc = String(r[COL['sucursal2']] || '').trim();
+    if (!suc) continue;
+    if (!sucFlags[suc]) sucFlags[suc] = { alta: 0, media: 0, baja: 0, total: 0, flagDetail: {} };
+    sucFlags[suc].total++;
+    var monto = parseFloat(String(r[COL['total_disposicion']]).replace(/[^0-9.\-]/g, '')) || 0;
+    if (monto > 25000) { sucFlags[suc].baja++; sucFlags[suc].flagDetail['highMonto'] = (sucFlags[suc].flagDetail['highMonto'] || 0) + 1; }
+
+    for (var fi = 0; fi < flagColNames.length; fi++) {
+      var fIdx = flagStartIdx + fi;
+      if (fIdx < r.length) {
+        var fv = String(r[fIdx]).toUpperCase().trim();
+        if (fv === 'SI' || fv === 'YES' || fv === 'TRUE' || fv === '1') {
+          var fn = flagColNames[fi];
+          var fnL = fn.toLowerCase();
+          sucFlags[suc].flagDetail[fn] = (sucFlags[suc].flagDetail[fn] || 0) + 1;
+
+          // Classify severity
+          if (fnL.indexOf('fuera') >= 0 && fnL.indexOf('horario') >= 0) sucFlags[suc].alta++;
+          else if (fnL.indexOf('+1') >= 0 && fnL.indexOf('mismo') >= 0) sucFlags[suc].alta++;
+          else if (fnL.indexOf('tel') >= 0 && fnL.indexOf('repetido') >= 0) sucFlags[suc].alta++;
+          else if (fnL.indexOf('tel') >= 0 && fnL.indexOf('colaborador') >= 0) sucFlags[suc].alta++;
+          else if (fnL.indexOf('contrato') >= 0 && fnL.indexOf('3 min') >= 0) sucFlags[suc].alta++;
+          else if (fnL.indexOf('pago') >= 0 && fnL.indexOf('spei') >= 0) sucFlags[suc].alta++;
+          else if (fnL.indexOf('foran') >= 0) sucFlags[suc].media++;
+          else if (fnL.indexOf('monto') >= 0 && fnL.indexOf('duplicado') >= 0) sucFlags[suc].media++;
+          else if (fnL.indexOf('disposicion') >= 0 && fnL.indexOf('24') >= 0) sucFlags[suc].media++;
+          else if (fnL.indexOf('reversado') >= 0) sucFlags[suc].media++;
+          else if (fnL.indexOf('120') >= 0) sucFlags[suc].media++;
+          else if (fnL.indexOf('calificacion') >= 0 || fnL.indexOf('calif') >= 0) sucFlags[suc].baja++;
+        }
+      }
+    }
+  }
+
+  var sucRiskScores = [];
+  for (var s in sucFlags) {
+    var sf = sucFlags[s];
+    if (sf.total < 1) continue;
+    var score = (sf.alta * 3 + sf.media * 2 + sf.baja * 1) / sf.total * 100;
+    sucRiskScores.push({
+      suc: s, score: Math.round(score * 10) / 10, alta: sf.alta, media: sf.media, baja: sf.baja,
+      totalReg: sf.total, totalFlags: sf.alta + sf.media + sf.baja, flagDetail: sf.flagDetail
+    });
+  }
+  sucRiskScores.sort(function(a, b) { return b.score - a.score; });
+
+  // --- Headline ---
+  var sucConInc = 0;
+  for (var s in sucTotal) { if (sucTotal[s].i > 0) sucConInc++; }
+  var alertasCriticas = rc.fueraHorario + rc.mismodia + rc.telRepetido + rc.telColab + rc.contratosRapidos + rc.pagoSpei;
+  var headline = 'Hoy: ' + (rc.fueraHorario + rc.mismodia + rc.foraneas + rc.telRepetido + rc.telColab + rc.contratosRapidos + rc.pagoSpei + rc.montoDup + rc.disp24k + rc.calif5 + rc.dias120 + rc.reversados + rc.highMonto) + ' alertas en ' + sucConInc + ' sucursales';
+  if (alertasCriticas > 0) headline += ' — ' + alertasCriticas + ' criticas';
+
+  return {
+    sucRiskScores: sucRiskScores,
+    financial: {
+      capitalInsoluto: capitalInsoluto,
+      saldoVencido: saldoVencido,
+      diasAtrasoProm: diasVencidosCount > 0 ? Math.round(diasVencidosSum / diasVencidosCount) : 0,
+      tasaReversion: totalReg > 0 ? (totalReversados / totalReg * 100) : 0,
+      montoConFlags: montoConFlags,
+      montoSinFlags: montoSinFlags,
+      dispEfectivo: dispEfectivo,
+      dispCheque: dispCheque,
+      montoEfectivo: montoEfectivo,
+      montoCheque: montoCheque
+    },
+    calificacionDist: calificacionDist,
+    diasVencidosDist: diasVencidosDist,
+    headline: headline,
+    alertasCriticas: alertasCriticas,
+    sucConInc: sucConInc
+  };
+}
+
+// ================================================================
+// HISTORICO (snapshots diarios, rolling 60 dias)
+// ================================================================
+
+function ensureHistSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(CONFIG.HIST_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(CONFIG.HIST_SHEET);
+    sh.getRange(1, 1, 1, HISTORICO_HEADERS.length).setValues([HISTORICO_HEADERS]);
+    sh.setFrozenRows(1);
+    sh.getRange('1:1').setFontWeight('bold').setBackground('#1a73e8').setFontColor('#ffffff');
+    sh.hideSheet();
+  }
+  return sh;
+}
+
+function saveHistoricSnapshot_(snapshot) {
+  var sh = ensureHistSheet_();
+  var tz = Session.getScriptTimeZone();
+  var today = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  var lastRow = sh.getLastRow();
+
+  // Check if today already has a snapshot — update it instead of adding
+  if (lastRow >= 2) {
+    var dates = sh.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < dates.length; i++) {
+      var d = dates[i][0];
+      if (d instanceof Date) d = Utilities.formatDate(d, tz, 'yyyy-MM-dd');
+      if (String(d) === today) {
+        sh.getRange(i + 2, 1, 1, HISTORICO_HEADERS.length).setValues([snapshot]);
+        cleanOldHistory_(sh, tz);
+        return;
+      }
+    }
+  }
+
+  // Add new row
+  sh.getRange(lastRow + 1, 1, 1, HISTORICO_HEADERS.length).setValues([snapshot]);
+  cleanOldHistory_(sh, tz);
+}
+
+function cleanOldHistory_(sh, tz) {
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) return;
+  var cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 60);
+  var dates = sh.getRange(2, 1, lastRow - 1, 1).getValues();
+  var rowsToDelete = [];
+  for (var i = 0; i < dates.length; i++) {
+    var d = dates[i][0];
+    if (d instanceof Date && d < cutoff) rowsToDelete.push(i + 2);
+  }
+  // Delete from bottom to top to preserve row indices
+  for (var i = rowsToDelete.length - 1; i >= 0; i--) {
+    sh.deleteRow(rowsToDelete[i]);
+  }
+}
+
+function getHistoricData() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sh = ss.getSheetByName(CONFIG.HIST_SHEET);
+    if (!sh || sh.getLastRow() < 2) return JSON.stringify({ rows: [], headers: HISTORICO_HEADERS });
+    var data = sh.getRange(2, 1, sh.getLastRow() - 1, HISTORICO_HEADERS.length).getValues();
+    var tz = Session.getScriptTimeZone();
+    var rows = [];
+    for (var i = 0; i < data.length; i++) {
+      var row = {};
+      for (var j = 0; j < HISTORICO_HEADERS.length; j++) {
+        var val = data[i][j];
+        if (val instanceof Date) val = Utilities.formatDate(val, tz, 'yyyy-MM-dd');
+        row[HISTORICO_HEADERS[j]] = val;
+      }
+      rows.push(row);
+    }
+    rows.sort(function(a, b) { return a.fecha < b.fecha ? -1 : 1; });
+    return JSON.stringify({ rows: rows, headers: HISTORICO_HEADERS });
+  } catch(e) {
+    return JSON.stringify({ error: e.message });
+  }
 }
 
 // ================================================================
