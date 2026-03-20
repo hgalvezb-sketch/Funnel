@@ -171,6 +171,7 @@ table.inc-table tr:hover { background:rgba(38,198,218,0.05); }
  <div class="top-bar-actions">
   <button class="btn-incidencia" onclick="openIncidenciaModal()">+ Registrar Incidencia</button>
   <span id="lastUpdate"></span>
+  <span style="background:#1a3a5c;padding:4px 10px;border-radius:6px;font-size:11px;color:#90caf9;">&#128100; <?= userEmail ?> (<?= userRole ?>)</span>
  </div>
 </div>
 <div class="filters-bar">
@@ -770,56 +771,58 @@ function sendChat(){
   }).chatWithGemini(msg,context,historyToSend);
 }
 
-// ===== VOZ (Web Speech API) =====
-var VOICE_RECOGNITION=null;
+// ===== VOZ (Web Speech API via popup) =====
+var VOICE_POPUP=null;
 var VOICE_ACTIVE=false;
 function toggleVoice(){
-  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
-    showToast('Tu navegador no soporta entrada de voz. Usa Chrome o Edge.','error');return;
-  }
-  if(VOICE_ACTIVE){stopVoice();return;}
-  // Solicitar permiso de microfono primero (requerido en iframes)
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
-    stream.getTracks().forEach(function(t){t.stop();});
-    startVoiceRecognition_();
-  }).catch(function(err){
-    showToast('Permiso de microfono denegado. Haz click en el icono de candado en la barra de direcciones y permite el microfono.','error');
-  });
-}
-function startVoiceRecognition_(){
-  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  VOICE_RECOGNITION=new SR();
-  VOICE_RECOGNITION.lang='es-MX';
-  VOICE_RECOGNITION.interimResults=true;
-  VOICE_RECOGNITION.continuous=false;
-  var input=document.getElementById('chatInput');
+  if(VOICE_ACTIVE&&VOICE_POPUP&&!VOICE_POPUP.closed){VOICE_POPUP.close();VOICE_ACTIVE=false;document.getElementById('chatMicBtn').classList.remove('recording');return;}
   var btn=document.getElementById('chatMicBtn');
-  var finalTranscript='';
-  VOICE_RECOGNITION.onstart=function(){VOICE_ACTIVE=true;btn.classList.add('recording');input.placeholder='Escuchando...';};
-  VOICE_RECOGNITION.onresult=function(e){
-    var interim='';
-    for(var i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal){finalTranscript+=e.results[i][0].transcript;}
-      else{interim+=e.results[i][0].transcript;}
-    }
-    input.value=finalTranscript+interim;
-  };
-  VOICE_RECOGNITION.onend=function(){
-    VOICE_ACTIVE=false;btn.classList.remove('recording');input.placeholder='Pregunta al agente...';
-    if(finalTranscript.trim()){input.value=finalTranscript.trim();sendChat();}
-  };
-  VOICE_RECOGNITION.onerror=function(e){
-    VOICE_ACTIVE=false;btn.classList.remove('recording');input.placeholder='Pregunta al agente...';
-    if(e.error!=='no-speech'&&e.error!=='aborted')showToast('Error de voz: '+e.error,'error');
-  };
-  VOICE_RECOGNITION.start();
+  btn.classList.add('recording');
+  VOICE_ACTIVE=true;
+  document.getElementById('chatInput').placeholder='Escuchando en ventana...';
+  var popupHtml=[
+    '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Voz</title>',
+    '<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Segoe UI,sans-serif;background:#1a2332;color:#e0e0e0;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:16px;}',
+    '.mic{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#7c4dff,#536dfe);border:none;cursor:pointer;font-size:36px;color:#fff;display:flex;align-items:center;justify-content:center;transition:all .2s;}',
+    '.mic.on{background:#ef5350;animation:pulse 1s ease-in-out infinite;}',
+    '@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}',
+    '#status{font-size:14px;color:#90a4ae;}#transcript{font-size:16px;color:#fff;text-align:center;min-height:24px;padding:0 20px;max-width:90%;word-wrap:break-word;}',
+    '.hint{font-size:11px;color:#546e7a;margin-top:8px;}</style></head>',
+    '<body><div id="status">Haz click para hablar</div>',
+    '<button class="mic" id="micBtn" onclick="toggle()">&#127908;</button>',
+    '<div id="transcript"></div>',
+    '<div class="hint">La ventana se cerrara al terminar</div>',
+    '<script>',
+    'var SR=window.SpeechRecognition||window.webkitSpeechRecognition;',
+    'if(!SR){document.getElementById("status").textContent="Navegador no soportado";document.getElementById("micBtn").disabled=true;}',
+    'var rec=null,active=false,final_t="";',
+    'function toggle(){if(active){rec.stop();return;}',
+    'rec=new SR();rec.lang="es-MX";rec.interimResults=true;rec.continuous=false;final_t="";',
+    'rec.onstart=function(){active=true;document.getElementById("micBtn").classList.add("on");document.getElementById("status").textContent="Escuchando...";};',
+    'rec.onresult=function(e){var interim="";for(var i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final_t+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}document.getElementById("transcript").textContent=final_t+interim;};',
+    'rec.onend=function(){active=false;document.getElementById("micBtn").classList.remove("on");',
+    'if(final_t.trim()){document.getElementById("status").textContent="Enviando...";window.opener.postMessage({type:"voice-result",text:final_t.trim()},"*");setTimeout(function(){window.close();},500);}',
+    'else{document.getElementById("status").textContent="No se detecto voz. Intenta de nuevo.";}};',
+    'rec.onerror=function(e){active=false;document.getElementById("micBtn").classList.remove("on");document.getElementById("status").textContent="Error: "+e.error;};',
+    'rec.start();}',
+    'toggle();',
+    '<\/script></body></html>'
+  ].join('');
+  VOICE_POPUP=window.open('','_blank','width=360,height=300,top=200,left=200,toolbar=no,menubar=no,scrollbars=no,resizable=no');
+  if(!VOICE_POPUP){showToast('Permite ventanas emergentes para usar la entrada de voz.','error');btn.classList.remove('recording');VOICE_ACTIVE=false;document.getElementById('chatInput').placeholder='Pregunta al agente...';return;}
+  VOICE_POPUP.document.write(popupHtml);
+  VOICE_POPUP.document.close();
+  var checkClosed=setInterval(function(){if(VOICE_POPUP.closed){clearInterval(checkClosed);btn.classList.remove('recording');VOICE_ACTIVE=false;document.getElementById('chatInput').placeholder='Pregunta al agente...';}},500);
 }
-function stopVoice(){
-  if(VOICE_RECOGNITION){VOICE_RECOGNITION.stop();}
-  VOICE_ACTIVE=false;
-  document.getElementById('chatMicBtn').classList.remove('recording');
-  document.getElementById('chatInput').placeholder='Pregunta al agente...';
-}
+window.addEventListener('message',function(e){
+  if(e.data&&e.data.type==='voice-result'&&e.data.text){
+    document.getElementById('chatInput').value=e.data.text;
+    document.getElementById('chatMicBtn').classList.remove('recording');
+    VOICE_ACTIVE=false;
+    document.getElementById('chatInput').placeholder='Pregunta al agente...';
+    sendChat();
+  }
+});
 
 // ===== SISTEMA DE INCIDENCIAS =====
 function openIncidenciaModal(){

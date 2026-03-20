@@ -1,6 +1,9 @@
 {
-  "timeZone": "America/New_York",
-  "dependencies": {
+  "timeZone": "America/Mexico_City",
+  "dependencies": {},
+  "webapp": {
+    "access": "DOMAIN",
+    "executeAs": "USER_DEPLOYING"
   },
   "exceptionLogging": "STACKDRIVER",
   "runtimeVersion": "V8"

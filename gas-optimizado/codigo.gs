@@ -1,16 +1,20 @@
 // ================================================================
-// MONITOR DE DISPOSICIONES - Optimizado con Pre-agregacion
+// MONITOR DE DISPOSICIONES v2.0 - Pre-agregacion + Incidencias + Exportacion
 // ================================================================
 // Arquitectura:
 // - Un trigger cada 10 min pre-calcula KPIs, graficas y riesgos
 // - doGet() sirve datos pre-calculados (~100KB) via template
 // - Filtros y tabla usan llamadas server-side bajo demanda
+// - Sistema de incidencias con CRUD en hoja _incidencias
+// - Exportacion de secciones a Google Sheets independientes
 // ================================================================
 
 var CONFIG = {
   DATA_SHEET: 'bd_disp',
   CACHE_SHEET: '_dashboard_cache',
   SLIM_SHEET: '_dashboard_slim',
+  INCIDENCIAS_SHEET: '_incidencias',
+  AUTH_SHEET: '_usuarios_autorizados',
   DATA_RANGE_END: 'DG',
   FLAG_RANGE: 'CR1:DD1',
   TRIGGER_MINUTES: 10,
@@ -19,9 +23,17 @@ var CONFIG = {
   MAX_FILTER_OPTIONS: 200
 };
 
+var AUTH_HEADERS = ['Email', 'Rol', 'Activo'];
+
 var SLIM_COL_NAMES = [
   'sucursal2','contrato','folio','tipo_dispo','estatus_destino',
   'A1','CALIFICACION','empresa','total_disposicion','COUNT','Edad'
+];
+
+var INCIDENCIA_HEADERS = [
+  'ID','Fecha_Registro','Sucursal','Contrato','Folio',
+  'Tipo_Hallazgo','Severidad','Descripcion','Accion_Recomendada',
+  'Responsable','Fecha_Compromiso','Estado','Fecha_Actualizacion','Registrado_Por'
 ];
 
 // ================================================================
@@ -29,9 +41,25 @@ var SLIM_COL_NAMES = [
 // ================================================================
 
 function doGet() {
+  var auth = checkUserAccess_();
+  if (!auth.authorized) {
+    return HtmlService.createHtmlOutput(
+      '<html><head><meta charset="utf-8">' +
+      '<style>body{font-family:Segoe UI,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#0a0f1a;color:#e0e0e0;}' +
+      '.box{text-align:center;padding:48px;background:#1a2332;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:480px;border:1px solid #2a3a4a;}' +
+      '.icon{font-size:64px;margin-bottom:16px;}h2{color:#ef5350;margin-bottom:12px;font-size:22px;}' +
+      'p{color:#90a4ae;line-height:1.8;font-size:14px;}.email{color:#7c4dff;font-weight:bold;}</style>' +
+      '</head><body><div class="box"><div class="icon">&#128274;</div>' +
+      '<h2>Acceso Restringido</h2>' +
+      '<p>El usuario <span class="email">' + auth.email + '</span><br>no tiene autorizaci&oacute;n para acceder al Monitor de Disposiciones.<br><br>' +
+      'Si necesitas acceso, contacta al administrador del sistema.</p>' +
+      '</div></body></html>'
+    ).setTitle('Acceso Denegado')
+     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
   var cachedData = getPrecomputedData();
   if (cachedData === null) {
-    // No cache exists yet - show loading page and ensure trigger is set up
     ensureTriggerExists_();
     return HtmlService.createHtmlOutput(
       '<html><head><meta charset="utf-8">' +
@@ -52,6 +80,8 @@ function doGet() {
   }
   var template = HtmlService.createTemplateFromFile('Dashboard');
   template.dashboardData = cachedData;
+  template.userEmail = auth.email;
+  template.userRole = auth.role;
   return template.evaluate()
     .setTitle('Monitor de Disposiciones')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -93,7 +123,6 @@ function precomputeAll() {
 
   var COL = {};
   for (var i = 0; i < headers.length; i++) COL[headers[i]] = i;
-  // Flag columns are in range CR:DD - find their actual index in the headers array
   var flagStartIdx = -1;
   if (flagColNames.length > 0 && COL[flagColNames[0]] !== undefined) {
     flagStartIdx = COL[flagColNames[0]];
@@ -387,7 +416,6 @@ function getTablePage(page,filtersJson,sortCol,sortAsc,searchJson){
   var total=matching.length;var startIdx=page*pageSize;var pageRowNums=matching.slice(startIdx,startIdx+pageSize);
   if(pageRowNums.length===0)return JSON.stringify({rows:[],total:total,page:page,headers:headers});
 
-  // Read rows: batch if dense, individual if sparse (avoids reading huge ranges)
   var minRow=pageRowNums[0],maxRow=pageRowNums[0];
   for(var i=1;i<pageRowNums.length;i++){if(pageRowNums[i]<minRow)minRow=pageRowNums[i];if(pageRowNums[i]>maxRow)maxRow=pageRowNums[i];}
   var rowMap={};
@@ -485,6 +513,159 @@ function chatWithGemini(userMessage, context, chatHistory) {
 }
 
 // ================================================================
+// SISTEMA DE INCIDENCIAS
+// ================================================================
+
+function ensureIncidenciasSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(CONFIG.INCIDENCIAS_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(CONFIG.INCIDENCIAS_SHEET);
+    sh.getRange(1, 1, 1, INCIDENCIA_HEADERS.length).setValues([INCIDENCIA_HEADERS]);
+    sh.setFrozenRows(1);
+    sh.getRange('1:1').setFontWeight('bold').setBackground('#1a73e8').setFontColor('#ffffff');
+  }
+  return sh;
+}
+
+function registrarIncidencia(dataJson) {
+  try {
+    var data = JSON.parse(dataJson);
+    var sh = ensureIncidenciasSheet_();
+    var lastRow = sh.getLastRow();
+    var newId = 'INC-' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd') + '-' + String(lastRow).padStart(4, '0');
+    var now = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm:ss');
+    var user = Session.getActiveUser().getEmail() || 'Sistema';
+
+    var row = [
+      newId,
+      now,
+      data.sucursal || '',
+      data.contrato || '',
+      data.folio || '',
+      data.tipoHallazgo || '',
+      data.severidad || '',
+      data.descripcion || '',
+      data.accionRecomendada || '',
+      data.responsable || '',
+      data.fechaCompromiso || '',
+      'Abierta',
+      now,
+      user
+    ];
+
+    sh.getRange(lastRow + 1, 1, 1, row.length).setValues([row]);
+    return JSON.stringify({success: true, id: newId});
+  } catch(e) {
+    return JSON.stringify({error: e.message});
+  }
+}
+
+function getIncidencias(filtrosJson) {
+  try {
+    var sh = ensureIncidenciasSheet_();
+    var lastRow = sh.getLastRow();
+    if (lastRow < 2) return JSON.stringify({incidencias: [], stats: {abiertas: 0, enRevision: 0, cerradas: 0, vencidas: 0}});
+
+    var data = sh.getRange(2, 1, lastRow - 1, INCIDENCIA_HEADERS.length).getValues();
+    var filtros = filtrosJson ? JSON.parse(filtrosJson) : {};
+    var hoy = new Date();
+    var stats = {abiertas: 0, enRevision: 0, cerradas: 0, vencidas: 0};
+    var incidencias = [];
+
+    for (var i = 0; i < data.length; i++) {
+      var r = data[i];
+      var inc = {
+        id: r[0], fecha: r[1], sucursal: r[2], contrato: r[3], folio: r[4],
+        tipoHallazgo: r[5], severidad: r[6], descripcion: r[7],
+        accionRecomendada: r[8], responsable: r[9], fechaCompromiso: r[10],
+        estado: r[11], fechaActualizacion: r[12], registradoPor: r[13],
+        rowIndex: i + 2
+      };
+
+      // Format dates if they are Date objects
+      if (inc.fecha instanceof Date) inc.fecha = Utilities.formatDate(inc.fecha, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm:ss');
+      if (inc.fechaCompromiso instanceof Date) inc.fechaCompromiso = Utilities.formatDate(inc.fechaCompromiso, Session.getScriptTimeZone(), 'dd/MM/yyyy');
+      if (inc.fechaActualizacion instanceof Date) inc.fechaActualizacion = Utilities.formatDate(inc.fechaActualizacion, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm:ss');
+
+      // Stats
+      var estado = String(inc.estado).trim();
+      if (estado === 'Abierta') stats.abiertas++;
+      else if (estado === 'En Revision') stats.enRevision++;
+      else if (estado === 'Cerrada') stats.cerradas++;
+
+      // Check if overdue
+      if (estado !== 'Cerrada' && inc.fechaCompromiso) {
+        var parts = String(inc.fechaCompromiso).split('/');
+        if (parts.length === 3) {
+          var fechaComp = new Date(parts[2], parseInt(parts[1]) - 1, parts[0]);
+          if (fechaComp < hoy) stats.vencidas++;
+        }
+      }
+
+      // Apply filters
+      if (filtros.tipo && inc.tipoHallazgo !== filtros.tipo) continue;
+      if (filtros.severidad && inc.severidad !== filtros.severidad) continue;
+      if (filtros.estado && estado !== filtros.estado) continue;
+
+      incidencias.push(inc);
+    }
+
+    return JSON.stringify({incidencias: incidencias, stats: stats});
+  } catch(e) {
+    return JSON.stringify({error: e.message});
+  }
+}
+
+function updateIncidenciaEstado(rowIndex, nuevoEstado) {
+  try {
+    var sh = ensureIncidenciasSheet_();
+    var estadoCol = INCIDENCIA_HEADERS.indexOf('Estado') + 1; // 12
+    var fechaActCol = INCIDENCIA_HEADERS.indexOf('Fecha_Actualizacion') + 1; // 13
+    var now = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm:ss');
+    sh.getRange(rowIndex, estadoCol).setValue(nuevoEstado);
+    sh.getRange(rowIndex, fechaActCol).setValue(now);
+    return JSON.stringify({success: true});
+  } catch(e) {
+    return JSON.stringify({error: e.message});
+  }
+}
+
+// ================================================================
+// EXPORTACION DE SECCIONES A GOOGLE SHEETS
+// ================================================================
+
+function exportSectionToSheet(sectionId, jsonData) {
+  try {
+    var data = JSON.parse(jsonData);
+    var timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm');
+    var title = 'Monitor Export - ' + (data.title || sectionId) + ' - ' + timestamp;
+    var newSS = SpreadsheetApp.create(title);
+    var newSheet = newSS.getActiveSheet();
+    newSheet.setName(data.title || sectionId);
+
+    if (data.headers && data.headers.length > 0) {
+      newSheet.getRange(1, 1, 1, data.headers.length).setValues([data.headers]);
+      newSheet.getRange('1:1').setFontWeight('bold').setBackground('#1a73e8').setFontColor('#ffffff');
+    }
+
+    if (data.rows && data.rows.length > 0) {
+      newSheet.getRange(2, 1, data.rows.length, data.rows[0].length).setValues(data.rows);
+    }
+
+    if (data.headers) {
+      for (var i = 1; i <= data.headers.length; i++) {
+        newSheet.autoResizeColumn(i);
+      }
+    }
+
+    return JSON.stringify({success: true, url: newSS.getUrl(), id: newSS.getId()});
+  } catch(e) {
+    return JSON.stringify({error: e.message});
+  }
+}
+
+// ================================================================
 // GESTION DE TRIGGERS
 // ================================================================
 
@@ -507,8 +688,72 @@ function ensureTriggerExists_(){
     if(triggers[i].getHandlerFunction()==='precomputeAll') return;
   }
   ScriptApp.newTrigger('precomputeAll').timeBased().everyMinutes(CONFIG.TRIGGER_MINUTES).create();
-  // Also run precomputeAll immediately via a one-time trigger (runs async, won't block doGet)
   ScriptApp.newTrigger('precomputeAll').timeBased().after(1).create();
+}
+
+// ================================================================
+// AUTENTICACION
+// ================================================================
+
+function ensureAuthSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(CONFIG.AUTH_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(CONFIG.AUTH_SHEET);
+    sh.getRange(1, 1, 1, AUTH_HEADERS.length).setValues([AUTH_HEADERS]);
+    sh.setFrozenRows(1);
+    sh.getRange('1:1').setFontWeight('bold').setBackground('#1a73e8').setFontColor('#ffffff');
+    sh.getRange(2, 1, 1, 3).setValues([[Session.getActiveUser().getEmail(), 'admin', 'SI']]);
+    sh.autoResizeColumns(1, 3);
+  }
+  return sh;
+}
+
+function checkUserAccess_() {
+  var email = Session.getActiveUser().getEmail();
+  if (!email) return { authorized: false, email: '(no detectado)', role: '' };
+  var sh = ensureAuthSheet_();
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) return { authorized: false, email: email, role: '' };
+  var data = sh.getRange(2, 1, lastRow - 1, 3).getValues();
+  for (var i = 0; i < data.length; i++) {
+    if (String(data[i][0]).trim().toLowerCase() === email.toLowerCase() &&
+        String(data[i][2]).trim().toUpperCase() === 'SI') {
+      return { authorized: true, email: email, role: String(data[i][1]).trim().toLowerCase() };
+    }
+  }
+  return { authorized: false, email: email, role: '' };
+}
+
+function getAuthorizedUsers() {
+  var auth = checkUserAccess_();
+  if (!auth.authorized || auth.role !== 'admin') return JSON.stringify({ error: 'Sin permisos de administrador' });
+  var sh = ensureAuthSheet_();
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) return JSON.stringify({ users: [] });
+  var data = sh.getRange(2, 1, lastRow - 1, 3).getValues();
+  var users = [];
+  for (var i = 0; i < data.length; i++) {
+    users.push({ email: data[i][0], rol: data[i][1], activo: data[i][2], rowIndex: i + 2 });
+  }
+  return JSON.stringify({ users: users });
+}
+
+function addAuthorizedUser(email, rol) {
+  var auth = checkUserAccess_();
+  if (!auth.authorized || auth.role !== 'admin') return JSON.stringify({ error: 'Sin permisos de administrador' });
+  var sh = ensureAuthSheet_();
+  var lastRow = sh.getLastRow();
+  sh.getRange(lastRow + 1, 1, 1, 3).setValues([[email.trim().toLowerCase(), rol || 'viewer', 'SI']]);
+  return JSON.stringify({ success: true });
+}
+
+function removeAuthorizedUser(rowIndex) {
+  var auth = checkUserAccess_();
+  if (!auth.authorized || auth.role !== 'admin') return JSON.stringify({ error: 'Sin permisos de administrador' });
+  var sh = ensureAuthSheet_();
+  sh.getRange(rowIndex, 3).setValue('NO');
+  return JSON.stringify({ success: true });
 }
 
 // ================================================================

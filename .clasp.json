@@ -1,17 +1,5 @@
 {
-  "scriptId": "1SO7ueZmrFI9rZieqiN3ISMW0juljoi1KZZePkE0ue6IlGTts488J3ysr",
+  "scriptId": "1naiQhFZB-6qGxCCr7DcTVAPO0Av6qDL4aDqXffiC4YDv4859HcYS9zTY",
   "rootDir": "gas-optimizado",
-  "parentId": "1Eq7QkU5EN0-RCOi_cOJTI4F7y9zFCoRzHx7YETEq-OY",
-  "scriptExtensions": [
-    ".js",
-    ".gs"
-  ],
-  "htmlExtensions": [
-    ".html"
-  ],
-  "jsonExtensions": [
-    ".json"
-  ],
-  "filePushOrder": [],
-  "skipSubdirectories": false
+  "parentId": "1Eq7QkU5EN0-RCOi_cOJTI4F7y9zFCoRzHx7YETEq-OY"
 }
