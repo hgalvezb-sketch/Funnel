@@ -6,15 +6,13 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Segoe UI',Roboto,sans-serif; background:#f0f2f5; color:#333; overflow-x:hidden; }
-.top-bar { background:#fff; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 6px rgba(0,0,0,0.1); border-bottom:3px solid #d32f2f; }
+.top-bar { background:#fff; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; z-index:100; box-shadow:0 2px 6px rgba(0,0,0,0.1); border-bottom:3px solid #d32f2f; }
 .top-bar h1 { font-size:20px; color:#333; letter-spacing:2px; }
 .top-bar-actions { display:flex; align-items:center; gap:10px; }
 .top-bar-actions span { font-size:11px; color:#666; }
 .btn-incidencia { background:linear-gradient(135deg,#d32f2f,#b71c1c); color:#fff; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:11px; font-weight:bold; letter-spacing:0.5px; }
 .btn-incidencia:hover { opacity:0.9; }
-.top-bar-logos { display:flex; align-items:center; gap:12px; }
-.top-bar-logos img { height:36px; }
-.filters-bar { background:#fff; padding:12px 24px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; border-bottom:1px solid #e0e0e0; position:sticky; top:96px; z-index:98; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+.filters-bar { background:#fff; padding:12px 24px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; border-bottom:1px solid #e0e0e0; z-index:98; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
 .filter-group { display:flex; align-items:center; gap:6px; }
 .filter-group label { font-size:11px; color:#666; text-transform:uppercase; font-weight:bold; }
 .filter-group select { background:#fff; color:#333; border:1px solid #ccc; padding:6px 10px; border-radius:6px; font-size:12px; min-width:120px; }
@@ -168,7 +166,7 @@ table.inc-table tr:hover { background:rgba(0,131,143,0.04); }
 @keyframes fadeInOut { 0%{opacity:0;transform:translateX(-50%) translateY(10px)} 10%{opacity:1;transform:translateX(-50%) translateY(0)} 80%{opacity:1} 100%{opacity:0} }
 
 /* ===== TABS ===== */
-.tab-bar { display:flex; background:#fff; border-bottom:2px solid #e0e0e0; padding:0 24px; position:sticky; top:48px; z-index:99; }
+.tab-bar { display:flex; background:#fff; border-bottom:2px solid #e0e0e0; padding:0 24px; z-index:99; }
 .tab-btn { background:none; border:none; color:#666; padding:12px 20px; font-size:13px; font-weight:bold; cursor:pointer; border-bottom:3px solid transparent; transition:all 0.2s; letter-spacing:0.5px; }
 .tab-btn:hover { color:#333; background:rgba(0,0,0,0.02); }
 .tab-btn.active { color:#d32f2f; border-bottom-color:#d32f2f; background:rgba(211,47,47,0.04); }
@@ -233,6 +231,44 @@ table.inc-table tr:hover { background:rgba(0,131,143,0.04); }
 .anomaly-table td { padding:8px 12px; border-bottom:1px solid #f0f0f0; }
 .anomaly-alert { color:#ef5350; font-weight:bold; }
 .anomaly-ok { color:#4caf50; }
+/* Predictivo v4.0 */
+.pred-kpi-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+.pred-kpi { flex:1; min-width:140px; padding:16px; border-radius:12px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+.pred-kpi.verde { background:#e8f5e9; border:2px solid #4caf50; }
+.pred-kpi.amarillo { background:#fff8e1; border:2px solid #ffc107; }
+.pred-kpi.naranja { background:#fff3e0; border:2px solid #ff9800; }
+.pred-kpi.rojo { background:#ffebee; border:2px solid #ef5350; }
+.pred-kpi.info { background:#e3f2fd; border:2px solid #1976d2; }
+.pred-kpi-value { font-size:28px; font-weight:bold; color:#333; }
+.pred-kpi-label { font-size:11px; color:#666; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px; }
+.pred-section { background:#fff; border-radius:12px; padding:20px; border:1px solid #e0e0e0; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+.pred-section h3 { color:#d32f2f; font-size:14px; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid #ffebee; }
+.pred-proj-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; }
+.pred-proj-card { background:#fafafa; border:1px solid #e0e0e0; border-radius:10px; padding:16px; }
+.pred-proj-card h4 { font-size:13px; color:#1976d2; margin-bottom:12px; }
+.pred-proj-row { display:flex; justify-content:space-between; padding:4px 0; font-size:12px; color:#555; border-bottom:1px solid #f5f5f5; }
+.pred-proj-row strong { color:#333; }
+.pred-table { width:100%; border-collapse:collapse; font-size:12px; }
+.pred-table th { text-align:left; padding:10px 8px; background:#f5f5f5; color:#666; font-size:11px; text-transform:uppercase; border-bottom:2px solid #e0e0e0; }
+.pred-table td { padding:8px; border-bottom:1px solid #f0f0f0; }
+.pred-nivel { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:bold; color:#fff; }
+.pred-nivel.verde { background:#4caf50; }
+.pred-nivel.amarillo { background:#ffc107; color:#333; }
+.pred-nivel.naranja { background:#ff9800; }
+.pred-nivel.rojo { background:#ef5350; }
+.pred-anomalia-card { display:inline-block; padding:10px 16px; margin:4px; border-radius:8px; font-size:12px; font-weight:bold; }
+.pred-anomalia-card.critica { background:#ffebee; color:#c62828; border:1px solid #ef5350; }
+.pred-anomalia-card.warning { background:#fff3e0; color:#e65100; border:1px solid #ff9800; }
+.pred-bollinger-alert { display:inline-block; padding:8px 14px; margin:4px; border-radius:8px; font-size:12px; background:#fff3e0; color:#e65100; border:1px solid #ff9800; }
+.heatmap-table { width:100%; border-collapse:collapse; font-size:11px; }
+.heatmap-table th { padding:8px 6px; background:#f5f5f5; color:#666; text-align:center; font-size:10px; }
+.heatmap-table td { padding:6px; text-align:center; border:1px solid #f0f0f0; font-weight:bold; font-size:11px; }
+.hm-0 { background:#f5f5f5; color:#bbb; }
+.hm-1 { background:#fff8e1; color:#f57f17; }
+.hm-2 { background:#fff3e0; color:#e65100; }
+.hm-3 { background:#ffebee; color:#c62828; }
+.pred-gemini { border-left:4px solid #7c4dff; }
+.pred-gemini-content { font-size:13px; color:#333; line-height:1.8; white-space:pre-wrap; }
 </style>
 </head>
 <body>
@@ -240,13 +276,7 @@ table.inc-table tr:hover { background:rgba(0,131,143,0.04); }
 <div id="filterOverlay" class="loading-overlay"><p>Aplicando filtros...</p></div>
 <div id="app" style="display:none">
 <div class="top-bar">
- <div class="top-bar-logos">
-  <svg width="120" height="32" viewBox="0 0 120 32"><rect width="120" height="32" rx="4" fill="#d32f2f"/><text x="60" y="21" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="14" font-weight="bold">FINDEP</text></svg>
-  <span style="color:#999;font-size:10px">|</span>
-  <svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="14" fill="#1565c0"/><text x="15" y="13" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="7" font-weight="bold">APOYO</text><text x="15" y="21" text-anchor="middle" fill="#ffc107" font-family="Arial,sans-serif" font-size="6" font-weight="bold">ECON.</text></svg>
-  <svg width="24" height="24" viewBox="0 0 24 24"><rect width="24" height="24" rx="3" fill="#c62828"/><text x="12" y="16" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="10" font-weight="bold">FI</text></svg>
-  <h1>MONITOR DE DISPOSICIONES</h1>
- </div>
+ <h1>MONITOR DE DISPOSICIONES</h1>
  <div class="top-bar-actions">
   <button class="btn-incidencia" onclick="openIncidenciaModal()">+ Registrar Incidencia</button>
   <span id="lastUpdate"></span>
@@ -270,6 +300,7 @@ table.inc-table tr:hover { background:rgba(0,131,143,0.04); }
  <button class="tab-btn" onclick="switchTab('riesgo')">Mapa de Riesgo</button>
  <button class="tab-btn" onclick="switchTab('financiero')">Analisis Financiero</button>
  <button class="tab-btn" onclick="switchTab('tendencias')">Tendencias</button>
+ <button class="tab-btn" onclick="switchTab('predictivo')">Inteligencia Predictiva</button>
 </div>
 <div id="tab-operativo" class="tab-content active">
 <div class="scroll-wrapper">
@@ -398,6 +429,98 @@ table.inc-table tr:hover { background:rgba(0,131,143,0.04); }
  </div>
 </div>
 
+<div id="tab-predictivo" class="tab-content">
+ <div style="padding:20px;max-width:1400px;margin:0 auto;">
+
+  <!-- KPIs Predictivos -->
+  <div class="pred-kpi-row">
+   <div class="pred-kpi verde"><div class="pred-kpi-value" id="pkVerde">0</div><div class="pred-kpi-label">Verde (Bajo)</div></div>
+   <div class="pred-kpi amarillo"><div class="pred-kpi-value" id="pkAmarillo">0</div><div class="pred-kpi-label">Amarillo (Moderado)</div></div>
+   <div class="pred-kpi naranja"><div class="pred-kpi-value" id="pkNaranja">0</div><div class="pred-kpi-label">Naranja (Alto)</div></div>
+   <div class="pred-kpi rojo"><div class="pred-kpi-value" id="pkRojo">0</div><div class="pred-kpi-label">Rojo (Critico)</div></div>
+   <div class="pred-kpi info"><div class="pred-kpi-value" id="pkDias">0</div><div class="pred-kpi-label">Dias Historico</div></div>
+  </div>
+
+  <!-- Regresion + Proyecciones -->
+  <div class="pred-section">
+   <h3>Proyecciones por Regresion Lineal</h3>
+   <div class="pred-proj-grid">
+    <div class="pred-proj-card">
+     <h4>Tasa de Incidencia (%)</h4>
+     <div class="pred-proj-row"><span>Pendiente:</span> <span id="prTasaSlope">-</span></div>
+     <div class="pred-proj-row"><span>R2:</span> <span id="prTasaR2">-</span></div>
+     <div class="pred-proj-row"><span>7 dias:</span> <strong id="prTasa7">-</strong></div>
+     <div class="pred-proj-row"><span>14 dias:</span> <strong id="prTasa14">-</strong></div>
+     <div class="pred-proj-row"><span>30 dias:</span> <strong id="prTasa30">-</strong></div>
+    </div>
+    <div class="pred-proj-card">
+     <h4>Total Incidencias</h4>
+     <div class="pred-proj-row"><span>Pendiente:</span> <span id="prIncSlope">-</span></div>
+     <div class="pred-proj-row"><span>R2:</span> <span id="prIncR2">-</span></div>
+     <div class="pred-proj-row"><span>7 dias:</span> <strong id="prInc7">-</strong></div>
+     <div class="pred-proj-row"><span>14 dias:</span> <strong id="prInc14">-</strong></div>
+     <div class="pred-proj-row"><span>30 dias:</span> <strong id="prInc30">-</strong></div>
+    </div>
+    <div class="pred-proj-card">
+     <h4>Monto Total ($)</h4>
+     <div class="pred-proj-row"><span>Pendiente:</span> <span id="prMontoSlope">-</span></div>
+     <div class="pred-proj-row"><span>R2:</span> <span id="prMontoR2">-</span></div>
+     <div class="pred-proj-row"><span>7 dias:</span> <strong id="prMonto7">-</strong></div>
+     <div class="pred-proj-row"><span>14 dias:</span> <strong id="prMonto14">-</strong></div>
+     <div class="pred-proj-row"><span>30 dias:</span> <strong id="prMonto30">-</strong></div>
+    </div>
+   </div>
+  </div>
+
+  <!-- Anomalias detectadas hoy -->
+  <div class="pred-section" id="predAnomaliasSection" style="display:none;">
+   <h3>Anomalias Detectadas Hoy (Z-Score)</h3>
+   <div id="predAnomalias"></div>
+  </div>
+
+  <!-- Bollinger Alerts -->
+  <div class="pred-section" id="predBollingerSection" style="display:none;">
+   <h3>Alertas Bollinger</h3>
+   <div id="predBollingerAlerts"></div>
+  </div>
+
+  <!-- Grafica de tendencia con Bollinger -->
+  <div class="pred-section">
+   <h3>Tendencia Tasa de Incidencia + Bandas de Bollinger</h3>
+   <div id="chartPredBollinger" style="height:350px;"></div>
+  </div>
+
+  <!-- Top 10 Sucursales Riesgo Futuro -->
+  <div class="pred-section">
+   <h3>Top Sucursales - Score Predictivo de Riesgo</h3>
+   <div style="overflow-x:auto;">
+    <table class="pred-table" id="predScoresTable">
+     <thead><tr><th>Suc</th><th>Score</th><th>Nivel</th><th>Ops</th><th>Inc</th><th>Tasa%</th><th>Flags Alta</th><th>Z-Tasa</th><th>Z-Monto</th></tr></thead>
+     <tbody></tbody>
+    </table>
+   </div>
+  </div>
+
+  <!-- Heatmap Sucursal vs Flags -->
+  <div class="pred-section">
+   <h3>Mapa de Calor: Sucursales vs Banderas de Riesgo</h3>
+   <div style="overflow-x:auto;">
+    <table class="heatmap-table" id="predHeatmap">
+     <thead><tr><th>Sucursal</th></tr></thead>
+     <tbody></tbody>
+    </table>
+   </div>
+  </div>
+
+  <!-- Insights Gemini -->
+  <div class="pred-section pred-gemini">
+   <h3>Analisis Predictivo - Gemini AI</h3>
+   <div id="predGeminiInsights" class="pred-gemini-content">Cargando analisis...</div>
+  </div>
+
+ </div>
+</div>
+
 </div><!-- /app close extra div -->
 
 <!-- MODAL: Registrar Incidencia -->
@@ -479,15 +602,16 @@ var INC_DATA = [];
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fmt$(n){return '$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtN(n){return Number(n||0).toLocaleString('es-MX');}
+function fmtMoney(n){return '$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0});}
 
 // ===== TABS =====
 var CURRENT_TAB = 'operativo';
-var TABS_RENDERED = { operativo: true, ejecutivo: false, riesgo: false, financiero: false, tendencias: false };
+var TABS_RENDERED = { operativo: true, ejecutivo: false, riesgo: false, financiero: false, tendencias: false, predictivo: false };
 var HISTORIC_DATA = null;
 
 function switchTab(tabId) {
   // Update tab buttons
-  var tabNames = ['operativo','ejecutivo','riesgo','financiero','tendencias'];
+  var tabNames = ['operativo','ejecutivo','riesgo','financiero','tendencias','predictivo'];
   var tabIdx = tabNames.indexOf(tabId);
   var btns = document.querySelectorAll('.tab-btn');
   for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
@@ -512,6 +636,7 @@ function switchTab(tabId) {
     if (tabId === 'riesgo') renderTabRiesgo();
     if (tabId === 'financiero') renderTabFinanciero();
     if (tabId === 'tendencias') loadAndRenderTendencias();
+    if (tabId === 'predictivo') renderTabPredictivo();
   }
 }
 
@@ -1516,6 +1641,186 @@ function renderTrendFlags_() {
     hAxis: { textStyle: { color: '#666' } }, vAxis: { textStyle: { color: '#666' }, gridlines: { color: '#e8e8e8' } },
     chartArea: { left: 60, top: 20, width: '85%', height: '70%' }, isStacked: true, lineWidth: 1, areaOpacity: 0.3
   });
+}
+
+// ===== INTELIGENCIA PREDICTIVA v4.0 =====
+
+function renderTabPredictivo() {
+  var pred = DB.predictive;
+  if (!pred || pred.error) {
+    document.querySelector('#tab-predictivo > div').innerHTML = '<p style="padding:40px;color:#90a4ae;text-align:center;">Datos predictivos no disponibles. ' + (pred && pred.error ? pred.error : 'Ejecuta precomputeAll para generar los datos.') + '</p>';
+    return;
+  }
+
+  // KPIs de niveles
+  var nv = pred.conteoNiveles || {};
+  document.getElementById('pkVerde').textContent = nv.verde || 0;
+  document.getElementById('pkAmarillo').textContent = nv.amarillo || 0;
+  document.getElementById('pkNaranja').textContent = nv.naranja || 0;
+  document.getElementById('pkRojo').textContent = nv.rojo || 0;
+  document.getElementById('pkDias').textContent = pred.diasHistorico || 0;
+
+  // Regresion
+  if (pred.regresion) {
+    var rt = pred.regresion.tasa || {};
+    document.getElementById('prTasaSlope').textContent = (rt.slope > 0 ? '+' : '') + (rt.slope || 0);
+    document.getElementById('prTasaR2').textContent = rt.r2 || 0;
+    document.getElementById('prTasa7').textContent = (rt.projected && rt.projected[0] !== undefined) ? rt.projected[0].toFixed(2) + '%' : '-';
+    document.getElementById('prTasa14').textContent = (rt.projected && rt.projected[1] !== undefined) ? rt.projected[1].toFixed(2) + '%' : '-';
+    document.getElementById('prTasa30').textContent = (rt.projected && rt.projected[2] !== undefined) ? rt.projected[2].toFixed(2) + '%' : '-';
+
+    var ri = pred.regresion.incidencias || {};
+    document.getElementById('prIncSlope').textContent = (ri.slope > 0 ? '+' : '') + (ri.slope || 0);
+    document.getElementById('prIncR2').textContent = ri.r2 || 0;
+    document.getElementById('prInc7').textContent = (ri.projected && ri.projected[0] !== undefined) ? fmtN(Math.round(ri.projected[0])) : '-';
+    document.getElementById('prInc14').textContent = (ri.projected && ri.projected[1] !== undefined) ? fmtN(Math.round(ri.projected[1])) : '-';
+    document.getElementById('prInc30').textContent = (ri.projected && ri.projected[2] !== undefined) ? fmtN(Math.round(ri.projected[2])) : '-';
+
+    var rm = pred.regresion.monto || {};
+    document.getElementById('prMontoSlope').textContent = (rm.slope > 0 ? '+' : '') + fmtN(Math.round(rm.slope || 0));
+    document.getElementById('prMontoR2').textContent = rm.r2 || 0;
+    document.getElementById('prMonto7').textContent = (rm.projected && rm.projected[0] !== undefined) ? fmtMoney(rm.projected[0]) : '-';
+    document.getElementById('prMonto14').textContent = (rm.projected && rm.projected[1] !== undefined) ? fmtMoney(rm.projected[1]) : '-';
+    document.getElementById('prMonto30').textContent = (rm.projected && rm.projected[2] !== undefined) ? fmtMoney(rm.projected[2]) : '-';
+  }
+
+  // Anomalias hoy
+  if (pred.anomaliasHoy && pred.anomaliasHoy.length > 0) {
+    document.getElementById('predAnomaliasSection').style.display = 'block';
+    var html = '';
+    for (var i = 0; i < pred.anomaliasHoy.length; i++) {
+      var a = pred.anomaliasHoy[i];
+      html += '<div class="pred-anomalia-card ' + (a.critica ? 'critica' : 'warning') + '">' +
+        a.flag + ' — Z-Score: ' + a.z + (a.critica ? ' (CRITICO)' : '') + '</div>';
+    }
+    document.getElementById('predAnomalias').innerHTML = html;
+  }
+
+  // Bollinger alerts
+  if (pred.bollinger) {
+    var alerts = [];
+    if (pred.bollinger.tasa && pred.bollinger.tasa.alerta) alerts.push('Tasa de incidencia por encima de banda superior');
+    if (pred.bollinger.incidencias && pred.bollinger.incidencias.alerta) alerts.push('Total incidencias por encima de banda superior');
+    if (alerts.length > 0) {
+      document.getElementById('predBollingerSection').style.display = 'block';
+      var html = '';
+      for (var i = 0; i < alerts.length; i++) {
+        html += '<div class="pred-bollinger-alert">' + alerts[i] + '</div>';
+      }
+      document.getElementById('predBollingerAlerts').innerHTML = html;
+    }
+  }
+
+  // Grafica Bollinger
+  renderPredBollingerChart_(pred);
+
+  // Tabla de scores
+  renderPredScoresTable_(pred);
+
+  // Heatmap
+  renderPredHeatmap_(pred);
+
+  // Gemini insights
+  if (pred.geminiInsights) {
+    document.getElementById('predGeminiInsights').textContent = pred.geminiInsights;
+  }
+}
+
+function renderPredBollingerChart_(pred) {
+  if (!pred.tendencias || !pred.tendencias.fechas || pred.tendencias.fechas.length < 3) {
+    document.getElementById('chartPredBollinger').innerHTML = '<p style="padding:20px;color:#90a4ae;text-align:center;">Se necesitan al menos 3 dias de datos historicos.</p>';
+    return;
+  }
+  var fechas = pred.tendencias.fechas;
+  var tasas = pred.tendencias.tasaInc;
+  var boll = pred.bollinger && pred.bollinger.tasa ? pred.bollinger.tasa : null;
+
+  var data = new google.visualization.DataTable();
+  data.addColumn('string', 'Fecha');
+  data.addColumn('number', 'Tasa %');
+  data.addColumn('number', 'Media Movil');
+  data.addColumn('number', 'Banda Sup');
+  data.addColumn('number', 'Banda Inf');
+
+  var offset = boll && boll.ma ? fechas.length - boll.ma.length : fechas.length;
+  for (var i = 0; i < fechas.length; i++) {
+    var maIdx = i - offset;
+    var maVal = (boll && boll.ma && maIdx >= 0 && maIdx < boll.ma.length) ? boll.ma[maIdx] : null;
+    var upVal = (boll && boll.upper && maIdx >= 0 && maIdx < boll.upper.length) ? boll.upper[maIdx] : null;
+    var loVal = (boll && boll.lower && maIdx >= 0 && maIdx < boll.lower.length) ? boll.lower[maIdx] : null;
+    data.addRow([fechas[i], tasas[i], maVal, upVal, loVal]);
+  }
+
+  var chart = new google.visualization.LineChart(document.getElementById('chartPredBollinger'));
+  chart.draw(data, {
+    backgroundColor: 'transparent',
+    colors: ['#d32f2f', '#1976d2', '#ff9800', '#4caf50'],
+    legend: { position: 'bottom', textStyle: { color: '#666' } },
+    hAxis: { textStyle: { color: '#666' }, gridlines: { color: '#e8e8e8' } },
+    vAxis: { textStyle: { color: '#666' }, gridlines: { color: '#e8e8e8' }, title: 'Tasa Incidencia %' },
+    chartArea: { left: 60, top: 20, width: '85%', height: '70%' },
+    lineWidth: 2,
+    series: { 0: { lineWidth: 3 }, 1: { lineDashStyle: [4, 4] }, 2: { lineDashStyle: [2, 2], lineWidth: 1 }, 3: { lineDashStyle: [2, 2], lineWidth: 1 } }
+  });
+}
+
+function renderPredScoresTable_(pred) {
+  var scores = pred.scores || [];
+  var tbody = document.querySelector('#predScoresTable tbody');
+  tbody.innerHTML = '';
+  for (var i = 0; i < Math.min(scores.length, 20); i++) {
+    var s = scores[i];
+    tbody.innerHTML += '<tr>' +
+      '<td><strong>' + s.suc + '</strong></td>' +
+      '<td><strong>' + s.score + '</strong></td>' +
+      '<td><span class="pred-nivel ' + s.nivel + '">' + s.nivel.toUpperCase() + '</span></td>' +
+      '<td>' + fmtN(s.operaciones) + '</td>' +
+      '<td>' + fmtN(s.incidencias) + '</td>' +
+      '<td>' + s.tasa + '%</td>' +
+      '<td>' + s.flagsAlta + '</td>' +
+      '<td style="color:' + (s.zTasa > 2 ? '#ef5350' : s.zTasa > 1 ? '#ff9800' : '#4caf50') + '">' + s.zTasa + '</td>' +
+      '<td style="color:' + (s.zMonto > 2 ? '#ef5350' : s.zMonto > 1 ? '#ff9800' : '#4caf50') + '">' + s.zMonto + '</td>' +
+      '</tr>';
+  }
+}
+
+function renderPredHeatmap_(pred) {
+  var hm = pred.heatmap;
+  if (!hm || !hm.sucs || hm.sucs.length === 0) return;
+
+  // Build header
+  var thead = document.querySelector('#predHeatmap thead tr');
+  thead.innerHTML = '<th>Sucursal</th>';
+  for (var i = 0; i < hm.flags.length; i++) {
+    thead.innerHTML += '<th>' + hm.flags[i] + '</th>';
+  }
+  thead.innerHTML += '<th>Total</th>';
+
+  // Find max value for intensity scaling
+  var maxVal = 1;
+  for (var s in hm.data) {
+    for (var f in hm.data[s]) {
+      if (hm.data[s][f] > maxVal) maxVal = hm.data[s][f];
+    }
+  }
+
+  // Build rows
+  var tbody = document.querySelector('#predHeatmap tbody');
+  tbody.innerHTML = '';
+  for (var si = 0; si < hm.sucs.length; si++) {
+    var suc = hm.sucs[si];
+    var sucData = hm.data[suc] || {};
+    var rowHtml = '<tr><td><strong>' + suc + '</strong></td>';
+    var total = 0;
+    for (var fi = 0; fi < hm.flagKeys.length; fi++) {
+      var val = sucData[hm.flagKeys[fi]] || 0;
+      total += val;
+      var intensity = val === 0 ? 0 : val <= maxVal * 0.25 ? 1 : val <= maxVal * 0.6 ? 2 : 3;
+      rowHtml += '<td class="hm-' + intensity + '">' + (val > 0 ? val : '-') + '</td>';
+    }
+    rowHtml += '<td style="font-weight:bold;background:#f5f5f5;">' + total + '</td></tr>';
+    tbody.innerHTML += rowHtml;
+  }
 }
 
 function renderAnomalyTable_() {

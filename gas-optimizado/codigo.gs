@@ -253,6 +253,16 @@ function precomputeAll() {
   // === EXECUTIVE DATA (new tabs) ===
   var executive = computeExecutiveData_(allData, COL, rc, sucTotal, sucCount, flagColNames, flagStartIdx);
 
+  // === PREDICTIVE DATA (v4.0) ===
+  var predictive = {};
+  try {
+    predictive = computePredictiveData_(sucTotal, sucCount, sucMonto, rc, allData, COL, flagColNames, flagStartIdx);
+    var geminiInsights = generatePredictiveInsights_(predictive);
+    predictive.geminiInsights = geminiInsights.insights;
+  } catch(e) {
+    predictive = { error: e.message, scores: [], conteoNiveles: { verde: 0, amarillo: 0, naranja: 0, rojo: 0 }, diasHistorico: 0 };
+  }
+
   // === HISTORIC SNAPSHOT ===
   var histRow = [
     new Date(), allData.length, totalMonto, totalInc,
@@ -288,7 +298,8 @@ function precomputeAll() {
     charts:charts,risks:risks,filterOptions:filterOptions,headers:headers,flagNames:flagColNames,
     tablePage:{rows:firstPageRows,total:allData.length,page:0},
     lastUpdate:new Date().toLocaleString('es-MX'),
-    executive:executive
+    executive:executive,
+    predictive:predictive
   };
   var json=JSON.stringify(result).replace(/<\//g,'<\\/');
   saveToCacheSheet_(ss,json);
@@ -1010,6 +1021,354 @@ function getHistoricData() {
     return JSON.stringify({ rows: rows, headers: HISTORICO_HEADERS });
   } catch(e) {
     return JSON.stringify({ error: e.message });
+  }
+}
+
+// ================================================================
+// INTELIGENCIA PREDICTIVA v4.0
+// ================================================================
+
+/**
+ * Regresion lineal simple (minimos cuadrados)
+ * Retorna: { slope, intercept, r2, projected }
+ */
+function linearRegression_(values) {
+  var n = values.length;
+  if (n < 3) return { slope: 0, intercept: 0, r2: 0, projected: [0, 0, 0] };
+  var sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+  for (var i = 0; i < n; i++) {
+    sumX += i; sumY += values[i]; sumXY += i * values[i]; sumX2 += i * i; sumY2 += values[i] * values[i];
+  }
+  var denom = n * sumX2 - sumX * sumX;
+  if (denom === 0) return { slope: 0, intercept: 0, r2: 0, projected: [0, 0, 0] };
+  var slope = (n * sumXY - sumX * sumY) / denom;
+  var intercept = (sumY - slope * sumX) / n;
+  // R-squared
+  var yMean = sumY / n;
+  var ssTot = 0, ssRes = 0;
+  for (var i = 0; i < n; i++) {
+    var pred = slope * i + intercept;
+    ssRes += (values[i] - pred) * (values[i] - pred);
+    ssTot += (values[i] - yMean) * (values[i] - yMean);
+  }
+  var r2 = ssTot > 0 ? 1 - ssRes / ssTot : 0;
+  // Proyecciones a 7, 14, 30 dias desde el ultimo punto
+  var last = n - 1;
+  var p7 = slope * (last + 7) + intercept;
+  var p14 = slope * (last + 14) + intercept;
+  var p30 = slope * (last + 30) + intercept;
+  return { slope: slope, intercept: intercept, r2: Math.max(0, r2), projected: [Math.max(0, p7), Math.max(0, p14), Math.max(0, p30)] };
+}
+
+/**
+ * Z-Score para deteccion de anomalias
+ * Retorna array de { value, zScore, isAnomaly, isCritical }
+ */
+function zScoreAnalysis_(values) {
+  var n = values.length;
+  if (n < 2) return [];
+  var mean = 0;
+  for (var i = 0; i < n; i++) mean += values[i];
+  mean /= n;
+  var variance = 0;
+  for (var i = 0; i < n; i++) variance += (values[i] - mean) * (values[i] - mean);
+  var stdDev = Math.sqrt(variance / n);
+  if (stdDev === 0) return values.map(function(v) { return { value: v, zScore: 0, isAnomaly: false, isCritical: false }; });
+  return values.map(function(v) {
+    var z = (v - mean) / stdDev;
+    return { value: v, zScore: Math.round(z * 100) / 100, isAnomaly: Math.abs(z) > 2, isCritical: Math.abs(z) > 3 };
+  });
+}
+
+/**
+ * Media movil + Bandas de Bollinger
+ * Retorna: { ma, upperBand, lowerBand, currentAboveBand }
+ */
+function bollingerBands_(values, window, deviations) {
+  window = window || 7;
+  deviations = deviations || 2;
+  var n = values.length;
+  if (n < window) return { ma: [], upperBand: [], lowerBand: [], currentAboveBand: false };
+  var ma = [], upper = [], lower = [];
+  for (var i = 0; i <= n - window; i++) {
+    var slice = values.slice(i, i + window);
+    var sum = 0;
+    for (var j = 0; j < slice.length; j++) sum += slice[j];
+    var avg = sum / window;
+    var variance = 0;
+    for (var j = 0; j < slice.length; j++) variance += (slice[j] - avg) * (slice[j] - avg);
+    var std = Math.sqrt(variance / window);
+    ma.push(Math.round(avg * 100) / 100);
+    upper.push(Math.round((avg + deviations * std) * 100) / 100);
+    lower.push(Math.round((avg - deviations * std) * 100) / 100);
+  }
+  var lastVal = values[n - 1];
+  var aboveBand = upper.length > 0 && lastVal > upper[upper.length - 1];
+  return { ma: ma, upperBand: upper, lowerBand: lower, currentAboveBand: aboveBand };
+}
+
+/**
+ * Computa datos predictivos completos para todas las sucursales
+ * Usa datos historicos de _historico + datos actuales de sucTotal
+ */
+function computePredictiveData_(sucTotal, sucCount, sucMonto, rc, allData, COL, flagColNames, flagStartIdx) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var histSheet = ss.getSheetByName(CONFIG.HIST_SHEET);
+
+  // --- Cargar historico ---
+  var histRows = [];
+  if (histSheet && histSheet.getLastRow() >= 2) {
+    var hData = histSheet.getRange(2, 1, histSheet.getLastRow() - 1, HISTORICO_HEADERS.length).getValues();
+    var tz = Session.getScriptTimeZone();
+    for (var i = 0; i < hData.length; i++) {
+      var row = {};
+      for (var j = 0; j < HISTORICO_HEADERS.length; j++) {
+        var val = hData[i][j];
+        if (val instanceof Date) val = Utilities.formatDate(val, tz, 'yyyy-MM-dd');
+        row[HISTORICO_HEADERS[j]] = val;
+      }
+      histRows.push(row);
+    }
+    histRows.sort(function(a, b) { return a.fecha < b.fecha ? -1 : 1; });
+  }
+
+  var diasHist = histRows.length;
+
+  // --- Regresion + Bollinger sobre metricas globales ---
+  var tasaIncHist = histRows.map(function(r) { return parseFloat(r.tasaInc) || 0; });
+  var totalRegHist = histRows.map(function(r) { return parseFloat(r.totalReg) || 0; });
+  var totalMontoHist = histRows.map(function(r) { return parseFloat(r.totalMonto) || 0; });
+  var totalIncHist = histRows.map(function(r) { return parseFloat(r.totalInc) || 0; });
+
+  var regTasa = linearRegression_(tasaIncHist);
+  var regInc = linearRegression_(totalIncHist);
+  var regMonto = linearRegression_(totalMontoHist);
+  var bollTasa = bollingerBands_(tasaIncHist, 7, 2);
+  var bollInc = bollingerBands_(totalIncHist, 7, 2);
+
+  // --- Z-Score anomalias globales hoy ---
+  var flagFueraH = histRows.map(function(r) { return parseFloat(r.flagFueraHorario) || 0; });
+  var flagMismoD = histRows.map(function(r) { return parseFloat(r.flagMismodia) || 0; });
+  var flagTelRep = histRows.map(function(r) { return parseFloat(r.flagTelRepetido) || 0; });
+
+  var zFuera = zScoreAnalysis_(flagFueraH);
+  var zMismo = zScoreAnalysis_(flagMismoD);
+  var zTelRep = zScoreAnalysis_(flagTelRep);
+
+  var anomaliasHoy = [];
+  if (zFuera.length > 0 && zFuera[zFuera.length - 1].isAnomaly) anomaliasHoy.push({ flag: 'Fuera de horario', z: zFuera[zFuera.length - 1].zScore, critica: zFuera[zFuera.length - 1].isCritical });
+  if (zMismo.length > 0 && zMismo[zMismo.length - 1].isAnomaly) anomaliasHoy.push({ flag: '+1 mismo dia', z: zMismo[zMismo.length - 1].zScore, critica: zMismo[zMismo.length - 1].isCritical });
+  if (zTelRep.length > 0 && zTelRep[zTelRep.length - 1].isAnomaly) anomaliasHoy.push({ flag: 'Tel repetido', z: zTelRep[zTelRep.length - 1].zScore, critica: zTelRep[zTelRep.length - 1].isCritical });
+
+  // --- Score predictivo por sucursal ---
+  // Calcular Z-scores por sucursal sobre tasa de incidencia y monto promedio
+  var sucKeys = Object.keys(sucTotal);
+  var sucTasas = [], sucProms = [], sucFreqs = [];
+  for (var si = 0; si < sucKeys.length; si++) {
+    var s = sucKeys[si];
+    var st = sucTotal[s];
+    sucTasas.push(st.t > 0 ? st.i / st.t * 100 : 0);
+    sucProms.push(st.t > 0 ? st.m / st.t : 0);
+    sucFreqs.push(st.t);
+  }
+  var zTasas = zScoreAnalysis_(sucTasas);
+  var zProms = zScoreAnalysis_(sucProms);
+  var zFreqs = zScoreAnalysis_(sucFreqs);
+
+  // Contar flags de alta severidad por sucursal
+  var sucHighFlags = {};
+  for (var i = 0; i < allData.length; i++) {
+    var r = allData[i];
+    var suc = String(r[COL['sucursal2']] || '').trim();
+    if (!suc) continue;
+    if (!sucHighFlags[suc]) sucHighFlags[suc] = 0;
+    for (var fi = 0; fi < flagColNames.length; fi++) {
+      var fIdx = flagStartIdx + fi;
+      if (fIdx < r.length) {
+        var fv = String(r[fIdx]).toUpperCase().trim();
+        if (fv === 'SI' || fv === 'YES' || fv === 'TRUE' || fv === '1') {
+          var fnL = flagColNames[fi].toLowerCase();
+          if ((fnL.indexOf('fuera') >= 0 && fnL.indexOf('horario') >= 0) ||
+              (fnL.indexOf('+1') >= 0 && fnL.indexOf('mismo') >= 0) ||
+              (fnL.indexOf('tel') >= 0 && fnL.indexOf('repetido') >= 0) ||
+              (fnL.indexOf('tel') >= 0 && fnL.indexOf('colaborador') >= 0) ||
+              (fnL.indexOf('contrato') >= 0 && fnL.indexOf('3 min') >= 0) ||
+              (fnL.indexOf('pago') >= 0 && fnL.indexOf('spei') >= 0)) {
+            sucHighFlags[suc]++;
+          }
+        }
+      }
+    }
+  }
+
+  var predictiveScores = [];
+  for (var si = 0; si < sucKeys.length; si++) {
+    var s = sucKeys[si];
+    var st = sucTotal[s];
+    if (st.t < 3) continue; // minimo 3 operaciones
+
+    var zTasa = zTasas[si] ? Math.max(0, zTasas[si].zScore) : 0;
+    var zProm = zProms[si] ? Math.max(0, zProms[si].zScore) : 0;
+    var zFreq = zFreqs[si] ? Math.max(0, zFreqs[si].zScore) : 0;
+
+    // Componente de tendencia: usar regresion global como proxy
+    var trendScore = 0;
+    if (regTasa.slope > 0 && regTasa.r2 > 0.3) trendScore = Math.min(100, regTasa.slope * 10 * regTasa.r2);
+
+    // Componente anomalia
+    var anomalyScore = Math.min(100, (zTasa * 15 + zProm * 10 + zFreq * 5));
+
+    // Componente Bollinger
+    var bollingerScore = 0;
+    if (bollTasa.currentAboveBand) bollingerScore += 30;
+    if (bollInc.currentAboveBand) bollingerScore += 20;
+
+    // Componente flags alta severidad
+    var highFlagCount = sucHighFlags[s] || 0;
+    var flagScore = Math.min(100, highFlagCount / Math.max(1, st.t) * 200);
+
+    // Score compuesto ponderado (0-100)
+    var score = Math.round(
+      trendScore * 0.35 +
+      anomalyScore * 0.30 +
+      bollingerScore * 0.20 +
+      flagScore * 0.15
+    );
+    score = Math.min(100, Math.max(0, score));
+
+    var nivel = score <= 30 ? 'verde' : score <= 60 ? 'amarillo' : score <= 80 ? 'naranja' : 'rojo';
+
+    predictiveScores.push({
+      suc: s,
+      score: score,
+      nivel: nivel,
+      operaciones: st.t,
+      incidencias: st.i,
+      tasa: Math.round(st.i / st.t * 10000) / 100,
+      montoTotal: Math.round(st.m),
+      flagsAlta: highFlagCount,
+      zTasa: zTasas[si] ? zTasas[si].zScore : 0,
+      zMonto: zProms[si] ? zProms[si].zScore : 0,
+      anomalia: (zTasas[si] && zTasas[si].isAnomaly) || (zProms[si] && zProms[si].isAnomaly)
+    });
+  }
+  predictiveScores.sort(function(a, b) { return b.score - a.score; });
+
+  // --- Heatmap: sucursal vs tipo de flag ---
+  var heatmapFlags = ['fueraHorario', 'mismodia', 'telRepetido', 'contratosRapidos', 'foraneas', 'montoDup', 'dias120', 'calif5'];
+  var heatmapLabels = ['Fuera Horario', '+1 Mismo Dia', 'Tel Repetido', 'Contratos <3min', 'Foraneas', 'Monto Dup', '>120 Dias', 'Calif <=5'];
+  var topSucsForHeatmap = predictiveScores.slice(0, 15).map(function(p) { return p.suc; });
+
+  var heatmapData = {};
+  for (var i = 0; i < allData.length; i++) {
+    var r = allData[i];
+    var suc = String(r[COL['sucursal2']] || '').trim();
+    if (topSucsForHeatmap.indexOf(suc) === -1) continue;
+    if (!heatmapData[suc]) {
+      heatmapData[suc] = {};
+      for (var hi = 0; hi < heatmapFlags.length; hi++) heatmapData[suc][heatmapFlags[hi]] = 0;
+    }
+    for (var fi = 0; fi < flagColNames.length; fi++) {
+      var fIdx = flagStartIdx + fi;
+      if (fIdx < r.length) {
+        var fv = String(r[fIdx]).toUpperCase().trim();
+        if (fv === 'SI' || fv === 'YES' || fv === 'TRUE' || fv === '1') {
+          var fnL = flagColNames[fi].toLowerCase();
+          if (fnL.indexOf('fuera') >= 0 && fnL.indexOf('horario') >= 0) heatmapData[suc].fueraHorario++;
+          if (fnL.indexOf('+1') >= 0 && fnL.indexOf('mismo') >= 0) heatmapData[suc].mismodia++;
+          if (fnL.indexOf('tel') >= 0 && fnL.indexOf('repetido') >= 0) heatmapData[suc].telRepetido++;
+          if (fnL.indexOf('contrato') >= 0 && fnL.indexOf('3 min') >= 0) heatmapData[suc].contratosRapidos++;
+          if (fnL.indexOf('foran') >= 0) heatmapData[suc].foraneas++;
+          if (fnL.indexOf('monto') >= 0 && fnL.indexOf('duplicado') >= 0) heatmapData[suc].montoDup++;
+          if (fnL.indexOf('120') >= 0) heatmapData[suc].dias120++;
+          if (fnL.indexOf('calificacion') >= 0 || fnL.indexOf('calif') >= 0) heatmapData[suc].calif5++;
+        }
+      }
+    }
+  }
+
+  // --- Historico para graficas de tendencia ---
+  var tendencias = {
+    fechas: histRows.map(function(r) { return r.fecha; }),
+    tasaInc: tasaIncHist,
+    totalInc: totalIncHist,
+    totalReg: totalRegHist
+  };
+
+  // --- Resumen ---
+  var conteoNiveles = { verde: 0, amarillo: 0, naranja: 0, rojo: 0 };
+  for (var i = 0; i < predictiveScores.length; i++) conteoNiveles[predictiveScores[i].nivel]++;
+
+  return {
+    scores: predictiveScores.slice(0, 30),
+    conteoNiveles: conteoNiveles,
+    diasHistorico: diasHist,
+    regresion: {
+      tasa: { slope: Math.round(regTasa.slope * 1000) / 1000, r2: Math.round(regTasa.r2 * 100) / 100, projected: regTasa.projected.map(function(v) { return Math.round(v * 100) / 100; }) },
+      incidencias: { slope: Math.round(regInc.slope * 1000) / 1000, r2: Math.round(regInc.r2 * 100) / 100, projected: regInc.projected.map(function(v) { return Math.round(v * 100) / 100; }) },
+      monto: { slope: Math.round(regMonto.slope * 1000) / 1000, r2: Math.round(regMonto.r2 * 100) / 100, projected: regMonto.projected.map(function(v) { return Math.round(v * 100) / 100; }) }
+    },
+    bollinger: {
+      tasa: { ma: bollTasa.ma, upper: bollTasa.upperBand, lower: bollTasa.lowerBand, alerta: bollTasa.currentAboveBand },
+      incidencias: { ma: bollInc.ma, upper: bollInc.upperBand, lower: bollInc.lowerBand, alerta: bollInc.currentAboveBand }
+    },
+    anomaliasHoy: anomaliasHoy,
+    heatmap: { sucs: topSucsForHeatmap, flags: heatmapLabels, flagKeys: heatmapFlags, data: heatmapData },
+    tendencias: tendencias
+  };
+}
+
+/**
+ * Genera insights predictivos usando Gemini AI
+ */
+function generatePredictiveInsights_(predictiveData) {
+  var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!apiKey) return { insights: 'API Key de Gemini no configurada. Los insights predictivos requieren Gemini.' };
+
+  var model = PropertiesService.getScriptProperties().getProperty('GEMINI_MODEL') || 'gemini-2.0-flash';
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
+
+  var top10 = predictiveData.scores.slice(0, 10);
+  var anomalias = predictiveData.anomaliasHoy;
+  var reg = predictiveData.regresion;
+  var niveles = predictiveData.conteoNiveles;
+
+  var prompt = [
+    'Eres un analista predictivo experto en prevencion de fraude y riesgos operativos para FINDEP (microfinanzas Mexico).',
+    'Analiza los siguientes datos predictivos del Monitor de Disposiciones y genera un reporte breve con:',
+    '',
+    '1. **Estado general**: Resumen en 1-2 lineas del nivel de riesgo actual',
+    '2. **Alertas criticas**: Sucursales que requieren atencion inmediata (max 3)',
+    '3. **Patrones detectados**: Correlaciones o comportamientos emergentes',
+    '4. **Proyeccion**: Que se espera en los proximos 7-14 dias segun las tendencias',
+    '5. **Acciones recomendadas**: Top 3 acciones concretas priorizadas',
+    '',
+    '## Datos:',
+    '- Sucursales por nivel: ' + JSON.stringify(niveles),
+    '- Regresion tasa incidencia: slope=' + reg.tasa.slope + ', R2=' + reg.tasa.r2 + ', proyeccion 7/14/30d=' + reg.tasa.projected.join('/'),
+    '- Regresion incidencias: slope=' + reg.incidencias.slope + ', R2=' + reg.incidencias.r2,
+    '- Anomalias hoy: ' + (anomalias.length > 0 ? JSON.stringify(anomalias) : 'Ninguna'),
+    '- Top 10 sucursales riesgo:',
+    top10.map(function(s) {
+      return '  Suc ' + s.suc + ': score=' + s.score + ' (' + s.nivel + '), ops=' + s.operaciones + ', inc=' + s.incidencias + ', tasa=' + s.tasa + '%, flagsAlta=' + s.flagsAlta + (s.anomalia ? ' [ANOMALIA]' : '');
+    }).join('\n'),
+    '',
+    'Responde en espanol, conciso (max 400 palabras). Usa formato con saltos de linea.'
+  ].join('\n');
+
+  try {
+    var payload = {
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.3, maxOutputTokens: 1024 }
+    };
+    var response = UrlFetchApp.fetch(url, { method: 'post', contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true });
+    var json = JSON.parse(response.getContentText());
+    if (json.candidates && json.candidates[0] && json.candidates[0].content) {
+      return { insights: json.candidates[0].content.parts[0].text };
+    }
+    return { insights: 'No se pudo generar analisis predictivo.' };
+  } catch (e) {
+    return { insights: 'Error al consultar Gemini: ' + e.message };
   }
 }
 

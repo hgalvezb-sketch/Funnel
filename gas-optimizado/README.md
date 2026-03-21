@@ -1,4 +1,4 @@
-# Monitor de Disposiciones v2.0 - FINDEP
+# Monitor de Disposiciones v3.3 - FINDEP
 
 Dashboard de monitoreo de disposiciones de Caja Unica para FINDEP. Google Apps Script Web App con arquitectura de pre-agregacion server-side, agente de analisis con Gemini AI, sistema de incidencias, exportacion de reportes y entrada de voz.
 
@@ -11,11 +11,11 @@ Dashboard de monitoreo de disposiciones de Caja Unica para FINDEP. Google Apps S
 | **Dashboard (ejecutable)** | https://script.google.com/a/macros/findep.com.mx/s/AKfycbwbCF2EtDit2Azfhrl5OBqCOCh6il_WdL7s-vmgaV6fK4RgChVWpkQmMm5-IpfUZr5G/exec |
 | **Spreadsheet** | https://docs.google.com/spreadsheets/d/1ADKcPFVvHUlLtR2x_A5f74rdJOZa73p3gEwPq_E338I/edit |
 
-### Desarrollo (v2.0)
+### Desarrollo (v3.3)
 
 | Recurso | URL |
 |---------|-----|
-| **Dashboard v2.0** | https://script.google.com/a/macros/findep.com.mx/s/AKfycbxMkit0aYpSol8a11wcneWLsaiWaLDYlJaeJcI_K_qFUQ2dOeSKI35cK148TF0lwLKAng/exec |
+| **Dashboard v3.3** | https://script.google.com/a/macros/findep.com.mx/s/AKfycbxFpKrEHdNyWqsLRHGmHA15Hu6b_9zoI4vkpSGYnDYk2Pc8t0S3KLg7tCwT8ZdC8segRw/exec |
 | **Editor Apps Script** | https://script.google.com/u/0/home/projects/1naiQhFZB-6qGxCCr7DcTVAPO0Av6qDL4aDqXffiC4YDv4859HcYS9zTY/edit |
 | **Spreadsheet v2.0** | https://docs.google.com/spreadsheets/d/1xbYd4b4aSfnCnrVD8VLQGPBiRTeIXAfOxpk9UP6e1c8/edit |
 | **GitHub repo** | https://github.com/hgalvezb-sketch/Funnel |
@@ -229,15 +229,118 @@ Boton de microfono en el chat flotante para dictar preguntas al agente.
 31. Entrada de voz con Web Speech API (es-MX) en chat flotante
 32. Fix error de permisos DriveApp.getRootFolder() en exportacion
 
-## Roadmap futuro (evaluado 2026-03-19)
+### v3.3 - Ajustes UI (2026-03-20)
+33. Logos SVG incorrectos removidos de la barra superior
+34. Barra superior, filtros y pestanas ya no son sticky/fixed (se desplazan con scroll)
+
+## Plan v4.0 - Pestana Inteligencia Predictiva
+
+Nueva pestana en el monitor que combina modelos estadisticos clasicos con analisis de Gemini AI para detectar patrones de riesgo antes de que se materialicen.
+
+### Arquitectura hibrida (Nivel 1 + Nivel 2)
+
+```
+[precomputeAll()] -> [Regresion lineal + Z-Score + Media movil] -> [Scores predictivos]
+                  -> [Gemini 2.5 Flash] -> [Interpretacion + alertas en lenguaje natural]
+                  -> [Cache en _cache] -> [Pestana "Inteligencia Predictiva"]
+```
+
+### Componentes del backend (`codigo.gs`)
+
+#### 1. Regresion lineal por sucursal
+- Funcion: `computeLinearRegression_(histData, sucursal, metrica)`
+- Calcula pendiente (slope) y R2 sobre datos de `_historico` (rolling 60 dias)
+- Metricas: tasa de incidencia, monto promedio, conteo de flags
+- Proyeccion a 7, 14 y 30 dias
+- Si la pendiente es positiva y R2 > 0.5: sucursal en tendencia ascendente de riesgo
+
+#### 2. Deteccion de anomalias (Z-Score)
+- Funcion: `computeAnomalyScores_(allData, COL, sucTotal)`
+- Calcula Z-Score para cada sucursal en: monto promedio, tasa de incidencia, frecuencia de operaciones
+- Umbral: |Z| > 2.0 = anomalia, |Z| > 3.0 = anomalia critica
+- Detecta operaciones atipicas en tiempo real (hora, monto, frecuencia)
+
+#### 3. Media movil + Bandas de Bollinger
+- Funcion: `computeBollingerBands_(histData, ventana, desviaciones)`
+- Ventana: 7 dias (corto plazo) y 14 dias (mediano plazo)
+- Bandas: +/- 2 desviaciones estandar
+- Alerta cuando la metrica actual rompe la banda superior
+
+#### 4. Indice de riesgo compuesto (Risk Score Predictivo)
+- Funcion: `computePredictiveRiskScore_(sucursal, regression, anomaly, bollinger)`
+- Formula ponderada:
+  - Tendencia regresion (peso 0.35)
+  - Z-Score anomalia (peso 0.30)
+  - Ruptura de Bollinger (peso 0.20)
+  - Concentracion de flags alta severidad (peso 0.15)
+- Resultado: score 0-100 por sucursal
+- Clasificacion: Verde (0-30), Amarillo (31-60), Naranja (61-80), Rojo (81-100)
+
+#### 5. Analisis predictivo con Gemini
+- Funcion: `generatePredictiveInsights_(predictiveData)`
+- Alimenta Gemini con: scores, tendencias, anomalias, historico
+- System prompt especializado en modelos predictivos y prevencion
+- Gemini genera:
+  - Interpretacion de patrones detectados
+  - Correlaciones entre sucursales (posible contagio de modus operandi)
+  - Alertas en lenguaje natural con nivel de confianza
+  - Recomendaciones accionables priorizadas
+
+### Componentes del frontend (`Dashboard.html`)
+
+#### Pestana "Inteligencia Predictiva" (6ta pestana)
+
+| Seccion | Contenido |
+|---------|-----------|
+| **Semaforo predictivo** | Grid de sucursales con color Verde/Amarillo/Naranja/Rojo segun score predictivo |
+| **Top 10 riesgo futuro** | Tabla: sucursal, score, tendencia (flecha), proyeccion 7/14/30 dias |
+| **Grafica de tendencias** | Linea temporal con bandas de Bollinger y proyeccion punteada |
+| **Mapa de calor de anomalias** | Heatmap sucursal vs tipo de flag, intensidad por Z-Score |
+| **Alertas Gemini** | Cards con alertas generadas por IA, nivel de confianza y accion recomendada |
+| **Correlaciones** | Sucursales con patrones similares (posible propagacion de riesgo) |
+
+### Plan de implementacion
+
+| Paso | Tarea | Estimacion |
+|------|-------|------------|
+| 1 | Agregar funciones de regresion lineal y Z-Score en `codigo.gs` | Backend |
+| 2 | Agregar media movil y Bollinger en `codigo.gs` | Backend |
+| 3 | Crear `computePredictiveData_()` que integre los 4 modelos | Backend |
+| 4 | Agregar llamada a Gemini con prompt predictivo especializado | Backend |
+| 5 | Incluir datos predictivos en `precomputeAll()` -> cache | Backend |
+| 6 | Crear pestana "Inteligencia Predictiva" en `Dashboard.html` | Frontend |
+| 7 | Renderizar semaforo, tabla top 10, graficas y alertas | Frontend |
+| 8 | Testing y calibracion de umbrales con datos reales | QA |
+
+### Consideraciones tecnicas
+
+- **Tiempo de ejecucion:** `precomputeAll()` tiene limite de 6 min en Apps Script. Los calculos estadisticos son O(n) por sucursal, factible con ~10k registros
+- **Historico:** Requiere al menos 7 dias de datos en `_historico` para regresion significativa. Con 60 dias rolling es optimo
+- **Gemini:** Una llamada adicional por ciclo de precomputo (~2 seg). Se cachea el resultado
+- **Sin dependencias externas:** Todo corre en vanilla JavaScript (Apps Script). No requiere librerias de ML
+- **Datos sensibles:** Los scores son agregados por sucursal, no exponen datos de clientes individuales
+
+### Tecnicas avanzadas (Nivel 3 - futuro, requiere Python/BigQuery)
+
+| Tecnica | Ventaja | Requisito |
+|---------|---------|-----------|
+| Isolation Forest | Detecta fraude sin datos etiquetados | Python + scikit-learn |
+| Prophet (Meta) | Forecasting con estacionalidad | Python + prophet |
+| XGBoost + SHAP | Explica POR QUE una operacion es riesgosa | Python + xgboost + shap |
+| Graph Neural Networks | Detecta redes de colusion entre sucursales/operadores | Python + PyTorch Geometric |
+
+Estas tecnicas se ejecutarian como Cloud Functions o en Vertex AI, alimentando resultados de vuelta al Sheet.
+
+## Roadmap futuro (evaluado 2026-03-20)
 
 Priorizado por valor e impacto:
 
 | # | Feature | Complejidad | Requisitos |
 |---|---------|-------------|------------|
-| 1 | **RAG para PDFs/Docs** | Alta | Gemini puede recibir contenido extraido como contexto |
-| 2 | **Reportes en Google Slides** | Alta | Slides API disponible desde GAS |
-| 3 | **Migracion a BigQuery** | Alta | Permisos: `bigquery.dataViewer`, `bigquery.dataEditor`, `bigquery.jobUser` en proyecto `ws-ctrol-interno` |
+| 1 | **Inteligencia Predictiva (v4.0)** | Media-Alta | Datos historicos en `_historico` (min 7 dias), Gemini API |
+| 2 | **RAG para PDFs/Docs** | Alta | Gemini puede recibir contenido extraido como contexto |
+| 3 | **Reportes en Google Slides** | Alta | Slides API disponible desde GAS |
+| 4 | **Migracion a BigQuery** | Alta | Permisos: `bigquery.dataViewer`, `bigquery.dataEditor`, `bigquery.jobUser` en proyecto `ws-ctrol-interno` |
 
 ### Migracion a BigQuery - Permisos necesarios
 
@@ -251,7 +354,8 @@ Para migrar de Sheets a BigQuery como backend:
 
 | Version | Commit | Restaurar |
 |---------|--------|-----------|
-| **v2.0 - Chat flotante + Incidencias + Export + Voz** | pendiente | `git checkout feature/monitor-chat-agent` |
+| **v3.3 - Sin logos + barras no fijas** | pendiente | `git checkout feature/monitor-chat-agent` |
+| v2.0 - Chat flotante + Incidencias + Export + Voz | pendiente | ver commits anteriores |
 | v1.0 - Monitor + Chat + Filtros fix | pendiente | ver commits anteriores |
 | Monitor pre-fix filtros | `a3a62a7` | `git checkout a3a62a7` |
 | Monitor pre-agentes | `d3ffaff` | `git checkout d3ffaff` |
