@@ -269,6 +269,23 @@ table.inc-table tr:hover { background:rgba(0,131,143,0.04); }
 .hm-3 { background:#ffebee; color:#c62828; }
 .pred-gemini { border-left:4px solid #7c4dff; }
 .pred-gemini-content { font-size:13px; color:#333; line-height:1.8; white-space:pre-wrap; }
+/* Tour / Guia Interactiva */
+.tour-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.55); z-index:9998; }
+.tour-highlight { z-index:9999 !important; box-shadow:0 0 0 4px #7c4dff, 0 0 20px rgba(124,77,255,0.5) !important; border-radius:8px; transition:box-shadow 0.3s; }
+.tour-tooltip { position:fixed; z-index:10000; background:#fff; border-radius:14px; padding:24px; max-width:420px; min-width:300px; box-shadow:0 8px 40px rgba(0,0,0,0.35); border-top:4px solid #d32f2f; }
+.tour-tooltip h3 { color:#d32f2f; font-size:16px; margin-bottom:8px; }
+.tour-tooltip p { color:#555; font-size:13px; line-height:1.7; margin-bottom:16px; }
+.tour-tooltip .tour-step-indicator { font-size:11px; color:#999; margin-bottom:12px; }
+.tour-tooltip .tour-actions { display:flex; gap:8px; justify-content:flex-end; }
+.tour-tooltip .tour-btn { padding:8px 18px; border-radius:8px; border:none; cursor:pointer; font-size:12px; font-weight:bold; }
+.tour-btn-next { background:linear-gradient(135deg,#d32f2f,#b71c1c); color:#fff; }
+.tour-btn-next:hover { opacity:0.9; }
+.tour-btn-prev { background:#f5f5f5; color:#666; border:1px solid #e0e0e0 !important; }
+.tour-btn-prev:hover { background:#eee; }
+.tour-btn-skip { background:transparent; color:#999; font-size:11px !important; }
+.tour-btn-skip:hover { color:#666; }
+.help-fab { position:fixed; bottom:24px; left:24px; width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#d32f2f,#b71c1c); color:#fff; border:none; cursor:pointer; font-size:20px; box-shadow:0 4px 16px rgba(211,47,47,0.4); z-index:900; display:flex; align-items:center; justify-content:center; transition:transform 0.2s; }
+.help-fab:hover { transform:scale(1.1); }
 </style>
 </head>
 <body>
@@ -572,6 +589,22 @@ table.inc-table tr:hover { background:rgba(0,131,143,0.04); }
    <button class="chat-mic-btn" id="chatMicBtn" onclick="toggleVoice()" title="Entrada de voz">&#127908;</button>
    <button id="chatSendBtn" onclick="sendChat()">Enviar</button>
   </div>
+ </div>
+</div>
+
+<!-- BOTON AYUDA -->
+<button class="help-fab" onclick="startTour()" title="Guia del Monitor">?</button>
+
+<!-- TOUR OVERLAY -->
+<div class="tour-overlay" id="tourOverlay" onclick="endTour()"></div>
+<div class="tour-tooltip" id="tourTooltip" style="display:none;">
+ <div class="tour-step-indicator" id="tourStepIndicator"></div>
+ <h3 id="tourTitle"></h3>
+ <p id="tourBody"></p>
+ <div class="tour-actions">
+  <button class="tour-btn tour-btn-skip" onclick="endTour()">Salir</button>
+  <button class="tour-btn tour-btn-prev" id="tourPrevBtn" onclick="tourPrev()">Anterior</button>
+  <button class="tour-btn tour-btn-next" id="tourNextBtn" onclick="tourNext()">Siguiente</button>
  </div>
 </div>
 
@@ -1843,6 +1876,208 @@ function renderAnomalyTable_() {
       '<td class="' + (isAnomaly ? 'anomaly-alert' : 'anomaly-ok') + '">' + (isAnomaly ? '\u26A0 Anomalia' : '\u2713 Normal') + '</td></tr>';
   }
 }
+
+// ===== GUIA INTERACTIVA / TOUR =====
+
+var TOUR_STEP = 0;
+var TOUR_PREV_ELEMENT = null;
+var TOUR_STEPS = [
+  // --- BIENVENIDA ---
+  {
+    selector: '.top-bar',
+    title: 'Bienvenido al Monitor de Disposiciones',
+    body: 'Este es el sistema de monitoreo de disposiciones de Caja Unica de FINDEP. Aqui puedes vigilar en tiempo real todas las operaciones de desembolso de credito en sucursales, detectar anomalias, registrar incidencias y analizar tendencias.\n\nLos datos se actualizan automaticamente cada 10 minutos.'
+  },
+  // --- BARRA SUPERIOR ---
+  {
+    selector: '.btn-incidencia',
+    title: 'Registrar Incidencia',
+    body: 'Este boton abre un formulario para documentar hallazgos de control, proceso o riesgo. Cada incidencia queda registrada con ID unico, sucursal, severidad, responsable y fecha compromiso. Se almacena en la hoja _incidencias del spreadsheet.'
+  },
+  {
+    selector: '#lastUpdate',
+    title: 'Ultima Actualizacion',
+    body: 'Muestra la fecha y hora de la ultima vez que se pre-calcularon los datos del dashboard. El trigger automatico ejecuta la actualizacion cada 10 minutos.'
+  },
+  // --- FILTROS ---
+  {
+    selector: '.filters-bar',
+    title: 'Barra de Filtros',
+    body: 'Filtra los datos por: Sucursal, Contrato, Folio, Tipo de Disposicion, Estatus, Incidencia, Calificacion y Empresa. Al seleccionar un filtro, todos los KPIs y graficas se recalculan en tiempo real mostrando solo los datos que coinciden.\n\nUsa "LIMPIAR" para restablecer todos los filtros.'
+  },
+  // --- PESTANAS ---
+  {
+    selector: '.tab-bar',
+    title: 'Pestanas del Monitor',
+    body: 'El monitor tiene 6 pestanas especializadas:\n\n1. Monitor Operativo: KPIs, graficas y tabla de detalle\n2. Resumen Ejecutivo: Vision gerencial con headline y semaforos\n3. Mapa de Riesgo: Score de riesgo por sucursal con detalle de flags\n4. Analisis Financiero: Capital insoluto, saldo vencido, distribucion por tipo\n5. Tendencias: Historico de 60 dias con deteccion de anomalias\n6. Inteligencia Predictiva: Modelos estadisticos + IA para anticipar riesgos'
+  },
+  // --- TAB OPERATIVO ---
+  {
+    selector: '.kpi-row',
+    title: 'KPIs Principales',
+    body: '6 indicadores clave en tiempo real:\n\n- Total Registros: Todas las disposiciones en el periodo\n- Monto Total: Suma de todos los montos desembolsados\n- Con Incidencias: Operaciones con al menos una bandera de riesgo\n- Tasa Incidencia: Porcentaje de operaciones con alertas\n- Monto Promedio: Monto desembolsado promedio por operacion\n- Sucursales: Numero de sucursales con actividad'
+  },
+  {
+    selector: '.charts-grid',
+    title: 'Graficas de Analisis',
+    body: 'Visualizaciones interactivas que incluyen:\n\n- Top 20 sucursales por volumen y por monto\n- Distribucion por rango de monto (0-500, 501-1k, etc.)\n- Distribucion por edad del cliente\n- Tipos de incidencia mas frecuentes\n- Gauge de tasa de riesgo general\n- Top sucursales por tasa de incidencia\n- Monto promedio por sucursal\n- Distribucion de banderas de riesgo\n- Ranking de sucursales por riesgo total\n\nCada grafica tiene un boton de descarga para exportar los datos a Google Sheets.'
+  },
+  // --- RIESGOS ---
+  {
+    selector: null,
+    title: 'Analisis de Riesgos (scroll abajo)',
+    body: 'Debajo de las graficas encontraras tarjetas de riesgo clasificadas por severidad:\n\n- ALTA (rojo): Fuera de horario, +1 mismo dia, tel repetido, tel colaborador, contratos <3 min, pago SPEI a colaborador\n- MEDIA (naranja): Foraneas efectivo, monto duplicado, disposiciones >24k, reversados, >120 dias atraso\n- BAJA (amarillo): Calificacion <=5, operaciones de alto monto >25k\n\nCada tarjeta es expandible para ver los contratos especificos involucrados.'
+  },
+  // --- INCIDENCIAS ---
+  {
+    selector: null,
+    title: 'Seguimiento de Incidencias (scroll abajo)',
+    body: 'Seccion dedicada al seguimiento de incidencias registradas:\n\n- 4 mini-KPIs: Abiertas, En Revision, Cerradas, Vencidas\n- Filtros por tipo, severidad y estado\n- Tabla interactiva con botones para cambiar estado:\n  Abierta -> En Revision -> Cerrada\n- Las incidencias vencidas (fecha compromiso pasada) se marcan automaticamente'
+  },
+  // --- TABLA DETALLE ---
+  {
+    selector: null,
+    title: 'Tabla de Detalle (scroll abajo)',
+    body: 'Tabla paginada con todos los registros individuales. Incluye:\n\n- Busqueda por contrato, folio o busqueda general\n- Columnas ordenables (click en el encabezado)\n- Paginacion de 50 registros por pagina\n- Navegacion: Primera, Anterior, Siguiente, Ultima\n- Se puede exportar a Google Sheets'
+  },
+  // --- CHAT AGENTE ---
+  {
+    selector: '.chat-fab',
+    title: 'Agente de Analisis (Chat IA)',
+    body: 'Boton flotante que abre el chat con el agente de inteligencia artificial (Gemini). Puedes:\n\n- Hacer preguntas sobre los datos del dashboard en lenguaje natural\n- Pedir analisis de sucursales especificas\n- Solicitar recomendaciones de accion\n- Usar entrada de voz (boton de microfono)\n- Ver 4 preguntas sugeridas como punto de partida\n\nEl agente conoce todos los KPIs, filtros activos, riesgos y banderas del dashboard en tiempo real.'
+  },
+  // --- TAB EJECUTIVO ---
+  {
+    selector: null,
+    title: 'Pestana: Resumen Ejecutivo',
+    body: 'Haz clic en la pestana "Resumen Ejecutivo" para ver la vision de alto nivel para gerencia:\n\n- Headline con resumen del dia (alertas totales, sucursales afectadas, alertas criticas)\n- Comparativo vs ayer: variacion en registros, monto, incidencias y tasa\n- KPIs financieros: capital insoluto, saldo vencido, dias de atraso promedio, tasa de reversion\n- Distribucion por tipo de disposicion (efectivo vs cheque)\n- Monto con flags vs sin flags'
+  },
+  // --- TAB RIESGO ---
+  {
+    selector: null,
+    title: 'Pestana: Mapa de Riesgo',
+    body: 'Haz clic en la pestana "Mapa de Riesgo" para ver el ranking de sucursales:\n\n- Score = (flags alta x3 + media x2 + baja x1) / total operaciones x 100\n- Tabla con: sucursal, score, flags por severidad, total registros\n- Detalle expandible de cada sucursal mostrando que flags tiene\n- Permite identificar rapidamente las sucursales que necesitan atencion'
+  },
+  // --- TAB FINANCIERO ---
+  {
+    selector: null,
+    title: 'Pestana: Analisis Financiero',
+    body: 'Haz clic en la pestana "Analisis Financiero" para ver indicadores del portafolio:\n\n- Capital insoluto total y saldo vencido\n- Distribucion por dias vencidos (0, 1-30, 31-60, 61-90, 91-120, >120)\n- Distribucion por calificacion crediticia\n- Comparativo de monto en operaciones con flags vs sin flags\n- Operaciones por tipo de dispersion (efectivo/cheque)'
+  },
+  // --- TAB TENDENCIAS ---
+  {
+    selector: null,
+    title: 'Pestana: Tendencias',
+    body: 'Haz clic en la pestana "Tendencias" para ver el analisis historico de los ultimos 60 dias:\n\n- Grafica de lineas con registros, alertas y tasa de incidencia por dia\n- Comparativo semanal (ultimas 8 semanas)\n- Flags en el tiempo: area apilada mostrando evolucion de cada tipo de alerta\n- Tabla de anomalias: compara esta semana vs promedio de 4 semanas anteriores, detecta cambios >50% como anomalia'
+  },
+  // --- TAB PREDICTIVO ---
+  {
+    selector: null,
+    title: 'Pestana: Inteligencia Predictiva',
+    body: 'Haz clic en la pestana "Inteligencia Predictiva" para ver modelos estadisticos + IA:\n\n- Semaforo por nivel: cuantas sucursales estan en verde, amarillo, naranja o rojo\n- Regresion lineal: proyecciones a 7, 14 y 30 dias de tasa, incidencias y monto\n- Bandas de Bollinger: alerta cuando la metrica actual supera la banda superior\n- Z-Score: detecta anomalias estadisticas en tiempo real\n- Score predictivo por sucursal (0-100) combinando tendencia, anomalia, Bollinger y flags\n- Mapa de calor: sucursales vs tipos de bandera\n- Analisis de Gemini AI: interpretacion automatica con alertas y recomendaciones'
+  },
+  // --- EXPORTACION ---
+  {
+    selector: null,
+    title: 'Exportacion de Datos',
+    body: 'Cada seccion del dashboard tiene un boton de descarga (flecha abajo) en la esquina superior derecha. Al hacer click:\n\n1. Se crea automaticamente un nuevo Google Sheet con los datos de esa seccion\n2. Se abre en una nueva pestana del navegador\n3. El archivo queda en la raiz de tu Google Drive\n\nPuedes exportar: KPIs, cada grafica individual, analisis de riesgos, incidencias y la tabla de detalle.'
+  },
+  // --- FINAL ---
+  {
+    selector: '.help-fab',
+    title: 'Eso es todo!',
+    body: 'Ya conoces todos los elementos del Monitor de Disposiciones.\n\nRecuerda:\n- Los datos se actualizan automaticamente cada 10 minutos\n- Puedes usar el agente de IA para hacer preguntas en lenguaje natural\n- Cada seccion es exportable a Google Sheets\n- Este tour esta disponible siempre desde el boton "?" en la esquina inferior izquierda\n\nSi tienes dudas, preguntale al agente de chat!'
+  }
+];
+
+function startTour() {
+  TOUR_STEP = 0;
+  document.getElementById('tourOverlay').style.display = 'block';
+  // Ensure we're on operativo tab for first steps
+  switchTab('operativo');
+  showTourStep_();
+}
+
+function endTour() {
+  document.getElementById('tourOverlay').style.display = 'none';
+  document.getElementById('tourTooltip').style.display = 'none';
+  if (TOUR_PREV_ELEMENT) {
+    TOUR_PREV_ELEMENT.classList.remove('tour-highlight');
+    TOUR_PREV_ELEMENT = null;
+  }
+}
+
+function tourNext() {
+  if (TOUR_STEP < TOUR_STEPS.length - 1) {
+    TOUR_STEP++;
+    showTourStep_();
+  } else {
+    endTour();
+  }
+}
+
+function tourPrev() {
+  if (TOUR_STEP > 0) {
+    TOUR_STEP--;
+    showTourStep_();
+  }
+}
+
+function showTourStep_() {
+  var step = TOUR_STEPS[TOUR_STEP];
+  var tooltip = document.getElementById('tourTooltip');
+  var overlay = document.getElementById('tourOverlay');
+
+  // Remove previous highlight
+  if (TOUR_PREV_ELEMENT) {
+    TOUR_PREV_ELEMENT.classList.remove('tour-highlight');
+    if (TOUR_PREV_ELEMENT.dataset.tourPos) { TOUR_PREV_ELEMENT.style.position = ''; delete TOUR_PREV_ELEMENT.dataset.tourPos; }
+    TOUR_PREV_ELEMENT = null;
+  }
+
+  // Update tooltip content
+  document.getElementById('tourStepIndicator').textContent = 'Paso ' + (TOUR_STEP + 1) + ' de ' + TOUR_STEPS.length;
+  document.getElementById('tourTitle').textContent = step.title;
+  document.getElementById('tourBody').textContent = step.body;
+
+  // Button visibility
+  document.getElementById('tourPrevBtn').style.display = TOUR_STEP === 0 ? 'none' : 'inline-block';
+  document.getElementById('tourNextBtn').textContent = TOUR_STEP === TOUR_STEPS.length - 1 ? 'Finalizar' : 'Siguiente';
+
+  // Highlight element if it has a selector and is visible
+  var el = step.selector ? document.querySelector(step.selector) : null;
+  if (el) {
+    // Only add position:relative to static elements (don't break fixed/absolute)
+    var pos = window.getComputedStyle(el).position;
+    if (pos === 'static' || pos === '') { el.style.position = 'relative'; el.dataset.tourPos = '1'; }
+    el.classList.add('tour-highlight');
+    TOUR_PREV_ELEMENT = el;
+    if (pos !== 'fixed') el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Position tooltip
+  tooltip.style.display = 'block';
+  overlay.style.display = 'block';
+
+  if (el) {
+    var rect = el.getBoundingClientRect();
+    var tooltipW = 420;
+    var tooltipH = tooltip.offsetHeight || 250;
+    var top = rect.bottom + 12;
+    var left = rect.left + rect.width / 2 - tooltipW / 2;
+    if (top + tooltipH > window.innerHeight - 20) top = rect.top - tooltipH - 12;
+    if (left < 12) left = 12;
+    if (left + tooltipW > window.innerWidth - 12) left = window.innerWidth - tooltipW - 12;
+    if (top < 12) top = 12;
+    tooltip.style.top = top + 'px';
+    tooltip.style.left = left + 'px';
+  } else {
+    var tooltipH = tooltip.offsetHeight || 300;
+    tooltip.style.top = Math.max(40, Math.floor(window.innerHeight / 2 - tooltipH / 2)) + 'px';
+    tooltip.style.left = Math.max(12, Math.floor(window.innerWidth / 2 - 210)) + 'px';
+  }
+}
 </script>
 </body>
 </html>
+
