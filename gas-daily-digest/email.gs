@@ -34,6 +34,11 @@ function buildEmailHTML(data) {
     html += buildVideoSection_('DE TUS SUSCRIPCIONES', data.subscriptionVideos, '#16a085');
   }
 
+  // Seccion: Videos de canales que te gustan
+  if (data.likedChannelVideos && data.likedChannelVideos.length > 0) {
+    html += buildVideoSection_('CANALES QUE TE GUSTAN', data.likedChannelVideos, '#8e44ad');
+  }
+
   // Seccion: Novedades busqueda
   if (data.searchVideos && data.searchVideos.length > 0) {
     html += buildVideoSection_('NOVEDADES CLAUDE & IA', data.searchVideos, '#e74c3c');

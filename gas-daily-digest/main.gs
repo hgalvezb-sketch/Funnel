@@ -11,7 +11,9 @@ function sendDailyDigest() {
 
   var subscriptionVideos = [];
   var searchVideos = [];
+  var likedChannelVideos = [];
   var rssNews = [];
+  var likedInsights = { channels: [], keywords: [] };
   var errors = [];
 
   // 1. Videos de suscripciones
@@ -23,9 +25,30 @@ function sendDailyDigest() {
     errors.push('YouTube suscripciones: ' + e.message);
   }
 
-  // 2. Busqueda publica
+  // 2. Insights de likes (canales y keywords)
+  var excludeSet = {};
+  subscriptionVideos.forEach(function(v) { excludeSet[v.videoId] = true; });
+
   try {
-    var excludeIds = subscriptionVideos.map(function(v) { return v.videoId; });
+    likedInsights = getLikedVideosInsights();
+    Logger.log('Likes insights: ' + likedInsights.channels.length + ' canales, ' + likedInsights.keywords.length + ' keywords');
+  } catch (e) {
+    Logger.log('Error likes insights: ' + e.message);
+    errors.push('Likes insights: ' + e.message);
+  }
+
+  // 3. Videos de canales con likes
+  try {
+    likedChannelVideos = getVideosFromLikedChannels(likedInsights.channels, excludeSet);
+    Logger.log('Liked channels: ' + likedChannelVideos.length + ' videos');
+  } catch (e) {
+    Logger.log('Error liked channels: ' + e.message);
+    errors.push('Liked channels: ' + e.message);
+  }
+
+  // 4. Busqueda publica
+  try {
+    var excludeIds = Object.keys(excludeSet);
     searchVideos = searchNewVideos(excludeIds);
     Logger.log('Busqueda: ' + searchVideos.length + ' videos');
   } catch (e) {
@@ -33,7 +56,7 @@ function sendDailyDigest() {
     errors.push('YouTube busqueda: ' + e.message);
   }
 
-  // 3. RSS
+  // 5. RSS
   try {
     rssNews = fetchRSSNews();
     Logger.log('RSS: ' + rssNews.length + ' noticias');
@@ -42,29 +65,30 @@ function sendDailyDigest() {
     errors.push('RSS: ' + e.message);
   }
 
-  // 4. Verificar si hay contenido
-  var totalContent = subscriptionVideos.length + searchVideos.length + rssNews.length;
+  // 6. Verificar si hay contenido
+  var totalContent = subscriptionVideos.length + searchVideos.length + likedChannelVideos.length + rssNews.length;
   if (totalContent === 0) {
     Logger.log('Sin contenido hoy. No se envia email.');
     checkStaleDigest_(props, recipient);
     return;
   }
 
-  // 5. Resumen Gemini
+  // 7. Resumen Gemini
   var summary = '';
   try {
-    summary = generateGeminiSummary(subscriptionVideos, searchVideos, rssNews);
+    summary = generateGeminiSummary(subscriptionVideos, searchVideos, rssNews, likedChannelVideos);
     Logger.log('Gemini summary: ' + (summary ? 'OK' : 'vacio'));
   } catch (e) {
     Logger.log('Error Gemini: ' + e.message);
     errors.push('Gemini: ' + e.message);
   }
 
-  // 6. Construir y enviar email
+  // 8. Construir y enviar email
   var emailData = {
     summary: summary,
     subscriptionVideos: subscriptionVideos,
     searchVideos: searchVideos,
+    likedChannelVideos: likedChannelVideos,
     rssNews: rssNews
   };
 
@@ -121,32 +145,43 @@ function testDigest() {
   Logger.log('Suscripciones encontradas: ' + subs.length);
   subs.forEach(function(v) { Logger.log('  [SUB] ' + v.title + ' — ' + v.channel); });
 
-  // 2. Busqueda
-  var excludeIds = subs.map(function(v) { return v.videoId; });
-  var search = searchNewVideos(excludeIds);
+  // 2. Likes insights
+  var excludeSet = {};
+  subs.forEach(function(v) { excludeSet[v.videoId] = true; });
+  var insights = getLikedVideosInsights();
+  Logger.log('Likes: ' + insights.channels.length + ' canales, keywords: ' + insights.keywords.join(', '));
+
+  // 3. Videos de canales con likes
+  var liked = getVideosFromLikedChannels(insights.channels, excludeSet);
+  Logger.log('Liked channels videos: ' + liked.length);
+  liked.forEach(function(v) { Logger.log('  [LIKED] ' + v.title + ' — ' + v.channel); });
+
+  // 4. Busqueda
+  var search = searchNewVideos(Object.keys(excludeSet));
   Logger.log('Busqueda encontrada: ' + search.length);
   search.forEach(function(v) { Logger.log('  [SEARCH] ' + v.title + ' — ' + v.channel); });
 
-  // 3. RSS
+  // 5. RSS
   var rss = fetchRSSNews();
   Logger.log('RSS encontradas: ' + rss.length);
   rss.forEach(function(n) { Logger.log('  [RSS] ' + n.title + ' — ' + n.source); });
 
-  // 4. Gemini
-  var summary = generateGeminiSummary(subs, search, rss);
+  // 6. Gemini
+  var summary = generateGeminiSummary(subs, search, rss, liked);
   Logger.log('Gemini summary:\n' + summary);
 
-  // 5. Email HTML (solo loguear tamano)
+  // 7. Email HTML (solo loguear tamano)
   var html = buildEmailHTML({
     summary: summary,
     subscriptionVideos: subs,
     searchVideos: search,
+    likedChannelVideos: liked,
     rssNews: rss
   });
   Logger.log('Email HTML generado: ' + html.length + ' chars');
 
   Logger.log('=== TEST DIGEST END ===');
-  Logger.log('Total: ' + subs.length + ' subs + ' + search.length + ' search + ' + rss.length + ' rss');
+  Logger.log('Total: ' + subs.length + ' subs + ' + liked.length + ' liked + ' + search.length + ' search + ' + rss.length + ' rss');
 }
 
 /**

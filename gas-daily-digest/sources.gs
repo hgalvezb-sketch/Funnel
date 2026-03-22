@@ -90,7 +90,7 @@ function fetchRSSNews() {
  * @param {Array} rssNews - Noticias RSS
  * @returns {string} Resumen en texto plano (2-3 parrafos en espanol)
  */
-function generateGeminiSummary(subscriptionVideos, searchVideos, rssNews) {
+function generateGeminiSummary(subscriptionVideos, searchVideos, rssNews, likedChannelVideos) {
   var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
   if (!apiKey) {
     Logger.log('GEMINI_API_KEY no configurada');
@@ -103,6 +103,13 @@ function generateGeminiSummary(subscriptionVideos, searchVideos, rssNews) {
   if (subscriptionVideos.length > 0) {
     contentParts.push('VIDEOS DE SUSCRIPCIONES:');
     subscriptionVideos.forEach(function(v) {
+      contentParts.push('- ' + v.title + ' (canal: ' + v.channel + ')');
+    });
+  }
+
+  if (likedChannelVideos && likedChannelVideos.length > 0) {
+    contentParts.push('\nDE CANALES QUE LE GUSTAN AL USUARIO:');
+    likedChannelVideos.forEach(function(v) {
       contentParts.push('- ' + v.title + ' (canal: ' + v.channel + ')');
     });
   }
@@ -129,6 +136,7 @@ function generateGeminiSummary(subscriptionVideos, searchVideos, rssNews) {
     + contentParts.join('\n')
     + '\n\nGenera un resumen de maximo 3 parrafos en espanol. '
     + 'Se conciso, destaca lo mas relevante, y menciona tendencias si las hay. '
+    + 'IMPORTANTE: Para cada video o noticia que menciones, traduce su titulo al espanol entre parentesis si esta en ingles. '
     + 'Formato: texto plano, sin markdown ni bullet points.';
 
   try {
