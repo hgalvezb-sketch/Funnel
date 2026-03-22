@@ -286,6 +286,53 @@ table.inc-table tr:hover { background:rgba(0,131,143,0.04); }
 .tour-btn-skip:hover { color:#666; }
 .help-fab { position:fixed; bottom:24px; left:24px; width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#d32f2f,#b71c1c); color:#fff; border:none; cursor:pointer; font-size:20px; box-shadow:0 4px 16px rgba(211,47,47,0.4); z-index:900; display:flex; align-items:center; justify-content:center; transition:transform 0.2s; }
 .help-fab:hover { transform:scale(1.1); }
+/* === SEGUIMIENTO TAB === */
+.seg-kpi-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:24px; }
+.seg-kpi-card { background:#1a2332; border-radius:12px; padding:16px; text-align:center; border:1px solid #2a3a4a; }
+.seg-kpi-card .kpi-value { font-size:28px; font-weight:700; color:#e0e0e0; }
+.seg-kpi-card .kpi-label { font-size:11px; color:#90a4ae; margin-top:4px; }
+.seg-kpi-card .kpi-pct { font-size:13px; color:#7c4dff; margin-top:2px; }
+.seg-tables-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+.seg-table-box { border-radius:12px; padding:16px; }
+.seg-table-box.controles { background:#1a1a0f; border:1px solid #ff9800; }
+.seg-table-box.warnings { background:#1a1a0f; border:1px solid #ffc107; }
+.seg-table-box h3 { margin:0 0 12px; font-size:15px; }
+.seg-table-box table { width:100%; border-collapse:collapse; font-size:12px; }
+.seg-table-box th { background:rgba(255,255,255,0.05); padding:8px; text-align:left; color:#90a4ae; border-bottom:1px solid #2a3a4a; }
+.seg-table-box td { padding:6px 8px; border-bottom:1px solid #1a2332; color:#e0e0e0; }
+.seg-table-box tr:hover { background:rgba(255,255,255,0.03); cursor:pointer; }
+.seg-diagram-container { background:#1a2332; border-radius:12px; padding:20px; margin-bottom:24px; border:1px solid #2a3a4a; overflow-x:auto; }
+.seg-diagram-container svg text { fill:#e0e0e0; font-family:'Segoe UI',sans-serif; }
+.seg-node { cursor:pointer; transition:opacity 0.2s; }
+.seg-node:hover { opacity:0.85; }
+@keyframes pulse-seg { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.seg-pulse { animation:pulse-seg 2s infinite; }
+.seg-kanban { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:24px; min-height:300px; }
+.seg-kanban-col { background:#111827; border-radius:10px; padding:8px; min-width:150px; }
+.seg-kanban-col-header { font-size:11px; font-weight:700; color:#90a4ae; text-transform:uppercase; padding:8px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #2a3a4a; margin-bottom:8px; }
+.seg-kanban-badge { background:#7c4dff; color:#fff; border-radius:10px; padding:2px 8px; font-size:10px; }
+.seg-kanban-cards { max-height:400px; overflow-y:auto; }
+.seg-event-card { background:#1a2332; border-radius:8px; padding:10px; margin-bottom:8px; border-left:3px solid #2a3a4a; font-size:11px; }
+.seg-event-card.prioridad-CRITICA { border-left-color:#ef5350; }
+.seg-event-card.prioridad-ALTA { border-left-color:#ff9800; }
+.seg-event-card.prioridad-MEDIA { border-left-color:#ffc107; }
+.seg-event-card.prioridad-BAJA { border-left-color:#4caf50; }
+.seg-event-card .card-header { display:flex; justify-content:space-between; margin-bottom:6px; }
+.seg-event-card .card-id { font-weight:700; color:#7c4dff; font-size:10px; }
+.seg-badge { display:inline-block; padding:1px 6px; border-radius:4px; font-size:9px; font-weight:600; }
+.seg-badge.control { background:#ff9800; color:#000; }
+.seg-badge.warning { background:#ffc107; color:#000; }
+.seg-badge.tiempo-ok { background:#4caf50; color:#fff; }
+.seg-badge.tiempo-warn { background:#ffc107; color:#000; }
+.seg-badge.tiempo-crit { background:#ef5350; color:#fff; }
+.seg-card-btn { padding:4px 10px; border:none; border-radius:4px; font-size:10px; cursor:pointer; margin-top:6px; margin-right:4px; }
+.seg-card-btn.primary { background:#7c4dff; color:#fff; }
+.seg-card-btn.secondary { background:#37474f; color:#e0e0e0; }
+.seg-card-btn:hover { opacity:0.85; }
+.seg-inline-form { background:#0d1117; border-radius:6px; padding:8px; margin-top:8px; }
+.seg-inline-form textarea, .seg-inline-form input, .seg-inline-form select { width:100%; background:#1a2332; border:1px solid #2a3a4a; color:#e0e0e0; border-radius:4px; padding:6px; margin:4px 0; font-size:11px; box-sizing:border-box; }
+.seg-detail-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.seg-detail-filters select { background:#1a2332; border:1px solid #2a3a4a; color:#e0e0e0; border-radius:6px; padding:6px 10px; font-size:11px; }
 </style>
 </head>
 <body>
@@ -318,6 +365,7 @@ table.inc-table tr:hover { background:rgba(0,131,143,0.04); }
  <button class="tab-btn" onclick="switchTab('financiero')">Analisis Financiero</button>
  <button class="tab-btn" onclick="switchTab('tendencias')">Tendencias</button>
  <button class="tab-btn" onclick="switchTab('predictivo')">Inteligencia Predictiva</button>
+<button class="tab-btn" onclick="switchTab('seguimiento')">Seguimiento</button>
 </div>
 <div id="tab-operativo" class="tab-content active">
 <div class="scroll-wrapper">
@@ -538,6 +586,8 @@ table.inc-table tr:hover { background:rgba(0,131,143,0.04); }
  </div>
 </div>
 
+<div id="tab-seguimiento" class="tab-content" style="display:none;"></div>
+
 </div><!-- /app close extra div -->
 
 <!-- MODAL: Registrar Incidencia -->
@@ -639,12 +689,12 @@ function fmtMoney(n){return '$'+Number(n||0).toLocaleString('es-MX',{minimumFrac
 
 // ===== TABS =====
 var CURRENT_TAB = 'operativo';
-var TABS_RENDERED = { operativo: true, ejecutivo: false, riesgo: false, financiero: false, tendencias: false, predictivo: false };
+var TABS_RENDERED = { operativo: true, ejecutivo: false, riesgo: false, financiero: false, tendencias: false, predictivo: false, seguimiento: false };
 var HISTORIC_DATA = null;
 
 function switchTab(tabId) {
   // Update tab buttons
-  var tabNames = ['operativo','ejecutivo','riesgo','financiero','tendencias','predictivo'];
+  var tabNames = ['operativo','ejecutivo','riesgo','financiero','tendencias','predictivo','seguimiento'];
   var tabIdx = tabNames.indexOf(tabId);
   var btns = document.querySelectorAll('.tab-btn');
   for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
@@ -670,6 +720,7 @@ function switchTab(tabId) {
     if (tabId === 'financiero') renderTabFinanciero();
     if (tabId === 'tendencias') loadAndRenderTendencias();
     if (tabId === 'predictivo') renderTabPredictivo();
+      if (tabId === 'seguimiento') renderTabSeguimiento();
   }
 }
 
@@ -1045,6 +1096,64 @@ function getAnalysisContext(){
   if(charts.flagCounts&&charts.flagCounts.length>0){
     ctx+='\n## Banderas activas\n';
     charts.flagCounts.forEach(function(f){ctx+='- '+f[0]+': '+f[1]+' casos\n';});
+  }
+  // --- Datos de Inteligencia Predictiva ---
+  var pred=CURRENT_DATA.predictive;
+  if(pred){
+    ctx+='\n## Inteligencia Predictiva (datos actuales)\n';
+    ctx+='- Dias de historico analizado: '+(pred.diasHistorico||0)+'\n';
+    // Conteo por nivel
+    if(pred.conteoNiveles){
+      var cn=pred.conteoNiveles;
+      ctx+='- Sucursales por nivel de riesgo: Verde='+cn.verde+', Amarillo='+cn.amarillo+', Naranja='+cn.naranja+', Rojo='+cn.rojo+'\n';
+    }
+    // Regresion lineal
+    if(pred.regresion){
+      var r=pred.regresion;
+      ctx+='\n### Regresion lineal (tendencias)\n';
+      if(r.tasa){ctx+='- Tasa incidencia: slope='+r.tasa.slope+'/dia, R2='+r.tasa.r2+(r.tasa.slope>0?' (EMPEORANDO)':' (MEJORANDO)')+', proyeccion 7/14/30d: '+r.tasa.projected.join('/')+'\n';}
+      if(r.incidencias){ctx+='- Total incidencias: slope='+r.incidencias.slope+'/dia, R2='+r.incidencias.r2+', proyeccion 7/14/30d: '+r.incidencias.projected.join('/')+'\n';}
+      if(r.monto){ctx+='- Monto total: slope='+r.monto.slope+'/dia, R2='+r.monto.r2+', proyeccion 7/14/30d: $'+r.monto.projected.join('/$')+'\n';}
+    }
+    // Bollinger
+    if(pred.bollinger){
+      ctx+='\n### Bandas de Bollinger (alertas de ruptura)\n';
+      if(pred.bollinger.tasa){ctx+='- Tasa incidencia: '+(pred.bollinger.tasa.alerta?'ALERTA - Por encima de banda superior (pico anomalo hoy)':'Dentro de bandas normales')+'\n';}
+      if(pred.bollinger.incidencias){ctx+='- Total incidencias: '+(pred.bollinger.incidencias.alerta?'ALERTA - Por encima de banda superior':'Dentro de bandas normales')+'\n';}
+    }
+    // Anomalias Z-Score globales
+    if(pred.anomaliasHoy&&pred.anomaliasHoy.length>0){
+      ctx+='\n### Anomalias Z-Score detectadas HOY\n';
+      pred.anomaliasHoy.forEach(function(a){ctx+='- '+a.flag+': Z='+a.z+(a.critica?' [CRITICA |Z|>3]':' [ANOMALIA |Z|>2]')+'\n';});
+    }
+    // Top sucursales por score predictivo
+    if(pred.scores&&pred.scores.length>0){
+      ctx+='\n### Top sucursales por score predictivo\n';
+      pred.scores.slice(0,15).forEach(function(s){
+        ctx+='- Suc '+s.suc+': score='+s.score+' ('+s.nivel+'), ops='+s.operaciones+', inc='+s.incidencias+', tasa='+s.tasa+'%, flagsAlta='+s.flagsAlta+', Z-tasa='+s.zTasa+', Z-monto='+s.zMonto+(s.anomalia?' [ANOMALIA]':'')+'\n';
+      });
+    }
+    // Heatmap resumen
+    if(pred.heatmap&&pred.heatmap.data){
+      var hm=pred.heatmap;
+      var hmSucs=Object.keys(hm.data);
+      if(hmSucs.length>0){
+        ctx+='\n### Heatmap sucursal vs banderas (concentracion de flags)\n';
+        hmSucs.slice(0,10).forEach(function(suc){
+          var d=hm.data[suc];
+          var parts=[];
+          if(d.fueraHorario>0)parts.push('FueraHor='+d.fueraHorario);
+          if(d.mismodia>0)parts.push('MismoDia='+d.mismodia);
+          if(d.telRepetido>0)parts.push('TelRep='+d.telRepetido);
+          if(d.contratosRapidos>0)parts.push('Rapidos='+d.contratosRapidos);
+          if(d.foraneas>0)parts.push('Foraneas='+d.foraneas);
+          if(d.montoDup>0)parts.push('MontoDup='+d.montoDup);
+          if(d.dias120>0)parts.push('>120d='+d.dias120);
+          if(d.calif5>0)parts.push('Calif<=5='+d.calif5);
+          if(parts.length>0)ctx+='- Suc '+suc+': '+parts.join(', ')+'\n';
+        });
+      }
+    }
   }
   return ctx;
 }
@@ -1875,6 +1984,426 @@ function renderAnomalyTable_() {
       '<td style="color:' + (pctChange > 0 ? '#ef5350' : '#4caf50') + '">' + (pctChange > 0 ? '+' : '') + pctChange.toFixed(0) + '%</td>' +
       '<td class="' + (isAnomaly ? 'anomaly-alert' : 'anomaly-ok') + '">' + (isAnomaly ? '\u26A0 Anomalia' : '\u2713 Normal') + '</td></tr>';
   }
+}
+
+// ======================================
+// TAB 7: SEGUIMIENTO DE INCIDENCIAS
+// ======================================
+
+function sanitize_(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderTabSeguimiento() {
+  var seg = CURRENT_DATA.seguimiento;
+  if (!seg) { document.getElementById('tab-seguimiento').innerHTML = '<p style="color:#90a4ae;padding:40px;text-align:center;">Sin datos de seguimiento. Espera al proximo ciclo de pre-computo.</p>'; return; }
+
+  var h = '';
+  h += '<div class="seg-kpi-grid">';
+  h += segKpiCard(seg.kpis.universo, 'Universo Total', '');
+  h += segKpiCard(seg.kpis.controlesActivados, 'Controles Activados', seg.kpis.pctControles + '%');
+  h += segKpiCard(seg.kpis.warningsActivados, 'Warnings Activados', seg.kpis.pctWarnings + '%');
+  h += segKpiCard(seg.kpis.limpias, 'Disp. Limpias', seg.kpis.pctLimpias + '%');
+  h += segKpiCard(seg.kpis.eventosActivos, 'En Seguimiento', '');
+  h += segKpiCard(seg.kpis.eventosCerrados, 'Cerrados', '');
+  h += '</div>';
+
+  h += '<div class="seg-tables-row">';
+  h += renderSegTable(seg.controles, 'Controles C-535', 'controles', true);
+  h += renderSegTable(seg.warnings, 'Warnings', 'warnings', false);
+  h += '</div>';
+
+  h += '<div class="seg-diagram-container" id="seg-diagrama-svg"></div>';
+  h += '<div id="seg-kanban-container"></div>';
+  h += '<div id="seg-detail-container" style="background:#1a2332;border-radius:12px;padding:16px;border:1px solid #2a3a4a;"></div>';
+
+  document.getElementById('tab-seguimiento').innerHTML = h;
+
+  renderDiagramaSVG(seg.diagrama, seg.etapas);
+  loadKanbanData();
+  loadDetailTable();
+}
+
+function segKpiCard(value, label, pct) {
+  return '<div class="seg-kpi-card"><div class="kpi-value">' + (typeof value==='number'?value.toLocaleString('es-MX'):value) + '</div><div class="kpi-label">' + label + '</div>' + (pct ? '<div class="kpi-pct">' + pct + '</div>' : '') + '</div>';
+}
+
+function renderSegTable(items, title, cls, showNormativo) {
+  var h = '<div class="seg-table-box ' + cls + '"><h3 style="color:' + (cls==='controles'?'#ff9800':'#ffc107') + '">' + title + ' (' + items.length + ')</h3>';
+  h += '<table><thead><tr><th>Nombre</th><th>Eventos</th><th>% Univ.</th><th>Seguim.</th>';
+  if (showNormativo) h += '<th>Col</th>';
+  h += '</tr></thead><tbody>';
+  for (var i = 0; i < items.length; i++) {
+    var it = items[i];
+    h += '<tr onclick="filterKanbanByFlag(\'' + it.nombre.replace(/'/g,"\\'") + '\')">';
+    h += '<td>' + sanitize_(it.nombre) + '</td>';
+    h += '<td>' + it.eventos + '</td>';
+    h += '<td>' + it.pctUniverso + '%</td>';
+    h += '<td>' + (it.enSeguimiento||0) + '</td>';
+    if (showNormativo) h += '<td>' + it.columna + '</td>';
+    h += '</tr>';
+  }
+  h += '</tbody></table></div>';
+  return h;
+}
+
+// --- DIAGRAMA SVG (Task 6) ---
+
+function renderDiagramaSVG(diagrama, etapas) {
+  var w = 1200, h = 700;
+  var svg = '<svg viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">';
+  svg += '<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#546e7a"/></marker>';
+  svg += '<marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef5350"/></marker></defs>';
+
+  svg += '<rect x="0" y="0" width="' + w + '" height="340" rx="8" fill="#1a1610" stroke="#ff9800" stroke-width="1" opacity="0.3"/>';
+  svg += '<text x="15" y="25" font-size="13" font-weight="700" fill="#ff9800">CONTROLES C-535</text>';
+  svg += '<rect x="0" y="350" width="' + w + '" height="340" rx="8" fill="#1a1a0f" stroke="#ffc107" stroke-width="1" opacity="0.3"/>';
+  svg += '<text x="15" y="375" font-size="13" font-weight="700" fill="#ffc107">WARNINGS</text>';
+
+  function nc(count) {
+    if (count >= 100) return '#ef5350';
+    if (count >= 50) return '#ff9800';
+    if (count >= 10) return '#ffc107';
+    return '#4caf50';
+  }
+
+  var d = diagrama || {};
+  var et = etapas || {};
+
+  var ctrlNodes = [
+    { id:'deteccion_ctrl', x:20, y:60, w:130, h:40, label:'Deteccion', count:d.totalControles||0 },
+    { id:'controles_c535', x:180, y:60, w:130, h:40, label:'Controles C-535', count:d.totalControles||0 },
+    { id:'analisis_causa', x:340, y:60, w:160, h:40, label:'Analisis causa', count:et.EN_ANALISIS||0 },
+    { id:'reporte_coord', x:580, y:60, w:160, h:40, label:'Reporte coord. ARO', count:et.ASIGNADO||0 },
+    { id:'tipo_informe', x:780, y:60, w:130, h:40, label:'Tipo de informe', count:et.DICTAMINADO||0 },
+    { id:'fraude', x:780, y:130, w:130, h:35, label:'Fraude/Mala pract.', count:0 },
+    { id:'incumplimiento', x:780, y:185, w:130, h:35, label:'Incumplimiento', count:0 },
+    { id:'reporte_audit', x:950, y:130, w:130, h:35, label:'Rep. Auditoria', count:0 },
+    { id:'sancion', x:950, y:185, w:130, h:35, label:'Sancion', count:0 },
+    { id:'correo_gz', x:950, y:240, w:130, h:35, label:'Correo G.Zona', count:0 },
+    { id:'reporte_final_c', x:1050, y:60, w:120, h:40, label:'Reporte Final', count:et.CERRADO||0 }
+  ];
+
+  var ctrlDiamonds = [
+    { id:'dec_confirma', x:500, y:80, label:'Confirma?', yes:{x:580,y:80}, no:{x:500,y:180} },
+    { id:'dec_coord', x:730, y:80, label:'Confirma?', yes:{x:780,y:80}, no:{x:730,y:280} }
+  ];
+
+  for (var i = 0; i < ctrlNodes.length; i++) {
+    var n = ctrlNodes[i];
+    var cls = (et[n.id] || n.count) > 0 ? ' seg-pulse' : '';
+    svg += '<g class="seg-node' + cls + '" onclick="filterKanbanByEtapa(\'' + n.id + '\')">';
+    svg += '<rect x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="6" fill="' + nc(n.count) + '" opacity="0.85"/>';
+    svg += '<text x="' + (n.x+n.w/2) + '" y="' + (n.y+n.h/2-4) + '" text-anchor="middle" font-size="10" fill="#fff">' + n.label + '</text>';
+    svg += '<text x="' + (n.x+n.w/2) + '" y="' + (n.y+n.h/2+10) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">' + n.count + '</text>';
+    svg += '</g>';
+  }
+
+  for (var i = 0; i < ctrlDiamonds.length; i++) {
+    var dm = ctrlDiamonds[i];
+    svg += '<g class="seg-node"><polygon points="' + dm.x + ',' + (dm.y-20) + ' ' + (dm.x+25) + ',' + dm.y + ' ' + dm.x + ',' + (dm.y+20) + ' ' + (dm.x-25) + ',' + dm.y + '" fill="#37474f" stroke="#546e7a" stroke-width="1"/>';
+    svg += '<text x="' + dm.x + '" y="' + (dm.y+4) + '" text-anchor="middle" font-size="8" fill="#e0e0e0">' + dm.label + '</text></g>';
+  }
+
+  var ctrlArrows = [
+    [150,80, 180,80], [310,80, 340,80], [500,80, 475,80],
+    [525,80, 580,80], [740,80, 780,80],
+    [910,80, 950,80], [845,165, 950,147], [845,202, 950,202],
+    [910,80, 1050,80]
+  ];
+  for (var i = 0; i < ctrlArrows.length; i++) {
+    var a = ctrlArrows[i];
+    svg += '<line x1="' + a[0] + '" y1="' + a[1] + '" x2="' + a[2] + '" y2="' + a[3] + '" stroke="#546e7a" stroke-width="1.5" marker-end="url(#arrow)"/>';
+  }
+
+  var warnNodes = [
+    { id:'deteccion_warn', x:20, y:410, w:130, h:40, label:'Deteccion', count:d.totalWarnings||0 },
+    { id:'warnings_list', x:180, y:410, w:130, h:40, label:'Warnings', count:d.totalWarnings||0 },
+    { id:'analisis_suma', x:340, y:410, w:160, h:40, label:'Suma alertas/contrato', count:et.EN_ANALISIS||0 },
+    { id:'priorizacion', x:540, y:410, w:130, h:40, label:'Priorizacion', count:0 },
+    { id:'asignacion', x:700, y:410, w:150, h:40, label:'Asignacion coord.', count:et.ASIGNADO||0 },
+    { id:'reporte_warn', x:920, y:410, w:130, h:40, label:'Reporte dictamen', count:et.DICTAMINADO||0 },
+    { id:'cerrado_warn', x:1080, y:410, w:90, h:40, label:'Fin', count:et.CERRADO||0 }
+  ];
+
+  var warnDiamonds = [
+    { id:'dec_warn', x:870, y:430, label:'Confirma?' }
+  ];
+
+  for (var i = 0; i < warnNodes.length; i++) {
+    var n = warnNodes[i];
+    svg += '<g class="seg-node" onclick="filterKanbanByEtapa(\'' + n.id + '\')">';
+    svg += '<rect x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="6" fill="' + nc(n.count) + '" opacity="0.85"/>';
+    svg += '<text x="' + (n.x+n.w/2) + '" y="' + (n.y+n.h/2-4) + '" text-anchor="middle" font-size="10" fill="#fff">' + n.label + '</text>';
+    svg += '<text x="' + (n.x+n.w/2) + '" y="' + (n.y+n.h/2+10) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">' + n.count + '</text>';
+    svg += '</g>';
+  }
+
+  for (var i = 0; i < warnDiamonds.length; i++) {
+    var dm = warnDiamonds[i];
+    svg += '<g class="seg-node"><polygon points="' + dm.x + ',' + (dm.y-20) + ' ' + (dm.x+25) + ',' + dm.y + ' ' + dm.x + ',' + (dm.y+20) + ' ' + (dm.x-25) + ',' + dm.y + '" fill="#37474f" stroke="#546e7a" stroke-width="1"/>';
+    svg += '<text x="' + dm.x + '" y="' + (dm.y+4) + '" text-anchor="middle" font-size="8" fill="#e0e0e0">' + dm.label + '</text></g>';
+  }
+
+  var warnArrows = [
+    [150,430, 180,430], [310,430, 340,430], [500,430, 540,430],
+    [670,430, 700,430], [850,430, 870,430], [895,430, 920,430],
+    [1050,430, 1080,430]
+  ];
+  for (var i = 0; i < warnArrows.length; i++) {
+    var a = warnArrows[i];
+    svg += '<line x1="' + a[0] + '" y1="' + a[1] + '" x2="' + a[2] + '" y2="' + a[3] + '" stroke="#546e7a" stroke-width="1.5" marker-end="url(#arrow)"/>';
+  }
+
+  svg += '</svg>';
+  document.getElementById('seg-diagrama-svg').innerHTML = '<h3 style="color:#e0e0e0;margin:0 0 12px;font-size:15px;">Diagrama de Flujo &mdash; Agente de Disposiciones</h3>' + svg;
+}
+
+// --- KANBAN (Task 7) ---
+
+var SEG_KANBAN_FILTER = {};
+
+function loadKanbanData(filtro) {
+  var f = filtro || SEG_KANBAN_FILTER;
+  google.script.run
+    .withSuccessHandler(function(json) {
+      var data = JSON.parse(json);
+      if (data.error) { console.error(data.error); return; }
+      renderKanban(data.eventos);
+    })
+    .withFailureHandler(function(e) { console.error('Kanban error:', e); })
+    .getSeguimientoEvents(JSON.stringify(f));
+}
+
+function renderKanban(eventos) {
+  var etapas = ['DETECTADO','EN_ANALISIS','CONFIRMADO','ASIGNADO','EN_INVESTIGACION','DICTAMINADO','CERRADO'];
+  var etapaLabels = { DETECTADO:'Detectado', EN_ANALISIS:'En Analisis', CONFIRMADO:'Confirmado', ASIGNADO:'Asignado', EN_INVESTIGACION:'En Investigacion', DICTAMINADO:'Dictaminado', CERRADO:'Cerrado' };
+  var buckets = {};
+  for (var i = 0; i < etapas.length; i++) buckets[etapas[i]] = [];
+
+  for (var i = 0; i < eventos.length; i++) {
+    var ev = eventos[i];
+    if (buckets[ev.etapa]) buckets[ev.etapa].push(ev);
+  }
+
+  var h = '<div class="seg-kanban">';
+  for (var i = 0; i < etapas.length; i++) {
+    var et = etapas[i];
+    var cards = buckets[et];
+    h += '<div class="seg-kanban-col">';
+    h += '<div class="seg-kanban-col-header">' + etapaLabels[et] + ' <span class="seg-kanban-badge">' + cards.length + '</span></div>';
+    h += '<div class="seg-kanban-cards">';
+    var limit = Math.min(cards.length, 20);
+    for (var c = 0; c < limit; c++) {
+      h += renderEventCard(cards[c], et);
+    }
+    if (cards.length > 20) h += '<div style="color:#546e7a;text-align:center;font-size:10px;padding:8px;">+' + (cards.length-20) + ' mas...</div>';
+    h += '</div></div>';
+  }
+  h += '</div>';
+  document.getElementById('seg-kanban-container').innerHTML = h;
+}
+
+function renderEventCard(ev, etapa) {
+  var horasEnEtapa = 0;
+  if (ev.fechaActualizacion) {
+    try { horasEnEtapa = Math.round((new Date() - new Date(ev.fechaActualizacion)) / 3600000); } catch(e) {}
+  }
+  var tiempoCls = horasEnEtapa > 48 ? 'tiempo-crit' : (horasEnEtapa > 24 ? 'tiempo-warn' : 'tiempo-ok');
+  var tiempoTxt = horasEnEtapa > 24 ? Math.round(horasEnEtapa/24) + 'd' : horasEnEtapa + 'h';
+
+  var h = '<div class="seg-event-card prioridad-' + ev.prioridad + '" id="card-' + ev.id + '">';
+  h += '<div class="card-header"><span class="card-id">' + ev.id + '</span>';
+  h += '<span class="seg-badge ' + tiempoCls + '">' + tiempoTxt + '</span></div>';
+  h += '<span class="seg-badge ' + (ev.tipo==='CONTROL'?'control':'warning') + '">' + ev.tipo + '</span> ';
+  h += '<span style="color:#90a4ae;font-size:10px;">' + sanitize_(ev.categoria) + '</span><br>';
+  h += '<span style="color:#e0e0e0;">' + sanitize_(ev.sucursal) + '</span> | ';
+  h += '<span style="color:#7c4dff;">' + sanitize_(ev.contrato) + '</span> | ';
+  h += '<span style="color:#4caf50;">$' + (ev.monto||0).toLocaleString('es-MX') + '</span>';
+
+  h += '<div id="form-' + ev.id + '">';
+  if (etapa === 'DETECTADO') {
+    h += '<button class="seg-card-btn primary" onclick="avanzarEvento(\'' + ev.id + '\',\'EN_ANALISIS\',{})">Analizar</button>';
+  } else if (etapa === 'EN_ANALISIS') {
+    h += '<button class="seg-card-btn primary" onclick="showInlineForm(\'' + ev.id + '\',\'confirmar\')">Confirmar</button>';
+    h += '<button class="seg-card-btn secondary" onclick="showInlineForm(\'' + ev.id + '\',\'descartar\')">Descartar</button>';
+  } else if (etapa === 'CONFIRMADO') {
+    h += '<button class="seg-card-btn primary" onclick="showInlineForm(\'' + ev.id + '\',\'asignar\')">Asignar</button>';
+  } else if (etapa === 'ASIGNADO') {
+    h += '<button class="seg-card-btn primary" onclick="avanzarEvento(\'' + ev.id + '\',\'EN_INVESTIGACION\',{})">Investigar</button>';
+  } else if (etapa === 'EN_INVESTIGACION') {
+    h += '<button class="seg-card-btn primary" onclick="showInlineForm(\'' + ev.id + '\',\'dictaminar\')">Dictaminar</button>';
+  } else if (etapa === 'DICTAMINADO') {
+    h += '<button class="seg-card-btn primary" onclick="showInlineForm(\'' + ev.id + '\',\'cerrar\')">Cerrar</button>';
+  }
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
+function showInlineForm(eventId, tipo) {
+  var container = document.getElementById('form-' + eventId);
+  var h = '<div class="seg-inline-form">';
+
+  if (tipo === 'confirmar') {
+    h += '<textarea id="notas-' + eventId + '" placeholder="Notas del analisis..." rows="2"></textarea>';
+    h += '<button class="seg-card-btn primary" onclick="submitInlineForm(\'' + eventId + '\',\'CONFIRMADO\')">Confirmar</button>';
+  } else if (tipo === 'descartar') {
+    h += '<textarea id="notas-' + eventId + '" placeholder="Motivo de descarte (obligatorio)..." rows="2"></textarea>';
+    h += '<button class="seg-card-btn secondary" onclick="submitInlineForm(\'' + eventId + '\',\'CERRADO\')">Descartar</button>';
+  } else if (tipo === 'asignar') {
+    h += '<input id="asignado-' + eventId + '" type="email" placeholder="Email del coordinador/ARO...">';
+    h += '<button class="seg-card-btn primary" onclick="submitAsignar(\'' + eventId + '\')">Asignar</button>';
+  } else if (tipo === 'dictaminar') {
+    h += '<select id="hallazgo-' + eventId + '"><option value="">-- Tipo hallazgo --</option><option value="FRAUDE">Fraude</option><option value="INCUMPLIMIENTO">Incumplimiento</option><option value="MALA_PRACTICA">Mala practica</option><option value="FALSO_POSITIVO">Falso positivo</option></select>';
+    h += '<textarea id="notas-' + eventId + '" placeholder="Notas del dictamen..." rows="2"></textarea>';
+    h += '<button class="seg-card-btn primary" onclick="submitDictamen(\'' + eventId + '\')">Dictaminar</button>';
+  } else if (tipo === 'cerrar') {
+    h += '<textarea id="notas-' + eventId + '" placeholder="Accion tomada..." rows="2"></textarea>';
+    h += '<button class="seg-card-btn primary" onclick="submitInlineForm(\'' + eventId + '\',\'CERRADO\')">Cerrar</button>';
+  }
+
+  h += ' <button class="seg-card-btn secondary" onclick="loadKanbanData()">Cancelar</button>';
+  h += '</div>';
+  container.innerHTML = h;
+}
+
+function avanzarEvento(eventId, nuevaEtapa, datos) {
+  google.script.run
+    .withSuccessHandler(function(json) {
+      var r = JSON.parse(json);
+      if (r.error) { alert('Error: ' + r.error); return; }
+      loadKanbanData();
+    })
+    .withFailureHandler(function(e) { alert('Error: ' + e.message); })
+    .updateEventoEtapa(eventId, nuevaEtapa, JSON.stringify(datos));
+}
+
+function submitInlineForm(eventId, nuevaEtapa) {
+  var notasEl = document.getElementById('notas-' + eventId);
+  var notas = notasEl ? notasEl.value : '';
+  if (nuevaEtapa === 'CERRADO' && !notas) { alert('Las notas son obligatorias para descartar.'); return; }
+  avanzarEvento(eventId, nuevaEtapa, { notas: notas });
+}
+
+function submitAsignar(eventId) {
+  var email = document.getElementById('asignado-' + eventId).value;
+  if (!email) { alert('Ingresa el email del coordinador.'); return; }
+  google.script.run
+    .withSuccessHandler(function(json) {
+      var r = JSON.parse(json);
+      if (r.error) { alert('Error: ' + r.error); return; }
+      loadKanbanData();
+    })
+    .withFailureHandler(function(e) { alert('Error: ' + e.message); })
+    .asignarEvento(eventId, email);
+}
+
+function submitDictamen(eventId) {
+  var hallazgo = document.getElementById('hallazgo-' + eventId).value;
+  var notas = document.getElementById('notas-' + eventId).value;
+  if (!hallazgo) { alert('Selecciona el tipo de hallazgo.'); return; }
+  google.script.run
+    .withSuccessHandler(function(json) {
+      var r = JSON.parse(json);
+      if (r.error) { alert('Error: ' + r.error); return; }
+      loadKanbanData();
+    })
+    .withFailureHandler(function(e) { alert('Error: ' + e.message); })
+    .dictaminarEvento(eventId, hallazgo, notas);
+}
+
+function filterKanbanByEtapa(nodeId) {
+  var map = { deteccion_ctrl:'DETECTADO', deteccion_warn:'DETECTADO', analisis_causa:'EN_ANALISIS', analisis_suma:'EN_ANALISIS', reporte_coord:'ASIGNADO', asignacion:'ASIGNADO', tipo_informe:'DICTAMINADO', reporte_warn:'DICTAMINADO', reporte_final_c:'CERRADO', cerrado_warn:'CERRADO' };
+  var etapa = map[nodeId];
+  if (etapa) {
+    SEG_KANBAN_FILTER = { etapa: etapa };
+    loadKanbanData(SEG_KANBAN_FILTER);
+  }
+}
+
+function filterKanbanByFlag(flagName) {
+  SEG_KANBAN_FILTER = { categoria: flagName };
+  loadKanbanData(SEG_KANBAN_FILTER);
+}
+
+// --- TABLA DE DETALLE (Task 8) ---
+
+function loadDetailTable(filtros) {
+  var f = filtros || {};
+  google.script.run
+    .withSuccessHandler(function(json) {
+      var data = JSON.parse(json);
+      if (data.error) { console.error(data.error); return; }
+      renderDetailTable(data.eventos);
+    })
+    .withFailureHandler(function(e) { console.error('Detail table error:', e); })
+    .getSeguimientoEvents(JSON.stringify(f));
+}
+
+function renderDetailTable(eventos) {
+  var cont = document.getElementById('seg-detail-container');
+  var h = '<h3 style="color:#e0e0e0;margin:0 0 12px;font-size:15px;">Tabla de Detalle</h3>';
+
+  h += '<div class="seg-detail-filters">';
+  h += '<select onchange="applySegDetailFilter()" id="seg-f-tipo"><option value="">Tipo: Todos</option><option value="CONTROL">Control</option><option value="WARNING">Warning</option></select>';
+  h += '<select onchange="applySegDetailFilter()" id="seg-f-etapa"><option value="">Etapa: Todas</option>';
+  var etapas = ['DETECTADO','EN_ANALISIS','CONFIRMADO','ASIGNADO','EN_INVESTIGACION','DICTAMINADO','CERRADO'];
+  for (var i=0;i<etapas.length;i++) h += '<option value="'+etapas[i]+'">'+etapas[i]+'</option>';
+  h += '</select>';
+  h += '<select onchange="applySegDetailFilter()" id="seg-f-prioridad"><option value="">Prioridad: Todas</option><option value="CRITICA">Critica</option><option value="ALTA">Alta</option><option value="MEDIA">Media</option><option value="BAJA">Baja</option></select>';
+  h += '<button class="seg-card-btn primary" onclick="exportSegToSheet()" style="padding:6px 16px;">Exportar a Sheet</button>';
+  h += '</div>';
+
+  h += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">';
+  h += '<thead><tr style="background:rgba(255,255,255,0.05);">';
+  var cols = ['ID','Fecha','Tipo','Categoria','Sucursal','Contrato','Monto','Etapa','Prioridad','Asignado','Alertas'];
+  for (var i=0;i<cols.length;i++) h += '<th style="padding:8px;text-align:left;color:#90a4ae;border-bottom:1px solid #2a3a4a;">'+cols[i]+'</th>';
+  h += '</tr></thead><tbody>';
+
+  var limit = Math.min(eventos.length, 50);
+  for (var i=0;i<limit;i++) {
+    var ev = eventos[i];
+    var prColor = ev.prioridad==='CRITICA'?'#ef5350':ev.prioridad==='ALTA'?'#ff9800':ev.prioridad==='MEDIA'?'#ffc107':'#4caf50';
+    h += '<tr style="border-bottom:1px solid #1a2332;color:#e0e0e0;">';
+    h += '<td style="padding:6px 8px;color:#7c4dff;font-weight:600;">'+ev.id+'</td>';
+    h += '<td style="padding:6px 8px;">'+ev.fechaDeteccion+'</td>';
+    h += '<td style="padding:6px 8px;"><span class="seg-badge '+(ev.tipo==='CONTROL'?'control':'warning')+'">'+ev.tipo+'</span></td>';
+    h += '<td style="padding:6px 8px;">'+sanitize_(ev.categoria)+'</td>';
+    h += '<td style="padding:6px 8px;">'+sanitize_(ev.sucursal)+'</td>';
+    h += '<td style="padding:6px 8px;">'+sanitize_(ev.contrato)+'</td>';
+    h += '<td style="padding:6px 8px;">$'+(ev.monto||0).toLocaleString('es-MX')+'</td>';
+    h += '<td style="padding:6px 8px;">'+ev.etapa+'</td>';
+    h += '<td style="padding:6px 8px;color:'+prColor+';font-weight:600;">'+ev.prioridad+'</td>';
+    h += '<td style="padding:6px 8px;">'+sanitize_(ev.asignadoA||'-')+'</td>';
+    h += '<td style="padding:6px 8px;">'+ev.sumaAlertas+'</td>';
+    h += '</tr>';
+  }
+  if (eventos.length > 50) h += '<tr><td colspan="11" style="padding:8px;color:#546e7a;text-align:center;">Mostrando 50 de '+eventos.length+' eventos</td></tr>';
+  h += '</tbody></table></div>';
+
+  cont.innerHTML = h;
+}
+
+function applySegDetailFilter() {
+  var filtros = {};
+  var tipo = document.getElementById('seg-f-tipo').value;
+  var etapa = document.getElementById('seg-f-etapa').value;
+  var prioridad = document.getElementById('seg-f-prioridad').value;
+  if (tipo) filtros.tipo = tipo;
+  if (etapa) filtros.etapa = etapa;
+  if (prioridad) filtros.prioridad = prioridad;
+  loadDetailTable(filtros);
+}
+
+function exportSegToSheet() {
+  google.script.run
+    .withSuccessHandler(function(url) {
+      if (url) window.open(url, '_blank');
+      else alert('Error al exportar');
+    })
+    .withFailureHandler(function(e) { alert('Error: ' + e.message); })
+    .exportSeguimientoToSheet();
 }
 
 // ===== GUIA INTERACTIVA / TOUR =====
