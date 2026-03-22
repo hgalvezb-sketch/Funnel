@@ -76,8 +76,9 @@ function buildVideoSection_(title, videos, accentColor) {
   videos.forEach(function(video) {
     var displayTitle = video.titleEs || video.title;
     html += '<div style="margin-bottom:14px;">';
+    var pubDate = video.publishedAt ? formatDate_(video.publishedAt) : '';
     html += '<a href="' + escapeHtml_(video.url) + '" style="color:#2980b9;text-decoration:none;font-size:14px;font-weight:bold;">' + escapeHtml_(displayTitle) + '</a>';
-    html += '<span style="color:#888;font-size:12px;"> — ' + escapeHtml_(video.channel) + '</span>';
+    html += '<span style="color:#888;font-size:12px;"> — ' + escapeHtml_(video.channel) + (pubDate ? ' · ' + pubDate : '') + '</span>';
     if (video.titleEs && video.titleEs !== video.title) {
       html += '<div style="margin:2px 0 0 0;font-size:11px;color:#999;">' + escapeHtml_(video.title) + '</div>';
     }
@@ -89,6 +90,18 @@ function buildVideoSection_(title, videos, accentColor) {
 
   html += '</div>';
   return html;
+}
+
+/**
+ * Formatea fecha ISO a formato legible (ej: "22 mar 2026").
+ */
+function formatDate_(isoString) {
+  try {
+    var d = new Date(isoString);
+    return Utilities.formatDate(d, 'America/Mexico_City', 'dd MMM yyyy');
+  } catch (e) {
+    return '';
+  }
 }
 
 /**
