@@ -296,6 +296,180 @@ function computeSeguimientoData_(allData, COL, flagColNames, flagStartIdx, ss) {
 }
 
 // ================================================================
+// CRUD SEGUIMIENTO (llamados desde frontend via google.script.run)
+// ================================================================
+
+function getSeguimientoEvents(filtrosJson) {
+  try {
+    var filtros = JSON.parse(filtrosJson || '{}');
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ensureSeguimientoSheet_(ss);
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return JSON.stringify({ eventos: [], total: 0 });
+
+    var data = sheet.getRange(2, 1, lastRow - 1, SEGUIMIENTO_HEADERS.length).getValues();
+    var filtered = [];
+
+    for (var i = 0; i < data.length; i++) {
+      var row = data[i];
+      if (filtros.tipo && String(row[2]) !== filtros.tipo) continue;
+      if (filtros.etapa && String(row[8]) !== filtros.etapa) continue;
+      if (filtros.prioridad && String(row[13]) !== filtros.prioridad) continue;
+      if (filtros.sucursal && String(row[4]) !== filtros.sucursal) continue;
+      if (filtros.categoria && String(row[3]) !== filtros.categoria) continue;
+
+      filtered.push({
+        id: String(row[0]),
+        fechaDeteccion: row[1] ? new Date(row[1]).toLocaleString('es-MX') : '',
+        tipo: String(row[2]),
+        categoria: String(row[3]),
+        sucursal: String(row[4]),
+        contrato: String(row[5]),
+        folio: String(row[6]),
+        monto: Number(row[7]) || 0,
+        etapa: String(row[8]),
+        confirmado: String(row[9]),
+        tipoHallazgo: String(row[10]),
+        asignadoA: String(row[11]),
+        sumaAlertas: Number(row[12]) || 0,
+        prioridad: String(row[13]),
+        notas: String(row[14]),
+        fechaActualizacion: row[15] ? new Date(row[15]).toLocaleString('es-MX') : '',
+        registradoPor: String(row[16]),
+        columnaOrigen: String(row[17]),
+        eventoDG: String(row[18]),
+        rowNum: i + 2
+      });
+    }
+
+    return JSON.stringify({ eventos: filtered, total: filtered.length });
+  } catch(e) {
+    return JSON.stringify({ error: e.message });
+  }
+}
+
+function updateEventoEtapa(eventoId, nuevaEtapa, datosJson) {
+  try {
+    var datos = JSON.parse(datosJson || '{}');
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ensureSeguimientoSheet_(ss);
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return JSON.stringify({ error: 'No hay eventos' });
+
+    var data = sheet.getRange(2, 1, lastRow - 1, SEGUIMIENTO_HEADERS.length).getValues();
+    var rowIdx = -1;
+    for (var i = 0; i < data.length; i++) {
+      if (String(data[i][0]) === eventoId) { rowIdx = i; break; }
+    }
+    if (rowIdx === -1) return JSON.stringify({ error: 'Evento no encontrado: ' + eventoId });
+
+    var etapaActual = String(data[rowIdx][8]);
+    var permitidas = ETAPA_TRANSICIONES[etapaActual] || [];
+    if (permitidas.indexOf(nuevaEtapa) === -1) {
+      return JSON.stringify({ error: 'Transicion no permitida: ' + etapaActual + ' -> ' + nuevaEtapa });
+    }
+
+    var sheetRow = rowIdx + 2;
+    var now = new Date();
+    var userEmail = Session.getActiveUser().getEmail();
+
+    sheet.getRange(sheetRow, 9).setValue(nuevaEtapa);
+    sheet.getRange(sheetRow, 16).setValue(now);
+    sheet.getRange(sheetRow, 17).setValue(userEmail);
+
+    if (datos.notas) sheet.getRange(sheetRow, 15).setValue(datos.notas);
+    if (datos.tipoHallazgo) sheet.getRange(sheetRow, 11).setValue(datos.tipoHallazgo);
+    if (datos.asignadoA) sheet.getRange(sheetRow, 12).setValue(datos.asignadoA);
+
+    if (nuevaEtapa === 'CONFIRMADO') sheet.getRange(sheetRow, 10).setValue('SI');
+    if (nuevaEtapa === 'CERRADO' && etapaActual === 'EN_ANALISIS') {
+      sheet.getRange(sheetRow, 10).setValue('NO');
+      sheet.getRange(sheetRow, 11).setValue('FALSO_POSITIVO');
+    }
+
+    return JSON.stringify({ ok: true, id: eventoId, etapa: nuevaEtapa });
+  } catch(e) {
+    return JSON.stringify({ error: e.message });
+  }
+}
+
+function getEventoDetalle(eventoId) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ensureSeguimientoSheet_(ss);
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return JSON.stringify({ error: 'Sin eventos' });
+
+    var data = sheet.getRange(2, 1, lastRow - 1, SEGUIMIENTO_HEADERS.length).getValues();
+    for (var i = 0; i < data.length; i++) {
+      if (String(data[i][0]) === eventoId) {
+        var obj = {};
+        for (var h = 0; h < SEGUIMIENTO_HEADERS.length; h++) {
+          obj[SEGUIMIENTO_HEADERS[h]] = data[i][h] instanceof Date
+            ? data[i][h].toLocaleString('es-MX') : data[i][h];
+        }
+        return JSON.stringify(obj);
+      }
+    }
+    return JSON.stringify({ error: 'No encontrado' });
+  } catch(e) {
+    return JSON.stringify({ error: e.message });
+  }
+}
+
+function asignarEvento(eventoId, emailAsignado) {
+  return updateEventoEtapa(eventoId, 'ASIGNADO', JSON.stringify({ asignadoA: emailAsignado }));
+}
+
+function dictaminarEvento(eventoId, tipoHallazgo, notas) {
+  return updateEventoEtapa(eventoId, 'DICTAMINADO', JSON.stringify({ tipoHallazgo: tipoHallazgo, notas: notas }));
+}
+
+function getSeguimientoKPIs() {
+  try {
+    var cached = getPrecomputedData();
+    if (!cached) return JSON.stringify({ error: 'Cache no disponible' });
+    var data = JSON.parse(cached);
+    if (data.seguimiento) return JSON.stringify(data.seguimiento.kpis);
+    return JSON.stringify({ error: 'Sin datos de seguimiento' });
+  } catch(e) {
+    return JSON.stringify({ error: e.message });
+  }
+}
+
+function getDiagramaData() {
+  try {
+    var cached = getPrecomputedData();
+    if (!cached) return JSON.stringify({ error: 'Cache no disponible' });
+    var data = JSON.parse(cached);
+    if (data.seguimiento) return JSON.stringify(data.seguimiento.diagrama);
+    return JSON.stringify({ error: 'Sin datos de seguimiento' });
+  } catch(e) {
+    return JSON.stringify({ error: e.message });
+  }
+}
+
+function exportSeguimientoToSheet() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ensureSeguimientoSheet_(ss);
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return null;
+
+    var data = sheet.getRange(1, 1, lastRow, SEGUIMIENTO_HEADERS.length).getValues();
+    var newSS = SpreadsheetApp.create('Seguimiento Eventos - ' + new Date().toLocaleDateString('es-MX'));
+    var newSheet = newSS.getActiveSheet();
+    newSheet.getRange(1, 1, data.length, data[0].length).setValues(data);
+    newSheet.setFrozenRows(1);
+    newSheet.getRange(1, 1, 1, data[0].length).setBackground('#1a2332').setFontColor('#ffffff').setFontWeight('bold');
+
+    return newSS.getUrl();
+  } catch(e) {
+    return null;
+  }
+}
+
+// ================================================================
 // WEB APP
 // ================================================================
 
