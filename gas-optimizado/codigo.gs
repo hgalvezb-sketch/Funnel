@@ -168,6 +168,133 @@ function getColumnLetter_(colIndex) {
   return letter;
 }
 
+function computeSeguimientoData_(allData, COL, flagColNames, flagStartIdx, ss) {
+  var segSheet = ensureSeguimientoSheet_(ss);
+  var lastRow = segSheet.getLastRow();
+  var now = new Date();
+
+  var totalDisp = allData.length;
+  var flagCountByName = {};
+  var controlCount = 0, warningCount = 0;
+
+  for (var f = 0; f < flagColNames.length; f++) {
+    flagCountByName[flagColNames[f]] = { count: 0, colLetra: getColumnLetter_(flagStartIdx + f) };
+  }
+
+  // Contar flags activas en datos (misma logica que precomputeAll: SI/YES/TRUE/1)
+  var dispConFlag = {};
+  for (var r = 0; r < allData.length; r++) {
+    var hasFlag = false;
+    for (var f = 0; f < flagColNames.length; f++) {
+      var fv = String(allData[r][flagStartIdx + f] || '').trim().toUpperCase();
+      if (fv === 'SI' || fv === 'YES' || fv === 'TRUE' || fv === '1') {
+        flagCountByName[flagColNames[f]].count++;
+        hasFlag = true;
+      }
+    }
+    if (hasFlag) {
+      var ctr = String(allData[r][COL['contrato']] || '');
+      dispConFlag[ctr] = true;
+    }
+  }
+
+  var controles = [];
+  var warnings = [];
+  for (var fname in flagCountByName) {
+    var info = flagCountByName[fname];
+    var tipo = CONTROL_COLUMNS.indexOf(info.colLetra) !== -1 ? 'CONTROL' : 'WARNING';
+    var obj = {
+      nombre: fname,
+      columna: info.colLetra,
+      tipo: tipo,
+      eventos: info.count,
+      pctUniverso: totalDisp > 0 ? Math.round(info.count / totalDisp * 10000) / 100 : 0
+    };
+    if (tipo === 'CONTROL') { controles.push(obj); controlCount += info.count; }
+    else { warnings.push(obj); warningCount += info.count; }
+  }
+
+  var etapas = { DETECTADO:0, EN_ANALISIS:0, CONFIRMADO:0, ASIGNADO:0, EN_INVESTIGACION:0, DICTAMINADO:0, CERRADO:0 };
+  var eventosActivos = 0, eventosCerrados = 0;
+  var eventosPorFlag = {};
+  var eventosPorSuc = {};
+  var eventosVencidos = [];
+
+  if (lastRow > 1) {
+    var eventos = segSheet.getRange(2, 1, lastRow - 1, SEGUIMIENTO_HEADERS.length).getValues();
+    for (var i = 0; i < eventos.length; i++) {
+      var etapa = String(eventos[i][8] || 'DETECTADO');
+      if (etapas[etapa] !== undefined) etapas[etapa]++;
+
+      if (etapa === 'CERRADO') eventosCerrados++;
+      else eventosActivos++;
+
+      var cat = String(eventos[i][3] || '');
+      if (!eventosPorFlag[cat]) eventosPorFlag[cat] = 0;
+      eventosPorFlag[cat]++;
+
+      var suc = String(eventos[i][4] || '');
+      if (!eventosPorSuc[suc]) eventosPorSuc[suc] = 0;
+      eventosPorSuc[suc]++;
+
+      if (etapa !== 'CERRADO') {
+        var fechaAct = eventos[i][15];
+        if (fechaAct) {
+          var diff = (now - new Date(fechaAct)) / (1000 * 60 * 60);
+          if (diff > 48) {
+            eventosVencidos.push({
+              id: String(eventos[i][0]),
+              etapa: etapa,
+              categoria: cat,
+              sucursal: suc,
+              horas: Math.round(diff)
+            });
+          }
+        }
+      }
+    }
+  }
+
+  for (var c = 0; c < controles.length; c++) {
+    controles[c].enSeguimiento = eventosPorFlag[controles[c].nombre] || 0;
+  }
+  for (var w = 0; w < warnings.length; w++) {
+    warnings[w].enSeguimiento = eventosPorFlag[warnings[w].nombre] || 0;
+  }
+
+  var diagramaNodos = {};
+  for (var et in etapas) {
+    diagramaNodos[et] = { count: etapas[et] };
+  }
+  diagramaNodos.totalControles = controlCount;
+  diagramaNodos.totalWarnings = warningCount;
+
+  var limpias = totalDisp - Object.keys(dispConFlag).length;
+
+  return {
+    kpis: {
+      universo: totalDisp,
+      controlesActivados: controlCount,
+      warningsActivados: warningCount,
+      limpias: limpias,
+      pctControles: totalDisp > 0 ? Math.round(controlCount / totalDisp * 10000) / 100 : 0,
+      pctWarnings: totalDisp > 0 ? Math.round(warningCount / totalDisp * 10000) / 100 : 0,
+      pctLimpias: totalDisp > 0 ? Math.round(limpias / totalDisp * 10000) / 100 : 0,
+      eventosActivos: eventosActivos,
+      eventosCerrados: eventosCerrados
+    },
+    controles: controles,
+    warnings: warnings,
+    etapas: etapas,
+    diagrama: diagramaNodos,
+    eventosVencidos: eventosVencidos.slice(0, 20),
+    topSucursales: Object.keys(eventosPorSuc)
+      .map(function(s) { return { sucursal: s, count: eventosPorSuc[s] }; })
+      .sort(function(a, b) { return b.count - a.count; })
+      .slice(0, 10)
+  };
+}
+
 // ================================================================
 // WEB APP
 // ================================================================
@@ -243,7 +370,8 @@ function precomputeAll() {
   var emptyResult = JSON.stringify({
     kpis:{totalReg:0,totalMonto:0,totalInc:0,tasaInc:0,montoPromedio:0,sucursalesCount:0,montoInc:0},
     charts:{}, risks:[], filterOptions:{}, headers:[], flagNames:[],
-    tablePage:{rows:[],total:0,page:0}, lastUpdate:new Date().toLocaleString('es-MX')
+    tablePage:{rows:[],total:0,page:0}, lastUpdate:new Date().toLocaleString('es-MX'),
+    seguimiento:null
   });
 
   if (lastRow < 2) { saveToCacheSheet_(ss, emptyResult); return emptyResult; }
@@ -416,13 +544,18 @@ function precomputeAll() {
   } catch(e) { /* no historic yet, ignore */ }
   executive.vsAyer = vsAyer;
 
+  // === SEGUIMIENTO DE EVENTOS ===
+  var newEventsCount = autoDetectNewEvents_(allData, COL, flagColNames, flagStartIdx, ss);
+  var seguimiento = computeSeguimientoData_(allData, COL, flagColNames, flagStartIdx, ss);
+
   var result={
     kpis:{totalReg:allData.length,totalMonto:totalMonto,totalInc:totalInc,tasaInc:allData.length>0?(totalInc/allData.length*100):0,montoPromedio:allData.length>0?(totalMonto/allData.length):0,montoInc:montoInc,sucursalesCount:Object.keys(sucSet).length},
     charts:charts,risks:risks,filterOptions:filterOptions,headers:headers,flagNames:flagColNames,
     tablePage:{rows:firstPageRows,total:allData.length,page:0},
     lastUpdate:new Date().toLocaleString('es-MX'),
     executive:executive,
-    predictive:predictive
+    predictive:predictive,
+    seguimiento:seguimiento
   };
   var json=JSON.stringify(result).replace(/<\//g,'<\\/');
   saveToCacheSheet_(ss,json);
