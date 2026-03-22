@@ -75,6 +75,99 @@ function ensureSeguimientoSheet_(ss) {
   return sheet;
 }
 
+function autoDetectNewEvents_(allData, COL, flagColNames, flagStartIdx, ss) {
+  var segSheet = ensureSeguimientoSheet_(ss);
+  var lastRow = segSheet.getLastRow();
+  var existingKeys = {};
+
+  if (lastRow > 1) {
+    var existing = segSheet.getRange(2, 1, lastRow - 1, SEGUIMIENTO_HEADERS.length).getValues();
+    for (var i = 0; i < existing.length; i++) {
+      var key = String(existing[i][5]) + '|' + String(existing[i][6]) + '|' + String(existing[i][17]);
+      existingKeys[key] = true;
+    }
+  }
+
+  var alertasPorContrato = {};
+  for (var r = 0; r < allData.length; r++) {
+    var contrato = String(allData[r][COL['contrato']] || '');
+    if (!contrato) continue;
+    var count = 0;
+    for (var f = 0; f < flagColNames.length; f++) {
+      var fv = String(allData[r][flagStartIdx + f] || '').trim().toUpperCase();
+      if (fv === 'SI' || fv === 'YES' || fv === 'TRUE' || fv === '1') count++;
+    }
+    if (count > 0) alertasPorContrato[contrato] = count;
+  }
+
+  var newEvents = [];
+  var now = new Date();
+  var dateStr = Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyyMMdd');
+  var seqNum = lastRow;
+
+  for (var r = 0; r < allData.length; r++) {
+    if (newEvents.length >= 100) break;
+
+    var row = allData[r];
+    var contrato = String(row[COL['contrato']] || '');
+    var folio = String(row[COL['folio']] || '');
+    var sucursal = String(row[COL['sucursal2']] || '');
+    var monto = Number(row[COL['total_disposicion']] || 0);
+    var dgCol = COL['Evento'] !== undefined ? COL['Evento'] : (COL['DG'] !== undefined ? COL['DG'] : -1);
+    var eventoDG = dgCol >= 0 ? String(row[dgCol] || '') : '';
+    if (!eventoDG) {
+      var dgIdx = flagStartIdx + flagColNames.length;
+      if (dgIdx < row.length) eventoDG = String(row[dgIdx] || '');
+    }
+
+    for (var f = 0; f < flagColNames.length; f++) {
+      if (newEvents.length >= 100) break;
+      var flagVal = String(row[flagStartIdx + f] || '').trim().toUpperCase();
+      if (flagVal !== 'SI' && flagVal !== 'YES' && flagVal !== 'TRUE' && flagVal !== '1') continue;
+
+      var flagName = flagColNames[f];
+      var colLetra = getColumnLetter_(flagStartIdx + f);
+      var key = contrato + '|' + folio + '|' + colLetra;
+      if (existingKeys[key]) continue;
+
+      var tipo = CONTROL_COLUMNS.indexOf(colLetra) !== -1 ? 'CONTROL' : 'WARNING';
+      var sumaAlertas = alertasPorContrato[contrato] || 1;
+
+      var prioridad = 'BAJA';
+      if (sumaAlertas >= 5 || colLetra === 'CX' || colLetra === 'CY') prioridad = 'CRITICA';
+      else if (sumaAlertas >= 3) prioridad = 'ALTA';
+      else if (sumaAlertas >= 2) prioridad = 'MEDIA';
+
+      seqNum++;
+      var id = 'EVT-' + dateStr + '-' + ('0000' + seqNum).slice(-4);
+
+      newEvents.push([
+        id, now, tipo, flagName, sucursal, contrato, folio,
+        monto, 'DETECTADO', 'PENDIENTE', '', '', sumaAlertas,
+        prioridad, '', now, 'SISTEMA', colLetra, eventoDG
+      ]);
+      existingKeys[key] = true;
+    }
+  }
+
+  if (newEvents.length > 0) {
+    segSheet.getRange(lastRow + 1, 1, newEvents.length, SEGUIMIENTO_HEADERS.length)
+      .setValues(newEvents);
+  }
+
+  return newEvents.length;
+}
+
+function getColumnLetter_(colIndex) {
+  var letter = '';
+  var temp = colIndex;
+  while (temp >= 0) {
+    letter = String.fromCharCode((temp % 26) + 65) + letter;
+    temp = Math.floor(temp / 26) - 1;
+  }
+  return letter;
+}
+
 // ================================================================
 // WEB APP
 // ================================================================
