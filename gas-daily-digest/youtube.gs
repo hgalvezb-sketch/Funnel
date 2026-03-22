@@ -5,8 +5,11 @@ var KEYWORDS = [
   'claude code', 'claude ai', 'anthropic',
   'ai agents', 'llm', 'ai coding',
   'cursor', 'github copilot', 'mcp servers',
-  'ai automation', 'google ai', 'openai'
+  'ai automation', 'google ai', 'openai',
+  'inteligencia artificial', 'agentes ia'
 ];
+
+var YT_SUBTITLE_PARAMS = '&cc_load_policy=1&cc_lang_pref=es';
 
 /**
  * Obtiene videos recientes de suscripciones del usuario filtrados por keywords de IA.
@@ -64,7 +67,7 @@ function getSubscriptionVideos() {
               title: activity.snippet.title,
               channel: channel.title,
               videoId: videoId,
-              url: 'https://www.youtube.com/watch?v=' + videoId,
+              url: 'https://www.youtube.com/watch?v=' + videoId + YT_SUBTITLE_PARAMS,
               publishedAt: activity.snippet.publishedAt
             });
           }
@@ -104,23 +107,25 @@ function searchNewVideos(excludeIds) {
   var excludeSet = {};
   (excludeIds || []).forEach(function(id) { excludeSet[id] = true; });
 
-  // Dividir keywords en 2 grupos de 6
+  // 3 queries: español, inglés core, inglés herramientas
   var queries = [
-    '"Claude Code"|"Claude AI"|"Anthropic"|"AI agents"|"LLM"|"AI coding"',
-    '"Cursor"|"GitHub Copilot"|"MCP servers"|"AI automation"|"Google AI"|"OpenAI"'
+    { q: '"Claude Code"|"Claude AI"|"inteligencia artificial"|"agentes IA"|"Anthropic"', lang: 'es' },
+    { q: '"Claude Code"|"Claude AI"|"Anthropic"|"AI agents"|"LLM"|"AI coding"', lang: '' },
+    { q: '"Cursor"|"GitHub Copilot"|"MCP servers"|"AI automation"|"Google AI"|"OpenAI"', lang: '' }
   ];
 
   var results = [];
 
-  queries.forEach(function(q) {
+  queries.forEach(function(query) {
     try {
       var url = 'https://www.googleapis.com/youtube/v3/search'
         + '?part=snippet'
-        + '&q=' + encodeURIComponent(q)
+        + '&q=' + encodeURIComponent(query.q)
         + '&publishedAfter=' + encodeURIComponent(since)
         + '&type=video'
         + '&order=relevance'
         + '&maxResults=10'
+        + (query.lang ? '&relevanceLanguage=' + query.lang : '')
         + '&key=' + apiKey;
 
       var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
@@ -142,7 +147,7 @@ function searchNewVideos(excludeIds) {
           title: item.snippet.title,
           channel: item.snippet.channelTitle,
           videoId: videoId,
-          url: 'https://www.youtube.com/watch?v=' + videoId,
+          url: 'https://www.youtube.com/watch?v=' + videoId + YT_SUBTITLE_PARAMS,
           publishedAt: item.snippet.publishedAt
         });
       });
@@ -251,7 +256,7 @@ function getVideosFromLikedChannels(likedChannels, excludeSet) {
           title: activity.snippet.title,
           channel: channel.title,
           videoId: videoId,
-          url: 'https://www.youtube.com/watch?v=' + videoId,
+          url: 'https://www.youtube.com/watch?v=' + videoId + YT_SUBTITLE_PARAMS,
           publishedAt: activity.snippet.publishedAt
         });
       });
