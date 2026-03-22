@@ -150,6 +150,10 @@ function generateGeminiSummary(subscriptionVideos, searchVideos, rssNews) {
     }
 
     var data = JSON.parse(response.getContentText());
+    if (!data.candidates || !data.candidates.length || !data.candidates[0].content) {
+      Logger.log('Gemini: respuesta sin candidates validos');
+      return '';
+    }
     var text = data.candidates[0].content.parts[0].text || '';
     return text.trim();
   } catch (e) {
