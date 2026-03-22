@@ -14,6 +14,7 @@ var CONFIG = {
   CACHE_SHEET: '_dashboard_cache',
   SLIM_SHEET: '_dashboard_slim',
   INCIDENCIAS_SHEET: '_incidencias',
+  SEGUIMIENTO_SHEET: '_seguimiento_eventos',
   AUTH_SHEET: '_usuarios_autorizados',
   HIST_SHEET: '_historico',
   DATA_RANGE_END: 'DG',
@@ -44,6 +45,35 @@ var INCIDENCIA_HEADERS = [
   'Tipo_Hallazgo','Severidad','Descripcion','Accion_Recomendada',
   'Responsable','Fecha_Compromiso','Estado','Fecha_Actualizacion','Registrado_Por'
 ];
+
+var SEGUIMIENTO_HEADERS = [
+  'ID','Fecha_Deteccion','Tipo','Categoria','Sucursal','Contrato','Folio',
+  'Monto','Etapa','Confirmado','Tipo_Hallazgo','Asignado_A','Suma_Alertas',
+  'Prioridad','Notas','Fecha_Actualizacion','Registrado_Por','Columna_Origen','Evento_DG'
+];
+
+var CONTROL_COLUMNS = ['CQ','CU','CV','DC','CX','CY'];
+
+var ETAPA_TRANSICIONES = {
+  'DETECTADO': ['EN_ANALISIS'],
+  'EN_ANALISIS': ['CONFIRMADO', 'CERRADO'],
+  'CONFIRMADO': ['ASIGNADO'],
+  'ASIGNADO': ['EN_INVESTIGACION'],
+  'EN_INVESTIGACION': ['DICTAMINADO'],
+  'DICTAMINADO': ['CERRADO'],
+  'CERRADO': ['DETECTADO']
+};
+
+function ensureSeguimientoSheet_(ss) {
+  var sheet = ss.getSheetByName(CONFIG.SEGUIMIENTO_SHEET);
+  if (sheet) return sheet;
+  sheet = ss.insertSheet(CONFIG.SEGUIMIENTO_SHEET);
+  sheet.getRange(1, 1, 1, SEGUIMIENTO_HEADERS.length).setValues([SEGUIMIENTO_HEADERS]);
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, SEGUIMIENTO_HEADERS.length)
+    .setBackground('#1a2332').setFontColor('#ffffff').setFontWeight('bold');
+  return sheet;
+}
 
 // ================================================================
 // WEB APP
@@ -508,6 +538,8 @@ function chatWithGemini(userMessage, context, chatHistory) {
     'Analizas el Monitor de Disposiciones de Caja Unica. Las "disposiciones" son desembolsos de credito',
     'que se entregan a clientes en sucursales. Tu trabajo es detectar patrones sospechosos, explicar',
     'anomalias y dar recomendaciones accionables al equipo de control interno.',
+    'Tienes capacidades de inteligencia predictiva: interpretas modelos estadisticos (regresion lineal,',
+    'Z-Score, Bandas de Bollinger) y scores compuestos para anticipar riesgos futuros.',
     '',
     '## Banderas de riesgo (flags) y su severidad',
     '',
@@ -530,6 +562,96 @@ function chatWithGemini(userMessage, context, chatHistory) {
     '- **Calificacion <= 5**: Cliente con calificacion crediticia baja.',
     '- **En Quincena**: Disposicion en periodo de quincena (normal pero se monitorea).',
     '',
+    '## Inteligencia Predictiva - Tu capacidad analitica avanzada',
+    '',
+    'El monitor ejecuta cada 10 minutos un pipeline predictivo sobre el historico de 60 dias (hoja _historico).',
+    'Tu DEBES usar estos datos para dar respuestas con profundidad analitica. A continuacion se describe',
+    'cada modelo, como interpretarlo y que acciones recomendar.',
+    '',
+    '### 1. Regresion lineal (linearRegression_)',
+    'Se calcula sobre el historico de 60 dias para tres metricas: tasa de incidencia, total de incidencias y monto total.',
+    '- **slope (pendiente)**: Velocidad de cambio diario. Positiva = la metrica esta empeorando. Negativa = mejorando.',
+    '- **R2 (coeficiente de determinacion)**: Confiabilidad del modelo. R2 > 0.7 = tendencia fuerte y confiable.',
+    '  R2 entre 0.3 y 0.7 = tendencia moderada. R2 < 0.3 = mucha variabilidad, la tendencia no es confiable.',
+    '- **Proyecciones a 7, 14 y 30 dias**: Valor estimado SI la tendencia actual continua sin cambios.',
+    '- **Como interpretar**: Si slope es positiva con R2 alto, hay una tendencia clara de deterioro.',
+    '  Si slope es positiva pero R2 bajo, hay picos esporadicos pero no tendencia sostenida.',
+    '  Ejemplo: slope=0.15, R2=0.82 en tasa de incidencia = "la tasa sube 0.15 puntos porcentuales por dia',
+    '  de forma consistente; en 30 dias podria alcanzar X% si no se interviene".',
+    '- **Acciones**: Si slope positiva + R2 > 0.5, recomendar investigacion inmediata de causas raiz.',
+    '',
+    '### 2. Z-Score (deteccion de anomalias por sucursal - zScoreAnalysis_)',
+    'Mide cuantas desviaciones estandar se aleja cada sucursal del promedio general.',
+    '- **|Z| > 2 = anomalia**: La sucursal se comporta de forma significativamente diferente al resto.',
+    '- **|Z| > 3 = anomalia critica**: Comportamiento extremo, requiere atencion urgente.',
+    '- **Z positivo alto**: La sucursal tiene MUCHO MAS incidencias/monto que el promedio.',
+    '- **Z negativo alto**: La sucursal tiene MUCHO MENOS (puede ser bueno o sospechoso si tiene pocas operaciones).',
+    '- Se calcula para: tasa de incidencia por sucursal, monto promedio por sucursal, frecuencia de operaciones.',
+    '- Tambien se calcula sobre banderas historicas: Fuera de horario, +1 mismo dia, Tel repetido.',
+    '- **Como interpretar**: Una sucursal con Z-Score de tasa=3.5 significa que su tasa de incidencia',
+    '  esta 3.5 desviaciones estandar por encima del promedio. Es estadisticamente muy improbable',
+    '  que sea aleatorio — hay algo sistematico en esa sucursal.',
+    '- **Acciones**: Z > 3 = visita de auditoria o revision presencial. Z > 2 = monitoreo reforzado.',
+    '',
+    '### 3. Bandas de Bollinger (bollingerBands_)',
+    'Tecnica de mercados financieros adaptada a deteccion de fraude.',
+    '- **Media movil de 7 dias**: Suaviza la volatilidad diaria para ver la tendencia real.',
+    '- **Banda superior**: Media + 2 desviaciones estandar. Umbral de alerta.',
+    '- **Banda inferior**: Media - 2 desviaciones estandar.',
+    '- **currentAboveBand = true**: La metrica actual ROMPIO la banda superior = comportamiento anormal.',
+    '- Se calcula para tasa de incidencia y total de incidencias.',
+    '- **Como interpretar**: Si la tasa de incidencia de hoy esta POR ENCIMA de la banda superior,',
+    '  significa que el dia de hoy es estadisticamente anomalo comparado con los ultimos 7 dias.',
+    '  Es equivalente a un "pico" inusual que merece investigacion.',
+    '- **Acciones**: Si Bollinger alerta = revisar que sucursales contribuyeron al pico.',
+    '  Cruzar con Z-Scores para identificar las sucursales responsables.',
+    '',
+    '### 4. Score predictivo compuesto por sucursal (0-100)',
+    'Cada sucursal recibe un score que combina los 3 modelos + frecuencia de flags de alta severidad.',
+    '- **Formula**: Score = Tendencia(0.35) + Anomalia(0.30) + Bollinger(0.20) + FlagsAlta(0.15)',
+    '  - Tendencia (35%): Si la regresion global muestra slope positiva con R2 > 0.3',
+    '  - Anomalia (30%): Z-Scores de tasa, monto promedio y frecuencia de la sucursal',
+    '  - Bollinger (20%): Si la metrica actual rompe la banda superior',
+    '  - Flags alta (15%): Proporcion de flags de alta severidad sobre total de operaciones',
+    '- **Niveles**:',
+    '  - 0-30 = Verde (bajo riesgo): Operacion normal, monitoreo rutinario.',
+    '  - 31-60 = Amarillo (moderado): Requiere atencion, posibles patrones emergentes.',
+    '  - 61-80 = Naranja (alto): Investigacion activa recomendada, posible fraude.',
+    '  - 81-100 = Rojo (critico): Atencion inmediata, alta probabilidad de fraude o control roto.',
+    '- **Como interpretar**: El score NO es una probabilidad de fraude; es una priorizacion.',
+    '  Una sucursal roja no necesariamente tiene fraude confirmado, pero es donde PRIMERO debes mirar.',
+    '- **Acciones por nivel**:',
+    '  - Rojo: Escalamiento inmediato, suspension temporal de operaciones si es necesario.',
+    '  - Naranja: Asignar coordinador de zona para revision presencial en 48h.',
+    '  - Amarillo: Monitoreo diario, revisar en siguiente comite de riesgos.',
+    '  - Verde: Seguimiento rutinario semanal.',
+    '',
+    '### 5. Heatmap sucursal vs banderas de riesgo',
+    'Matriz de calor que cruza las top 15 sucursales con 8 tipos de flags:',
+    'Fuera Horario, +1 Mismo Dia, Tel Repetido, Contratos <3min, Foraneas, Monto Dup, >120 Dias, Calif <=5.',
+    '- Valores altos en una celda = la sucursal tiene concentracion de ese tipo de flag.',
+    '- **Como interpretar**: Buscar patrones horizontales (sucursal con MUCHOS tipos de flag = problema generalizado)',
+    '  y patrones verticales (un tipo de flag concentrado en pocas sucursales = posible modus operandi).',
+    '- **Acciones**: Si una sucursal domina horizontalmente, es candidata a auditoria integral.',
+    '  Si un flag domina verticalmente, investigar si hay una causa sistemica (ej: politica operativa rota).',
+    '',
+    '### 6. Relacion con los 12 controles de disposicion (CD-1 a CD-12)',
+    'El modelo predictivo complementa el proceso de control de disposiciones:',
+    '- Los controles CD-1 a CD-12 detectan alertas reactivas (ya ocurrieron).',
+    '- El modelo predictivo ANTICIPA: que sucursales van a empeorar, donde concentrar recursos.',
+    '- La regresion proyecta a futuro: "en 30 dias la tasa sera X%".',
+    '- Los Z-Scores priorizan: "esta sucursal es la que mas se desvía del promedio".',
+    '- El score compuesto RANKEA: "estas son las 10 sucursales donde debes actuar PRIMERO".',
+    '',
+    '### Como usar la inteligencia predictiva en tus respuestas',
+    '- Cuando te pregunten por una sucursal especifica, busca su score predictivo, Z-Scores y flags.',
+    '- Cuando te pregunten por tendencias, usa la regresion: slope, R2 y proyecciones.',
+    '- Cuando te pregunten "que va a pasar", usa las proyecciones a 7/14/30 dias con la advertencia',
+    '  de que son estimaciones lineales (no consideran intervenciones ni estacionalidad).',
+    '- Cuando te pregunten por alertas, cruza Bollinger (picos de hoy) con Z-Scores (sucursales anomalas).',
+    '- Siempre contextualiza: "el R2 es de X, lo cual indica que la tendencia es [fuerte/moderada/debil]".',
+    '- Si los datos predictivos no estan disponibles, indica que se requiere historico de al menos 7 dias.',
+    '',
     '## Reglas de respuesta',
     '1. Responde SIEMPRE en espanol',
     '2. Se conciso pero preciso. Usa datos especificos del contexto.',
@@ -538,6 +660,9 @@ function chatWithGemini(userMessage, context, chatHistory) {
     '5. Si te preguntan algo fuera de tu dominio, indica amablemente que solo analizas disposiciones',
     '6. Cuando sea relevante, sugiere acciones concretas (investigar sucursal, revisar contrato, etc.)',
     '7. Usa formato con saltos de linea y listas para facilitar lectura',
+    '8. Cuando uses datos predictivos, siempre indica el nivel de confianza (R2) y las limitaciones del modelo',
+    '9. Prioriza hallazgos por score predictivo: menciona primero las sucursales rojas, luego naranjas',
+    '10. Cuando detectes anomalias Z-Score, explica EN CONTEXTO que significa (no solo el numero)',
     '',
     '## Datos actuales del dashboard',
     context
@@ -1370,6 +1495,241 @@ function generatePredictiveInsights_(predictiveData) {
   } catch (e) {
     return { insights: 'Error al consultar Gemini: ' + e.message };
   }
+}
+
+// ================================================================
+// REPORTE PREDICTIVO DIARIO POR CORREO
+// ================================================================
+
+var REPORT_EMAIL = 'hgalvezb@findep.com.mx';
+
+function debugReportData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var cacheSheet = ss.getSheetByName(CONFIG.CACHE_SHEET);
+  if (!cacheSheet) return 'ERROR: No existe hoja ' + CONFIG.CACHE_SHEET;
+  if (cacheSheet.getLastColumn() === 0) return 'ERROR: Hoja cache vacia (0 columnas)';
+  var lastCol = cacheSheet.getLastColumn();
+  var chunks = cacheSheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var raw = chunks.join('');
+  if (raw.length < 10) return 'ERROR: Cache con menos de 10 chars (len=' + raw.length + ')';
+  var data;
+  try { data = JSON.parse(raw); } catch(e) { return 'ERROR: JSON parse failed: ' + e.message; }
+  var pred = data.predictive;
+  if (!pred) return 'ERROR: data.predictive es null/undefined. Keys disponibles: ' + Object.keys(data).join(', ');
+  return 'OK: predictive existe. Keys: ' + Object.keys(pred).join(', ') + '. Scores: ' + (pred.scores ? pred.scores.length : 0) + '. DiasHist: ' + (pred.diasHistorico || 0);
+}
+
+function sendDailyPredictiveReport() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var cacheSheet = ss.getSheetByName(CONFIG.CACHE_SHEET);
+  if (!cacheSheet || cacheSheet.getLastColumn() === 0) return;
+
+  var lastCol = cacheSheet.getLastColumn();
+  var chunks = cacheSheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var raw = chunks.join('');
+  if (raw.length < 10) return;
+
+  var data;
+  try { data = JSON.parse(raw); } catch(e) { return; }
+
+  var pred = data.predictive;
+  var kpis = data.kpis || {};
+  if (!pred) return;
+
+  var tz = Session.getScriptTimeZone();
+  var fechaHoy = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm');
+
+  // --- Construir HTML del email ---
+  var html = [];
+  html.push('<div style="font-family:Segoe UI,Arial,sans-serif;max-width:700px;margin:0 auto;background:#0d1117;color:#e6edf3;padding:24px;border-radius:12px;">');
+
+  // Header
+  html.push('<div style="text-align:center;padding:16px 0;border-bottom:1px solid #30363d;">');
+  html.push('<h1 style="margin:0;color:#c9d1d9;font-size:22px;">Monitor de Disposiciones</h1>');
+  html.push('<p style="margin:4px 0 0;color:#8b949e;font-size:13px;">Reporte Predictivo Diario - ' + fechaHoy + '</p>');
+  html.push('</div>');
+
+  // KPIs principales
+  html.push('<div style="display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;">');
+  var kpiItems = [
+    { label: 'Registros', value: kpis.totalReg || 0, color: '#58a6ff' },
+    { label: 'Incidencias', value: (kpis.totalInc || 0) + ' (' + (kpis.tasaInc || 0).toFixed(1) + '%)', color: '#f85149' },
+    { label: 'Monto Total', value: '$' + ((kpis.totalMonto || 0) / 1000000).toFixed(2) + 'M', color: '#3fb950' },
+    { label: 'Monto Riesgo', value: '$' + ((kpis.montoInc || 0) / 1000000).toFixed(2) + 'M', color: '#d29922' },
+    { label: 'Sucursales', value: kpis.sucursalesCount || 0, color: '#bc8cff' }
+  ];
+  for (var i = 0; i < kpiItems.length; i++) {
+    var ki = kpiItems[i];
+    html.push('<div style="flex:1;min-width:120px;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:10px;text-align:center;">');
+    html.push('<div style="font-size:11px;color:#8b949e;">' + ki.label + '</div>');
+    html.push('<div style="font-size:18px;font-weight:bold;color:' + ki.color + ';">' + ki.value + '</div>');
+    html.push('</div>');
+  }
+  html.push('</div>');
+
+  // Semaforo de sucursales
+  if (pred.conteoNiveles) {
+    var cn = pred.conteoNiveles;
+    html.push('<h2 style="color:#c9d1d9;font-size:16px;margin:20px 0 8px;border-bottom:1px solid #30363d;padding-bottom:6px;">Semaforo de Sucursales</h2>');
+    html.push('<div style="display:flex;gap:8px;flex-wrap:wrap;">');
+    var niveles = [
+      { label: 'Rojo (Critico)', val: cn.rojo || 0, color: '#f85149', bg: '#3d1114' },
+      { label: 'Naranja (Alto)', val: cn.naranja || 0, color: '#d29922', bg: '#3d2e00' },
+      { label: 'Amarillo (Mod.)', val: cn.amarillo || 0, color: '#e3b341', bg: '#3d3200' },
+      { label: 'Verde (Bajo)', val: cn.verde || 0, color: '#3fb950', bg: '#0d3117' }
+    ];
+    for (var i = 0; i < niveles.length; i++) {
+      var n = niveles[i];
+      html.push('<div style="flex:1;min-width:140px;background:' + n.bg + ';border:1px solid ' + n.color + '33;border-radius:8px;padding:12px;text-align:center;">');
+      html.push('<div style="font-size:28px;font-weight:bold;color:' + n.color + ';">' + n.val + '</div>');
+      html.push('<div style="font-size:11px;color:' + n.color + ';">' + n.label + '</div>');
+      html.push('</div>');
+    }
+    html.push('</div>');
+  }
+
+  // Regresion lineal
+  if (pred.regresion) {
+    var reg = pred.regresion;
+    html.push('<h2 style="color:#c9d1d9;font-size:16px;margin:20px 0 8px;border-bottom:1px solid #30363d;padding-bottom:6px;">Tendencias (Regresion Lineal)</h2>');
+    html.push('<table style="width:100%;border-collapse:collapse;font-size:13px;">');
+    html.push('<tr style="background:#161b22;"><th style="padding:8px;text-align:left;color:#8b949e;border-bottom:1px solid #30363d;">Metrica</th><th style="padding:8px;color:#8b949e;border-bottom:1px solid #30363d;">Pendiente/dia</th><th style="padding:8px;color:#8b949e;border-bottom:1px solid #30363d;">R2</th><th style="padding:8px;color:#8b949e;border-bottom:1px solid #30363d;">Tendencia</th><th style="padding:8px;color:#8b949e;border-bottom:1px solid #30363d;">Proy. 7d</th><th style="padding:8px;color:#8b949e;border-bottom:1px solid #30363d;">Proy. 30d</th></tr>');
+    var regItems = [
+      { name: 'Tasa incidencia', d: reg.tasa },
+      { name: 'Total incidencias', d: reg.incidencias },
+      { name: 'Monto total', d: reg.monto }
+    ];
+    for (var i = 0; i < regItems.length; i++) {
+      var ri = regItems[i];
+      if (!ri.d) continue;
+      var tendColor = ri.d.slope > 0 ? '#f85149' : '#3fb950';
+      var tendText = ri.d.slope > 0 ? 'EMPEORANDO' : 'MEJORANDO';
+      var r2Color = ri.d.r2 > 0.7 ? '#3fb950' : ri.d.r2 > 0.3 ? '#d29922' : '#8b949e';
+      html.push('<tr style="border-bottom:1px solid #21262d;">');
+      html.push('<td style="padding:8px;color:#c9d1d9;">' + ri.name + '</td>');
+      html.push('<td style="padding:8px;text-align:center;color:' + tendColor + ';">' + ri.d.slope + '</td>');
+      html.push('<td style="padding:8px;text-align:center;color:' + r2Color + ';">' + ri.d.r2 + '</td>');
+      html.push('<td style="padding:8px;text-align:center;color:' + tendColor + ';font-weight:bold;">' + tendText + '</td>');
+      html.push('<td style="padding:8px;text-align:center;color:#c9d1d9;">' + (ri.d.projected[0] || 0) + '</td>');
+      html.push('<td style="padding:8px;text-align:center;color:#c9d1d9;">' + (ri.d.projected[2] || 0) + '</td>');
+      html.push('</tr>');
+    }
+    html.push('</table>');
+  }
+
+  // Alertas Bollinger
+  if (pred.bollinger) {
+    var boll = pred.bollinger;
+    var alertas = [];
+    if (boll.tasa && boll.tasa.alerta) alertas.push('Tasa de incidencia por ENCIMA de banda superior');
+    if (boll.incidencias && boll.incidencias.alerta) alertas.push('Total de incidencias por ENCIMA de banda superior');
+    if (alertas.length > 0) {
+      html.push('<h2 style="color:#f85149;font-size:16px;margin:20px 0 8px;border-bottom:1px solid #f8514933;padding-bottom:6px;">Alertas Bollinger (picos anomalos)</h2>');
+      for (var i = 0; i < alertas.length; i++) {
+        html.push('<div style="background:#3d1114;border:1px solid #f8514933;border-radius:6px;padding:10px;margin:4px 0;color:#f85149;font-size:13px;">&#9888; ' + alertas[i] + '</div>');
+      }
+    }
+  }
+
+  // Anomalias Z-Score
+  if (pred.anomaliasHoy && pred.anomaliasHoy.length > 0) {
+    html.push('<h2 style="color:#d29922;font-size:16px;margin:20px 0 8px;border-bottom:1px solid #d2992233;padding-bottom:6px;">Anomalias Z-Score Detectadas Hoy</h2>');
+    for (var i = 0; i < pred.anomaliasHoy.length; i++) {
+      var a = pred.anomaliasHoy[i];
+      var aColor = a.critica ? '#f85149' : '#d29922';
+      var aLabel = a.critica ? 'CRITICA' : 'ANOMALIA';
+      html.push('<div style="background:#161b22;border-left:3px solid ' + aColor + ';padding:8px 12px;margin:4px 0;font-size:13px;">');
+      html.push('<span style="color:' + aColor + ';font-weight:bold;">[' + aLabel + ']</span> ');
+      html.push('<span style="color:#c9d1d9;">' + a.flag + '</span> ');
+      html.push('<span style="color:#8b949e;">Z-Score: ' + a.z + '</span>');
+      html.push('</div>');
+    }
+  }
+
+  // Top sucursales por score
+  if (pred.scores && pred.scores.length > 0) {
+    html.push('<h2 style="color:#c9d1d9;font-size:16px;margin:20px 0 8px;border-bottom:1px solid #30363d;padding-bottom:6px;">Top 15 Sucursales por Score Predictivo</h2>');
+    html.push('<table style="width:100%;border-collapse:collapse;font-size:12px;">');
+    html.push('<tr style="background:#161b22;">');
+    html.push('<th style="padding:6px;text-align:left;color:#8b949e;border-bottom:1px solid #30363d;">Sucursal</th>');
+    html.push('<th style="padding:6px;color:#8b949e;border-bottom:1px solid #30363d;">Score</th>');
+    html.push('<th style="padding:6px;color:#8b949e;border-bottom:1px solid #30363d;">Nivel</th>');
+    html.push('<th style="padding:6px;color:#8b949e;border-bottom:1px solid #30363d;">Ops</th>');
+    html.push('<th style="padding:6px;color:#8b949e;border-bottom:1px solid #30363d;">Inc</th>');
+    html.push('<th style="padding:6px;color:#8b949e;border-bottom:1px solid #30363d;">Tasa%</th>');
+    html.push('<th style="padding:6px;color:#8b949e;border-bottom:1px solid #30363d;">Flags Alta</th>');
+    html.push('<th style="padding:6px;color:#8b949e;border-bottom:1px solid #30363d;">Z-Tasa</th>');
+    html.push('</tr>');
+    var top = pred.scores.slice(0, 15);
+    for (var i = 0; i < top.length; i++) {
+      var s = top[i];
+      var nColor = s.nivel === 'rojo' ? '#f85149' : s.nivel === 'naranja' ? '#d29922' : s.nivel === 'amarillo' ? '#e3b341' : '#3fb950';
+      var rowBg = i % 2 === 0 ? '#0d1117' : '#161b22';
+      html.push('<tr style="background:' + rowBg + ';border-bottom:1px solid #21262d;">');
+      html.push('<td style="padding:6px;color:#c9d1d9;font-weight:bold;">' + s.suc + '</td>');
+      html.push('<td style="padding:6px;text-align:center;color:' + nColor + ';font-weight:bold;">' + s.score + '</td>');
+      html.push('<td style="padding:6px;text-align:center;"><span style="background:' + nColor + '22;color:' + nColor + ';padding:2px 8px;border-radius:4px;font-size:11px;">' + s.nivel.toUpperCase() + '</span></td>');
+      html.push('<td style="padding:6px;text-align:center;color:#c9d1d9;">' + s.operaciones + '</td>');
+      html.push('<td style="padding:6px;text-align:center;color:#c9d1d9;">' + s.incidencias + '</td>');
+      html.push('<td style="padding:6px;text-align:center;color:#c9d1d9;">' + s.tasa + '%</td>');
+      html.push('<td style="padding:6px;text-align:center;color:' + (s.flagsAlta > 0 ? '#f85149' : '#8b949e') + ';">' + s.flagsAlta + '</td>');
+      html.push('<td style="padding:6px;text-align:center;color:' + (s.zTasa > 2 ? '#f85149' : s.zTasa > 1 ? '#d29922' : '#8b949e') + ';">' + s.zTasa + '</td>');
+      html.push('</tr>');
+    }
+    html.push('</table>');
+  }
+
+  // Acciones recomendadas
+  html.push('<h2 style="color:#c9d1d9;font-size:16px;margin:20px 0 8px;border-bottom:1px solid #30363d;padding-bottom:6px;">Acciones Recomendadas</h2>');
+  var acciones = [];
+  if (pred.conteoNiveles && pred.conteoNiveles.rojo > 0) acciones.push({ pri: 'URGENTE', text: pred.conteoNiveles.rojo + ' sucursal(es) en nivel ROJO requieren escalamiento inmediato y posible suspension temporal.', color: '#f85149' });
+  if (pred.conteoNiveles && pred.conteoNiveles.naranja > 0) acciones.push({ pri: 'ALTA', text: pred.conteoNiveles.naranja + ' sucursal(es) en nivel NARANJA requieren revision presencial en las proximas 48 horas.', color: '#d29922' });
+  if (pred.bollinger && (pred.bollinger.tasa && pred.bollinger.tasa.alerta || pred.bollinger.incidencias && pred.bollinger.incidencias.alerta)) acciones.push({ pri: 'MEDIA', text: 'Se detectaron picos anomalos en Bollinger. Revisar que sucursales contribuyeron al pico de hoy.', color: '#e3b341' });
+  if (pred.anomaliasHoy && pred.anomaliasHoy.length > 0) acciones.push({ pri: 'MEDIA', text: 'Hay ' + pred.anomaliasHoy.length + ' anomalia(s) Z-Score activas hoy. Cruzar con sucursales de mayor score.', color: '#e3b341' });
+  if (pred.regresion && pred.regresion.tasa && pred.regresion.tasa.slope > 0 && pred.regresion.tasa.r2 > 0.3) acciones.push({ pri: 'MEDIA', text: 'La tasa de incidencia tiene tendencia al alza (slope=' + pred.regresion.tasa.slope + ', R2=' + pred.regresion.tasa.r2 + '). Investigar causas raiz.', color: '#e3b341' });
+  if (acciones.length === 0) acciones.push({ pri: 'INFO', text: 'Sin alertas criticas. Continuar monitoreo rutinario.', color: '#3fb950' });
+  for (var i = 0; i < acciones.length; i++) {
+    var ac = acciones[i];
+    html.push('<div style="background:#161b22;border-left:3px solid ' + ac.color + ';padding:8px 12px;margin:4px 0;font-size:13px;">');
+    html.push('<span style="color:' + ac.color + ';font-weight:bold;">[' + ac.pri + ']</span> ');
+    html.push('<span style="color:#c9d1d9;">' + ac.text + '</span>');
+    html.push('</div>');
+  }
+
+  // Footer
+  html.push('<div style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #30363d;">');
+  html.push('<a href="https://script.google.com/a/macros/findep.com.mx/s/AKfycbxFpKrEHdNyWqsLRHGmHA15Hu6b_9zoI4vkpSGYnDYk2Pc8t0S3KLg7tCwT8ZdC8segRw/exec" style="display:inline-block;background:linear-gradient(135deg,#7c4dff,#536dfe);color:#fff;text-decoration:none;padding:10px 24px;border-radius:6px;font-size:13px;font-weight:bold;">Abrir Dashboard Completo</a>');
+  html.push('<p style="color:#8b949e;font-size:11px;margin-top:12px;">Historico analizado: ' + (pred.diasHistorico || 0) + ' dias | Generado automaticamente por el Monitor de Disposiciones</p>');
+  html.push('</div>');
+
+  html.push('</div>');
+
+  // --- Enviar email ---
+  var subject = 'Monitor Disposiciones - Reporte Predictivo ' + Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy');
+  if (pred.conteoNiveles && pred.conteoNiveles.rojo > 0) subject += ' [' + pred.conteoNiveles.rojo + ' ROJAS]';
+
+  MailApp.sendEmail({
+    to: REPORT_EMAIL,
+    subject: subject,
+    htmlBody: html.join(''),
+    name: 'Monitor de Disposiciones FINDEP'
+  });
+  Logger.log('Correo enviado a ' + REPORT_EMAIL + ' con asunto: ' + subject);
+}
+
+function setupDailyReportTrigger() {
+  // Eliminar triggers existentes del reporte
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'sendDailyPredictiveReport') ScriptApp.deleteTrigger(triggers[i]);
+  }
+  // Crear trigger diario a las 7:00 AM
+  ScriptApp.newTrigger('sendDailyPredictiveReport')
+    .timeBased()
+    .atHour(7)
+    .everyDays(1)
+    .create();
+  Logger.log('Trigger de reporte diario configurado a las 7:00 AM');
 }
 
 // ================================================================
