@@ -1155,6 +1155,41 @@ function getAnalysisContext(){
       }
     }
   }
+    // --- Datos de Seguimiento de Eventos ---
+    var seg = CURRENT_DATA.seguimiento;
+    if (seg) {
+      ctx += '\n## Seguimiento de Eventos\n';
+      ctx += '- Universo: ' + seg.kpis.universo + ' disposiciones\n';
+      ctx += '- Controles activados: ' + seg.kpis.controlesActivados + ' (' + seg.kpis.pctControles + '%)\n';
+      ctx += '- Warnings activados: ' + seg.kpis.warningsActivados + ' (' + seg.kpis.pctWarnings + '%)\n';
+      ctx += '- Eventos activos en seguimiento: ' + seg.kpis.eventosActivos + '\n';
+      ctx += '- Eventos cerrados: ' + seg.kpis.eventosCerrados + '\n';
+      ctx += '\nEventos por etapa:\n';
+      for (var et in seg.etapas) {
+        ctx += '  - ' + et + ': ' + seg.etapas[et] + '\n';
+      }
+      if (seg.controles && seg.controles.length > 0) {
+        ctx += '\nTop controles con mayor % de falla:\n';
+        var sorted = seg.controles.slice().sort(function(a,b){return b.pctUniverso-a.pctUniverso;});
+        for (var i = 0; i < Math.min(5, sorted.length); i++) {
+          ctx += '  - ' + sorted[i].nombre + ': ' + sorted[i].pctUniverso + '% (' + sorted[i].eventos + ' eventos)\n';
+        }
+      }
+      if (seg.warnings && seg.warnings.length > 0) {
+        ctx += '\nTop warnings mas frecuentes:\n';
+        var sortedW = seg.warnings.slice().sort(function(a,b){return b.eventos-a.eventos;});
+        for (var i = 0; i < Math.min(5, sortedW.length); i++) {
+          ctx += '  - ' + sortedW[i].nombre + ': ' + sortedW[i].eventos + ' eventos (' + sortedW[i].pctUniverso + '%)\n';
+        }
+      }
+      if (seg.eventosVencidos && seg.eventosVencidos.length > 0) {
+        ctx += '\nEventos criticos pendientes >48h:\n';
+        for (var i = 0; i < seg.eventosVencidos.length; i++) {
+          var v = seg.eventosVencidos[i];
+          ctx += '  - ' + v.id + ' (' + v.etapa + ') en ' + v.sucursal + ' - ' + v.horas + 'h sin avance\n';
+        }
+      }
+    }
   return ctx;
 }
 
