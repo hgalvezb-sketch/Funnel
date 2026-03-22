@@ -46,10 +46,10 @@ function sendDailyDigest() {
     errors.push('Liked channels: ' + e.message);
   }
 
-  // 4. Busqueda publica
+  // 4. Busqueda publica (personalizada con keywords de likes)
   try {
     var excludeIds = Object.keys(excludeSet);
-    searchVideos = searchNewVideos(excludeIds);
+    searchVideos = searchNewVideos(excludeIds, likedInsights.keywords);
     Logger.log('Busqueda: ' + searchVideos.length + ' videos');
   } catch (e) {
     Logger.log('Error YouTube busqueda: ' + e.message);
@@ -83,7 +83,7 @@ function sendDailyDigest() {
     errors.push('Gemini: ' + e.message);
   }
 
-  // 8. Mini-resumenes individuales por video
+  // 8. Mini-resumenes individuales por video + clasificacion de idioma
   var allVideos = subscriptionVideos.concat(likedChannelVideos, searchVideos);
   try {
     generateVideoSummaries(allVideos);
@@ -91,6 +91,23 @@ function sendDailyDigest() {
   } catch (e) {
     Logger.log('Error mini-resumenes: ' + e.message);
     errors.push('Mini-resumenes: ' + e.message);
+  }
+
+  // 8b. Filtrar videos que NO son en español
+  var beforeFilter = { subs: subscriptionVideos.length, liked: likedChannelVideos.length, search: searchVideos.length };
+  subscriptionVideos = subscriptionVideos.filter(function(v) { return v.idioma === 'es'; });
+  likedChannelVideos = likedChannelVideos.filter(function(v) { return v.idioma === 'es'; });
+  searchVideos = searchVideos.filter(function(v) { return v.idioma === 'es'; });
+  Logger.log('Filtro idioma español: subs ' + beforeFilter.subs + '->' + subscriptionVideos.length
+    + ', liked ' + beforeFilter.liked + '->' + likedChannelVideos.length
+    + ', search ' + beforeFilter.search + '->' + searchVideos.length);
+
+  // Verificar si quedo contenido despues del filtro
+  var totalAfterFilter = subscriptionVideos.length + likedChannelVideos.length + searchVideos.length + rssNews.length;
+  if (totalAfterFilter === 0) {
+    Logger.log('Sin contenido en español hoy. No se envia email.');
+    checkStaleDigest_(props, recipient);
+    return;
   }
 
   // 9. Construir y enviar email

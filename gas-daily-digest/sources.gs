@@ -188,10 +188,12 @@ function generateVideoSummaries(allVideos) {
 
   var prompt = 'Para cada video de la lista, genera:\n'
     + '1. El titulo traducido al espanol (si ya esta en espanol, dejalo igual)\n'
-    + '2. Un mini-resumen en espanol de 1-2 oraciones explicando de que trata el video\n\n'
+    + '2. Un mini-resumen en espanol de 1-2 oraciones explicando de que trata el video\n'
+    + '3. El idioma ORIGINAL del contenido del video. Analiza el titulo y el nombre del canal para determinar si el video es en espanol ("es") o en otro idioma ("en", "pt", etc). '
+    + 'Canales hispanohablantes tipicamente tienen nombres/titulos en espanol. Canales en ingles tienen titulos en ingles.\n\n'
     + videoList
-    + '\n\nResponde SOLO con un JSON array de objetos con las propiedades "titulo" y "resumen". '
-    + 'Ejemplo: [{"titulo":"Canales de Claude Code en 8 Minutos","resumen":"Resumen aqui..."}]\n'
+    + '\n\nResponde SOLO con un JSON array de objetos con las propiedades "titulo", "resumen" e "idioma". '
+    + 'Ejemplo: [{"titulo":"Claude Code en 8 Minutos","resumen":"Resumen aqui...","idioma":"es"}]\n'
     + 'Sin markdown, sin explicaciones, solo el JSON array.';
 
   try {
@@ -222,6 +224,7 @@ function generateVideoSummaries(allVideos) {
     for (var i = 0; i < allVideos.length && i < summaries.length; i++) {
       allVideos[i].titleEs = summaries[i].titulo || allVideos[i].title;
       allVideos[i].miniResumen = summaries[i].resumen || '';
+      allVideos[i].idioma = summaries[i].idioma || 'en';
     }
 
     Logger.log('Mini-resumenes generados: ' + summaries.length);

@@ -95,7 +95,7 @@ function getSubscriptionVideos() {
  * @param {Array<string>} excludeIds - videoIds a excluir (ya encontrados en suscripciones)
  * @returns {Array<{title: string, channel: string, videoId: string, url: string, publishedAt: string}>}
  */
-function searchNewVideos(excludeIds) {
+function searchNewVideos(excludeIds, userKeywords) {
   var apiKey = PropertiesService.getScriptProperties().getProperty('YOUTUBE_API_KEY');
   if (!apiKey) {
     Logger.log('YOUTUBE_API_KEY no configurada');
@@ -106,11 +106,17 @@ function searchNewVideos(excludeIds) {
   var excludeSet = {};
   (excludeIds || []).forEach(function(id) { excludeSet[id] = true; });
 
-  // Queries solo en español
+  // Queries en español
   var queries = [
-    '"Claude Code"|"Claude AI"|"inteligencia artificial"|"Anthropic" español',
-    '"Cursor"|"GitHub Copilot"|"agentes IA"|"OpenAI"|"Google AI" español'
+    '"Claude Code"|"Claude AI"|"inteligencia artificial"|"Anthropic" tutorial español',
+    '"Cursor"|"GitHub Copilot"|"agentes IA"|"OpenAI"|"Google AI" tutorial español'
   ];
+
+  // Agregar query personalizado con keywords del usuario (de sus likes)
+  if (userKeywords && userKeywords.length > 0) {
+    var kwQuery = userKeywords.map(function(k) { return '"' + k + '"'; }).join('|');
+    queries.push(kwQuery + ' inteligencia artificial español');
+  }
 
   var results = [];
 
