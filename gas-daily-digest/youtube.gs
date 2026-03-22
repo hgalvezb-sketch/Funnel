@@ -2,11 +2,14 @@
  * Keywords para filtrar videos relevantes de suscripciones
  */
 var KEYWORDS = [
-  'claude code', 'claude ai', 'anthropic',
-  'ai agents', 'llm', 'ai coding',
-  'cursor', 'github copilot', 'mcp servers',
-  'ai automation', 'google ai', 'openai',
-  'inteligencia artificial', 'agentes ia'
+  'claude code', 'claude cli', 'claude terminal',
+  'anthropic cli', 'mcp server', 'mcp servers',
+  'cursor ide', 'cursor editor', 'github copilot',
+  'google cloud cli', 'gcloud', 'clasp',
+  'apps script', 'google apps script',
+  'firebase cli', 'gemini cli', 'gemini api',
+  'windsurf', 'cline', 'aider',
+  'coding agent', 'ai coding terminal'
 ];
 
 
@@ -106,17 +109,12 @@ function searchNewVideos(excludeIds, userKeywords) {
   var excludeSet = {};
   (excludeIds || []).forEach(function(id) { excludeSet[id] = true; });
 
-  // Queries en español
+  // Queries específicos: Claude Code + herramientas desde terminal/CLI
   var queries = [
-    '"Claude Code"|"Claude AI"|"inteligencia artificial"|"Anthropic" tutorial español',
-    '"Cursor"|"GitHub Copilot"|"agentes IA"|"OpenAI"|"Google AI" tutorial español'
+    '"Claude Code" terminal|CLI|consola|tutorial español',
+    '"Cursor"|"GitHub Copilot"|"Windsurf"|"Cline"|"Aider" programar|coding español',
+    '"Google Cloud"|"gcloud"|"Apps Script"|"clasp"|"Firebase CLI"|"Gemini CLI" terminal|tutorial español'
   ];
-
-  // Agregar query personalizado con keywords del usuario (de sus likes)
-  if (userKeywords && userKeywords.length > 0) {
-    var kwQuery = userKeywords.map(function(k) { return '"' + k + '"'; }).join('|');
-    queries.push(kwQuery + ' inteligencia artificial español');
-  }
 
   var results = [];
 

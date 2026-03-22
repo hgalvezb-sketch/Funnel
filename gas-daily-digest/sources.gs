@@ -130,13 +130,12 @@ function generateGeminiSummary(subscriptionVideos, searchVideos, rssNews, likedC
 
   if (contentParts.length === 0) return '';
 
-  var prompt = 'Eres un curador de noticias de IA para un profesional de tecnologia financiera. '
-    + 'A continuacion tienes los titulos de videos y noticias del dia sobre Claude Code, '
-    + 'inteligencia artificial y herramientas de desarrollo.\n\n'
+  var prompt = 'Eres un curador tecnico especializado en Claude Code, herramientas de Google desde terminal (gcloud, clasp, Apps Script, Firebase CLI, Gemini CLI) y coding agents (Cursor, Copilot, Windsurf, Cline, Aider). '
+    + 'A continuacion tienes los titulos de videos y noticias del dia.\n\n'
     + contentParts.join('\n')
     + '\n\nGenera un resumen de maximo 3 parrafos en espanol. '
-    + 'Se conciso, destaca lo mas relevante, y menciona tendencias si las hay. '
-    + 'IMPORTANTE: Para cada video o noticia que menciones, traduce su titulo al espanol entre parentesis si esta en ingles. '
+    + 'Enfocate SOLO en contenido tecnico practico: tutoriales, tips, nuevas funcionalidades, configuraciones. '
+    + 'Ignora contenido de opinion general, filosofico o no tecnico. '
     + 'Formato: texto plano, sin markdown ni bullet points.';
 
   try {
@@ -189,11 +188,16 @@ function generateVideoSummaries(allVideos) {
   var prompt = 'Para cada video de la lista, genera:\n'
     + '1. El titulo traducido al espanol (si ya esta en espanol, dejalo igual)\n'
     + '2. Un mini-resumen en espanol de 1-2 oraciones explicando de que trata el video\n'
-    + '3. El idioma ORIGINAL del contenido del video. Analiza el titulo y el nombre del canal para determinar si el video es en espanol ("es") o en otro idioma ("en", "pt", etc). '
-    + 'Canales hispanohablantes tipicamente tienen nombres/titulos en espanol. Canales en ingles tienen titulos en ingles.\n\n'
+    + '3. El idioma ORIGINAL del contenido del video: "es" si es espanol, "en" si es ingles, etc.\n'
+    + '4. Si el video es RELEVANTE ("si" o "no"). Un video es relevante SOLO si trata sobre:\n'
+    + '   - Uso practico de Claude Code, Cursor, Copilot, Windsurf, Cline, Aider u otros coding agents desde terminal/CLI\n'
+    + '   - Uso de herramientas de Google desde consola (gcloud, clasp, Apps Script, Firebase CLI, Gemini CLI/API)\n'
+    + '   - Tutoriales tecnicos de programacion con IA desde terminal\n'
+    + '   - MCP servers, configuracion de agentes de codigo\n'
+    + '   NO es relevante si: es opinion general sobre IA, noticias de IA, filosofia, reciclaje, inversiones, animacion, o temas NO tecnicos.\n\n'
     + videoList
-    + '\n\nResponde SOLO con un JSON array de objetos con las propiedades "titulo", "resumen" e "idioma". '
-    + 'Ejemplo: [{"titulo":"Claude Code en 8 Minutos","resumen":"Resumen aqui...","idioma":"es"}]\n'
+    + '\n\nResponde SOLO con un JSON array de objetos con las propiedades "titulo", "resumen", "idioma" y "relevante". '
+    + 'Ejemplo: [{"titulo":"Claude Code en 8 Minutos","resumen":"Resumen aqui...","idioma":"es","relevante":"si"}]\n'
     + 'Sin markdown, sin explicaciones, solo el JSON array.';
 
   try {
@@ -225,6 +229,7 @@ function generateVideoSummaries(allVideos) {
       allVideos[i].titleEs = summaries[i].titulo || allVideos[i].title;
       allVideos[i].miniResumen = summaries[i].resumen || '';
       allVideos[i].idioma = summaries[i].idioma || 'en';
+      allVideos[i].relevante = summaries[i].relevante || 'no';
     }
 
     Logger.log('Mini-resumenes generados: ' + summaries.length);

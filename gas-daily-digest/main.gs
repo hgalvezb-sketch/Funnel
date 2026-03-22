@@ -93,12 +93,13 @@ function sendDailyDigest() {
     errors.push('Mini-resumenes: ' + e.message);
   }
 
-  // 8b. Filtrar videos que NO son en español
+  // 8b. Filtrar: solo español + solo relevantes (Claude Code, Google CLI, coding agents)
   var beforeFilter = { subs: subscriptionVideos.length, liked: likedChannelVideos.length, search: searchVideos.length };
-  subscriptionVideos = subscriptionVideos.filter(function(v) { return v.idioma === 'es'; });
-  likedChannelVideos = likedChannelVideos.filter(function(v) { return v.idioma === 'es'; });
-  searchVideos = searchVideos.filter(function(v) { return v.idioma === 'es'; });
-  Logger.log('Filtro idioma español: subs ' + beforeFilter.subs + '->' + subscriptionVideos.length
+  var esYRelevante = function(v) { return v.idioma === 'es' && v.relevante === 'si'; };
+  subscriptionVideos = subscriptionVideos.filter(esYRelevante);
+  likedChannelVideos = likedChannelVideos.filter(esYRelevante);
+  searchVideos = searchVideos.filter(esYRelevante);
+  Logger.log('Filtro español+relevante: subs ' + beforeFilter.subs + '->' + subscriptionVideos.length
     + ', liked ' + beforeFilter.liked + '->' + likedChannelVideos.length
     + ', search ' + beforeFilter.search + '->' + searchVideos.length);
 
