@@ -169,3 +169,62 @@ function generateGeminiSummary(subscriptionVideos, searchVideos, rssNews, likedC
     return '';
   }
 }
+
+/**
+ * Genera mini-resumenes en espanol para cada video usando Gemini.
+ * Envia todos los titulos en un solo request para eficiencia.
+ * Modifica los arrays in-place agregando propiedad 'miniResumen'.
+ * @param {Array} allVideos - Todos los videos (subs + liked + search)
+ */
+function generateVideoSummaries(allVideos) {
+  if (!allVideos || allVideos.length === 0) return;
+
+  var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!apiKey) return;
+
+  var videoList = allVideos.map(function(v, i) {
+    return (i + 1) + '. ' + v.title + ' (canal: ' + v.channel + ')';
+  }).join('\n');
+
+  var prompt = 'Para cada video de la lista, genera un mini-resumen en espanol de 1-2 oraciones '
+    + 'explicando de que trata probablemente el video basandote en el titulo y el canal. '
+    + 'Si el titulo esta en ingles, traduce los conceptos clave.\n\n'
+    + videoList
+    + '\n\nResponde SOLO con un JSON array de strings, donde cada string es el mini-resumen '
+    + 'del video correspondiente por indice. Ejemplo: ["resumen 1", "resumen 2"]\n'
+    + 'Sin markdown, sin explicaciones, solo el JSON array.';
+
+  try {
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
+    var payload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    };
+
+    var response = UrlFetchApp.fetch(url, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+
+    if (response.getResponseCode() !== 200) {
+      Logger.log('Gemini summaries error: ' + response.getResponseCode());
+      return;
+    }
+
+    var data = JSON.parse(response.getContentText());
+    if (!data.candidates || !data.candidates.length || !data.candidates[0].content) return;
+
+    var text = data.candidates[0].content.parts[0].text || '';
+    var summaries = JSON.parse(text);
+
+    for (var i = 0; i < allVideos.length && i < summaries.length; i++) {
+      allVideos[i].miniResumen = summaries[i];
+    }
+
+    Logger.log('Mini-resumenes generados: ' + summaries.length);
+  } catch (e) {
+    Logger.log('Error en generateVideoSummaries: ' + e.message);
+  }
+}

@@ -83,7 +83,17 @@ function sendDailyDigest() {
     errors.push('Gemini: ' + e.message);
   }
 
-  // 8. Construir y enviar email
+  // 8. Mini-resumenes individuales por video
+  var allVideos = subscriptionVideos.concat(likedChannelVideos, searchVideos);
+  try {
+    generateVideoSummaries(allVideos);
+    Logger.log('Mini-resumenes: ' + allVideos.filter(function(v) { return v.miniResumen; }).length + ' generados');
+  } catch (e) {
+    Logger.log('Error mini-resumenes: ' + e.message);
+    errors.push('Mini-resumenes: ' + e.message);
+  }
+
+  // 9. Construir y enviar email
   var emailData = {
     summary: summary,
     subscriptionVideos: subscriptionVideos,
