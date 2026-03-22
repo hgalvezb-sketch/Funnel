@@ -2,7 +2,7 @@
  * URLs de fuentes RSS a consultar.
  */
 var RSS_FEEDS = [
-  { name: 'Anthropic Blog', url: 'https://www.anthropic.com/rss.xml', type: 'rss' },
+  { name: 'Anthropic Blog', url: 'https://www.anthropic.com/feed.xml', type: 'atom' },
   { name: 'Claude Code Releases', url: 'https://github.com/anthropics/claude-code/releases.atom', type: 'atom' }
 ];
 
