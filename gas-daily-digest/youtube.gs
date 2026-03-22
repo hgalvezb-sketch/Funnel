@@ -9,7 +9,6 @@ var KEYWORDS = [
   'inteligencia artificial', 'agentes ia'
 ];
 
-var YT_SUBTITLE_PARAMS = '&cc_load_policy=1&cc_lang_pref=es';
 
 /**
  * Obtiene videos recientes de suscripciones del usuario filtrados por keywords de IA.
@@ -67,7 +66,7 @@ function getSubscriptionVideos() {
               title: activity.snippet.title,
               channel: channel.title,
               videoId: videoId,
-              url: 'https://www.youtube.com/watch?v=' + videoId + YT_SUBTITLE_PARAMS,
+              url: 'https://www.youtube.com/watch?v=' + videoId,
               publishedAt: activity.snippet.publishedAt
             });
           }
@@ -107,25 +106,24 @@ function searchNewVideos(excludeIds) {
   var excludeSet = {};
   (excludeIds || []).forEach(function(id) { excludeSet[id] = true; });
 
-  // 3 queries: español, inglés core, inglés herramientas
+  // Queries solo en español
   var queries = [
-    { q: '"Claude Code"|"Claude AI"|"inteligencia artificial"|"agentes IA"|"Anthropic"', lang: 'es' },
-    { q: '"Claude Code"|"Claude AI"|"Anthropic"|"AI agents"|"LLM"|"AI coding"', lang: '' },
-    { q: '"Cursor"|"GitHub Copilot"|"MCP servers"|"AI automation"|"Google AI"|"OpenAI"', lang: '' }
+    '"Claude Code"|"Claude AI"|"inteligencia artificial"|"Anthropic" español',
+    '"Cursor"|"GitHub Copilot"|"agentes IA"|"OpenAI"|"Google AI" español'
   ];
 
   var results = [];
 
-  queries.forEach(function(query) {
+  queries.forEach(function(q) {
     try {
       var url = 'https://www.googleapis.com/youtube/v3/search'
         + '?part=snippet'
-        + '&q=' + encodeURIComponent(query.q)
+        + '&q=' + encodeURIComponent(q)
         + '&publishedAfter=' + encodeURIComponent(since)
         + '&type=video'
         + '&order=relevance'
         + '&maxResults=10'
-        + (query.lang ? '&relevanceLanguage=' + query.lang : '')
+        + '&relevanceLanguage=es'
         + '&key=' + apiKey;
 
       var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
@@ -147,7 +145,7 @@ function searchNewVideos(excludeIds) {
           title: item.snippet.title,
           channel: item.snippet.channelTitle,
           videoId: videoId,
-          url: 'https://www.youtube.com/watch?v=' + videoId + YT_SUBTITLE_PARAMS,
+          url: 'https://www.youtube.com/watch?v=' + videoId,
           publishedAt: item.snippet.publishedAt
         });
       });
@@ -256,7 +254,7 @@ function getVideosFromLikedChannels(likedChannels, excludeSet) {
           title: activity.snippet.title,
           channel: channel.title,
           videoId: videoId,
-          url: 'https://www.youtube.com/watch?v=' + videoId + YT_SUBTITLE_PARAMS,
+          url: 'https://www.youtube.com/watch?v=' + videoId,
           publishedAt: activity.snippet.publishedAt
         });
       });
