@@ -74,9 +74,13 @@ function buildVideoSection_(title, videos, accentColor) {
   html += '<h2 style="font-size:16px;color:#1a1a2e;border-bottom:2px solid ' + accentColor + ';padding-bottom:6px;margin-bottom:12px;">' + title + '</h2>';
 
   videos.forEach(function(video) {
+    var displayTitle = video.titleEs || video.title;
     html += '<div style="margin-bottom:14px;">';
-    html += '<a href="' + escapeHtml_(video.url) + '" style="color:#2980b9;text-decoration:none;font-size:14px;font-weight:bold;">' + escapeHtml_(video.title) + '</a>';
+    html += '<a href="' + escapeHtml_(video.url) + '" style="color:#2980b9;text-decoration:none;font-size:14px;font-weight:bold;">' + escapeHtml_(displayTitle) + '</a>';
     html += '<span style="color:#888;font-size:12px;"> — ' + escapeHtml_(video.channel) + '</span>';
+    if (video.titleEs && video.titleEs !== video.title) {
+      html += '<div style="margin:2px 0 0 0;font-size:11px;color:#999;">' + escapeHtml_(video.title) + '</div>';
+    }
     if (video.miniResumen) {
       html += '<p style="margin:4px 0 0 0;font-size:13px;color:#555;line-height:1.4;font-style:italic;">' + escapeHtml_(video.miniResumen) + '</p>';
     }

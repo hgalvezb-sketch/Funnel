@@ -186,12 +186,12 @@ function generateVideoSummaries(allVideos) {
     return (i + 1) + '. ' + v.title + ' (canal: ' + v.channel + ')';
   }).join('\n');
 
-  var prompt = 'Para cada video de la lista, genera un mini-resumen en espanol de 1-2 oraciones '
-    + 'explicando de que trata probablemente el video basandote en el titulo y el canal. '
-    + 'Si el titulo esta en ingles, traduce los conceptos clave.\n\n'
+  var prompt = 'Para cada video de la lista, genera:\n'
+    + '1. El titulo traducido al espanol (si ya esta en espanol, dejalo igual)\n'
+    + '2. Un mini-resumen en espanol de 1-2 oraciones explicando de que trata el video\n\n'
     + videoList
-    + '\n\nResponde SOLO con un JSON array de strings, donde cada string es el mini-resumen '
-    + 'del video correspondiente por indice. Ejemplo: ["resumen 1", "resumen 2"]\n'
+    + '\n\nResponde SOLO con un JSON array de objetos con las propiedades "titulo" y "resumen". '
+    + 'Ejemplo: [{"titulo":"Canales de Claude Code en 8 Minutos","resumen":"Resumen aqui..."}]\n'
     + 'Sin markdown, sin explicaciones, solo el JSON array.';
 
   try {
@@ -220,7 +220,8 @@ function generateVideoSummaries(allVideos) {
     var summaries = JSON.parse(text);
 
     for (var i = 0; i < allVideos.length && i < summaries.length; i++) {
-      allVideos[i].miniResumen = summaries[i];
+      allVideos[i].titleEs = summaries[i].titulo || allVideos[i].title;
+      allVideos[i].miniResumen = summaries[i].resumen || '';
     }
 
     Logger.log('Mini-resumenes generados: ' + summaries.length);
