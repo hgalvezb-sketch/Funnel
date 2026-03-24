@@ -1,6 +1,6 @@
-# Monitor de Disposiciones v4.1 - FINDEP
+# Monitor de Disposiciones v5.0 - FINDEP
 
-Dashboard de monitoreo de disposiciones de Caja Unica para FINDEP. Google Apps Script Web App con arquitectura de pre-agregacion server-side, agente de analisis con Gemini AI, inteligencia predictiva (regresion, Z-Score, Bollinger), sistema de incidencias, exportacion de reportes, entrada de voz y guia interactiva.
+Dashboard de monitoreo de disposiciones de Caja Unica para FINDEP. Google Apps Script Web App con arquitectura de pre-agregacion server-side, agente de analisis con Gemini AI, inteligencia predictiva (regresion, Z-Score, Bollinger), seguimiento de eventos con workflow de 7 etapas, sistema de incidencias, exportacion de reportes, entrada de voz y guia interactiva.
 
 ## URLs del proyecto
 
@@ -11,11 +11,11 @@ Dashboard de monitoreo de disposiciones de Caja Unica para FINDEP. Google Apps S
 | **Dashboard (ejecutable)** | https://script.google.com/a/macros/findep.com.mx/s/AKfycbwbCF2EtDit2Azfhrl5OBqCOCh6il_WdL7s-vmgaV6fK4RgChVWpkQmMm5-IpfUZr5G/exec |
 | **Spreadsheet** | https://docs.google.com/spreadsheets/d/1ADKcPFVvHUlLtR2x_A5f74rdJOZa73p3gEwPq_E338I/edit |
 
-### Desarrollo (v4.1)
+### Desarrollo (v5.0)
 
 | Recurso | URL |
 |---------|-----|
-| **Dashboard v4.1** | https://script.google.com/a/macros/findep.com.mx/s/AKfycbxFpKrEHdNyWqsLRHGmHA15Hu6b_9zoI4vkpSGYnDYk2Pc8t0S3KLg7tCwT8ZdC8segRw/exec |
+| **Dashboard v5.0** | https://script.google.com/a/macros/findep.com.mx/s/AKfycbxFpKrEHdNyWqsLRHGmHA15Hu6b_9zoI4vkpSGYnDYk2Pc8t0S3KLg7tCwT8ZdC8segRw/exec |
 | **Editor Apps Script** | https://script.google.com/u/0/home/projects/1naiQhFZB-6qGxCCr7DcTVAPO0Av6qDL4aDqXffiC4YDv4859HcYS9zTY/edit |
 | **Spreadsheet v2.0** | https://docs.google.com/spreadsheets/d/1xbYd4b4aSfnCnrVD8VLQGPBiRTeIXAfOxpk9UP6e1c8/edit |
 | **GitHub repo** | https://github.com/hgalvezb-sketch/Funnel |
@@ -31,15 +31,20 @@ Dashboard de monitoreo de disposiciones de Caja Unica para FINDEP. Google Apps S
 [Entrada de Voz]      -> [Web Speech API (es-MX)] -> [Transcripcion -> Chat]
 [Incidencias]         -> [CRUD sobre hoja _incidencias] -> [Seguimiento con estados]
 [Exportacion]         -> [Crea Google Sheet nuevo via SpreadsheetApp.create()] -> [Abre en nueva pestana]
+[Seguimiento Eventos] -> [Auto-deteccion flags + workflow 7 etapas] -> [Kanban + SVG diagrama]
+[Inteligencia Pred.]  -> [Regresion + Z-Score + Bollinger] -> [Scores predictivos por sucursal]
 ```
 
 ### Hojas internas (auto-generadas)
 
 | Hoja | Funcion | Creada por |
 |------|---------|------------|
-| `_dashboard_cache` | JSON pre-computado chunked (KPIs, charts, risks, filters, tabla) | `precomputeAll()` |
+| `_dashboard_cache` | JSON pre-computado chunked (KPIs, charts, risks, filters, tabla, seguimiento, predictivo) | `precomputeAll()` |
 | `_dashboard_slim` | Datos reducidos para filtros rapidos (11 cols + flags + rowNum) | `precomputeAll()` |
 | `_incidencias` | Registro de incidencias con estado y seguimiento (14 columnas) | `ensureIncidenciasSheet_()` |
+| `_historico` | Rolling 60 dias de metricas diarias para modelos predictivos | `precomputeAll()` |
+| `_seguimiento_eventos` | Eventos de seguimiento con workflow de 7 etapas (19 columnas) | `ensureSeguimientoSheet_()` |
+| `_usuarios_autorizados` | Control de acceso por email | Manual |
 
 ### Estructura de hoja `_incidencias`
 
@@ -60,81 +65,134 @@ Dashboard de monitoreo de disposiciones de Caja Unica para FINDEP. Google Apps S
 | M | Fecha_Actualizacion | Ultima modificacion |
 | N | Registrado_Por | Email del usuario |
 
+### Estructura de hoja `_seguimiento_eventos`
+
+| Columna | Campo | Descripcion |
+|---------|-------|-------------|
+| A | ID | Auto-generado: `EVT-YYYYMMDD-NNNN` |
+| B | Fecha_Deteccion | Timestamp de deteccion automatica |
+| C | Tipo | CONTROL o WARNING |
+| D | Categoria | Nombre de la bandera (ej: "Tel repetido distintos contratos") |
+| E | Columna_Flag | Columna del flag en datos (ej: CX, CR) |
+| F | Sucursal | Sucursal donde se detecto |
+| G | Contrato | Numero de contrato |
+| H | Folio | Numero de folio |
+| I | Monto | Monto de la disposicion |
+| J | Etapa | DETECTADO/EN_ANALISIS/CONFIRMADO/ASIGNADO/EN_INVESTIGACION/DICTAMINADO/CERRADO |
+| K | Prioridad | CRITICA/ALTA/MEDIA/BAJA |
+| L | Asignado_A | Email del coordinador/ARO asignado |
+| M | Notas | Notas del analisis/dictamen |
+| N | Hallazgo | Tipo: FRAUDE/INCUMPLIMIENTO/MALA_PRACTICA/FALSO_POSITIVO |
+| O | Suma_Alertas | Cantidad total de flags activos en la disposicion |
+| P | Registrado_Por | SISTEMA (auto-deteccion) o email del usuario |
+| Q | Fecha_Actualizacion | Ultima modificacion |
+| R | Fila_Origen | Numero de fila en la hoja de datos original |
+| S | Datos_Contexto | JSON con datos adicionales de la disposicion |
+
 ## Archivos
 
-- `gas-optimizado/codigo.gs` - Backend Apps Script (pre-agregacion, filtros, tabla, chat Gemini, incidencias, exportacion, inteligencia predictiva)
-- `gas-optimizado/Dashboard.html` - Frontend (6 pestanas, 10 graficas, 6 KPIs, 8 filtros, chat flotante con voz, incidencias, exportacion, tour interactivo)
+- `gas-optimizado/codigo.gs` - Backend Apps Script (pre-agregacion, filtros, tabla, chat Gemini, incidencias, exportacion, inteligencia predictiva, seguimiento de eventos)
+- `gas-optimizado/Dashboard.html` - Frontend (7 pestanas, 10+ graficas, 6 KPIs, 8 filtros, chat flotante con voz, incidencias, exportacion, tour interactivo, kanban, SVG diagrama de flujo)
 
-## Features v2.0 (nuevas - 2026-03-19)
+## 7 Pestanas del Dashboard
 
-### 1. Chat Flotante (Popup)
+| # | Pestana | Contenido principal |
+|---|---------|---------------------|
+| 1 | **Monitor Operativo** | KPIs, 10 graficas, riesgos, incidencias, tabla de detalle |
+| 2 | **Resumen Ejecutivo** | Headline, metricas clave, distribucion, top sucursales |
+| 3 | **Mapa de Riesgo** | Analisis por severidad, sucursales criticas |
+| 4 | **Analisis Financiero** | Montos, tendencias financieras, alertas PLD |
+| 5 | **Tendencias** | Historico 60 dias, evolucion temporal |
+| 6 | **Inteligencia Predictiva** | Regresion, Z-Score, Bollinger, scores, heatmap, Gemini |
+| 7 | **Seguimiento** | KPIs controles/warnings, diagrama SVG, kanban 7 etapas, tabla detalle |
 
-El agente de IA ahora es un popup flotante que no bloquea la vista del dashboard.
+## Features por version
 
-- **FAB** (Floating Action Button): Boton purpura fijo en esquina inferior derecha
-- **Popup draggable**: 400x520px, arrastrable por el header
-- **Badge de notificacion**: Indica mensajes nuevos cuando esta cerrado
-- **Entrada de voz**: Boton de microfono con Web Speech API (es-MX), transcribe y envia automaticamente
-- **Misma funcionalidad**: Historial multi-turno, sugerencias, contexto dinamico
+### v2.0 - Chat, Incidencias, Exportacion, Voz (2026-03-19)
 
-### 2. Formulario de Captura de Incidencias
+- Chat flotante popup draggable con FAB, badge, historial multi-turno
+- Entrada de voz con Web Speech API (es-MX)
+- Modal de registro de incidencias con validacion
+- Seccion de seguimiento de incidencias con 4 KPIs, filtros y cambio de estado
+- Exportacion de secciones a Google Sheet (KPIs, graficos, riesgos, incidencias, tabla)
 
-Modal de registro accesible desde el boton "Registrar Incidencia" en la barra superior.
+### v3.0 - 5 Pestanas (2026-03-20)
 
-**Campos del formulario:**
-- Sucursal (combo poblado desde datos)
-- Contrato y Folio (texto)
-- Tipo de hallazgo: Control / Proceso / Riesgo
-- Severidad: Alta / Media / Baja
-- Descripcion del hallazgo
-- Accion recomendada
-- Responsable
-- Fecha compromiso
+- Resumen Ejecutivo, Mapa de Riesgo, Analisis Financiero, Tendencias
+- Lazy rendering por pestana
 
-**Validacion:** Tipo, Severidad y Descripcion son obligatorios.
+### v4.0 - Inteligencia Predictiva (2026-03-20)
 
-**Backend:** `registrarIncidencia()` escribe en hoja `_incidencias` con ID auto-generado (`INC-YYYYMMDD-NNNN`).
+- Regresion lineal: pendiente, R2, proyecciones a 7/14/30 dias
+- Z-Score por sucursal: anomalia (|Z|>2), critica (|Z|>3)
+- Bandas de Bollinger: media movil 7 dias +/- 2 desviaciones
+- Score predictivo compuesto 0-100 por sucursal
+- Heatmap sucursal vs banderas (top 15 x 8 tipos)
+- Insights predictivos con Gemini AI
 
-### 3. Seguimiento de Incidencias
+### v4.1 - Guia Interactiva (2026-03-20)
 
-Seccion dedicada en el dashboard con:
+- Tour de 17 pasos con boton "?"
+- Highlight de elementos con box-shadow y tooltip
 
-- **4 KPIs mini**: Abiertas, En Revision, Cerradas, Vencidas
-- **Filtros**: Por tipo, severidad, estado
-- **Tabla interactiva** con botones de cambio de estado:
-  - Abierta -> En Revision (boton "Revisar")
-  - En Revision -> Cerrada (boton "Cerrar")
-- **Deteccion de vencidas**: Compara fecha compromiso con fecha actual
-- **Boton Actualizar**: Recarga datos de incidencias
+### v5.0 - Seguimiento de Incidencias y Fallas a los Controles (2026-03-21)
 
-**Backend:** `getIncidencias()` y `updateIncidenciaEstado()`.
+#### Clasificacion de flags
 
-### 4. Exportacion de Secciones a Google Sheet
+| Tipo | Columnas | Descripcion |
+|------|----------|-------------|
+| **CONTROLES C-535** | CQ, CU, CV, DC, CX, CY | Ligados a normatividad C-535, requieren reporteo ejecutivo |
+| **WARNINGS** | CR, CS, CT, CW, CZ, DA, DB, DD | Alertas operativas para deteccion de anomalias y fraude |
 
-Cada seccion del dashboard tiene un boton de descarga (flecha abajo) en la esquina superior derecha.
+#### Deteccion automatica de eventos
 
-**Secciones exportables:**
-- KPIs (resumen de indicadores)
-- 10 graficos individuales (datos subyacentes de cada chart)
-- Analisis de riesgos (tabla de riesgos detectados)
-- Seguimiento de incidencias (todas las incidencias)
-- Tabla de detalle (registros)
+- `autoDetectNewEvents_()`: Escanea datos, detecta flags activos (`SI`/`YES`/`TRUE`/`1`), crea eventos en etapa DETECTADO
+- Prioridad calculada: CRITICA (>=5 alertas o CX/CY), ALTA (3-4), MEDIA (2), BAJA (1)
+- Max 100 eventos nuevos por ejecucion (proteccion contra saturacion)
 
-**Backend:** `exportSectionToSheet()` crea un Google Sheet nuevo via `SpreadsheetApp.create()` (no requiere permisos de Drive) y lo abre en nueva pestana. El archivo se crea en la raiz de Google Drive del usuario.
+#### Workflow de 7 etapas
 
-### 5. Entrada de Voz
+```
+DETECTADO -> EN_ANALISIS -> CONFIRMADO -> ASIGNADO -> EN_INVESTIGACION -> DICTAMINADO -> CERRADO
+```
 
-Boton de microfono en el chat flotante para dictar preguntas al agente.
+| Etapa | Accion del usuario | Datos requeridos |
+|-------|-------------------|------------------|
+| DETECTADO | Analizar | - |
+| EN_ANALISIS | Confirmar/Descartar | Notas del analisis |
+| CONFIRMADO | Asignar | Email del coordinador/ARO |
+| ASIGNADO | Investigar | - |
+| EN_INVESTIGACION | Dictaminar | Tipo hallazgo + notas |
+| DICTAMINADO | Cerrar | Accion tomada |
+| CERRADO | - | - |
 
-- **Web Speech API** con idioma `es-MX`
-- **Resultados intermedios** mostrados en tiempo real mientras se habla
-- **Envio automatico** al terminar de hablar
-- **Indicador visual**: Boton rojo con animacion de pulso mientras graba
-- **Compatibilidad**: Chrome y Edge (muestra mensaje si no es compatible)
+#### Frontend Tab 7
+
+| Zona | Contenido |
+|------|-----------|
+| **KPIs** | 6 cards: Universo Total, Controles Activados (%), Warnings Activados (%), Disp. Limpias (%), En Seguimiento, Cerrados |
+| **Tablas** | Controles C-535 (5 tipos con columna normativa) y Warnings (8 tipos) — clickeables para filtrar kanban |
+| **Diagrama SVG** | Flujo interactivo con 2 swimlanes (Controles/Warnings), nodos coloreados por conteo, diamantes de decision |
+| **Kanban** | 7 columnas con tarjetas de evento, botones de accion, formularios inline, filtros por etapa/flag |
+| **Tabla detalle** | 50 eventos con filtros (tipo/etapa/prioridad), boton exportar a Sheet |
+
+#### Backend Tab 7
+
+| Funcion | Descripcion |
+|---------|-------------|
+| `ensureSeguimientoSheet_()` | Crea hoja `_seguimiento_eventos` con 19 columnas |
+| `autoDetectNewEvents_(allData, COL, flagColNames, flagStartIdx, ss)` | Escanea datos y crea eventos DETECTADO |
+| `computeSeguimientoData_()` | Calcula KPIs, clasifica controles/warnings, cuenta etapas |
+| `getSeguimientoEvents(filtrosJson)` | Lectura filtrada de eventos |
+| `updateEventoEtapa(eventoId, nuevaEtapa, datosJson)` | Avanza evento en workflow |
+| `getEventoDetalle(eventoId)` | Detalle de un evento |
+| `asignarEvento(eventoId, email)` | Asigna coordinador/ARO |
+| `dictaminarEvento(eventoId, hallazgo, notas)` | Registra dictamen |
+| `exportSeguimientoToSheet()` | Exporta todos los eventos a Google Sheet nuevo |
 
 ## Agente de Chat - Gemini AI
 
-### Configuracion actual (produccion)
+### Configuracion
 
 | Propiedad de Script | Valor | Descripcion |
 |---------------------|-------|-------------|
@@ -145,7 +203,8 @@ Boton de microfono en el chat flotante para dictar preguntas al agente.
 - **System prompt FINDEP** con contexto de microfinanzas y 13 banderas de riesgo
 - **`systemInstruction`** como campo separado del payload Gemini (endpoint v1beta)
 - **Historial multi-turno** (ultimos 6 mensajes)
-- **Contexto dinamico** enriquecido: KPIs, filtros activos, riesgos, top sucursales, banderas
+- **Contexto dinamico** enriquecido: KPIs, filtros activos, riesgos, top sucursales, banderas, datos de seguimiento
+- **Contexto de seguimiento**: universo, controles/warnings activos, eventos por etapa, top 5 flags, eventos vencidos >48h
 - **4 preguntas sugeridas** con botones clickeables
 - **Renderizado markdown** en respuestas
 - **Temperature 0.4** para respuestas deterministas
@@ -161,93 +220,28 @@ Boton de microfono en el chat flotante para dictar preguntas al agente.
 
 ## Despliegue
 
-### Paso a paso
+### Con clasp (recomendado)
+
+```bash
+clasp push --force              # Sube codigo al proyecto Apps Script
+clasp deploy --deploymentId <ID> -d "vN: descripcion"  # Actualiza deployment existente
+clasp run precomputeAll         # Ejecuta pre-computo remotamente
+```
+
+### Manual
 1. Abrir el **Editor de Apps Script** (URL arriba)
 2. Seleccionar **Codigo.gs** > Ctrl+A > pegar contenido de `gas-optimizado/codigo.gs`
 3. Seleccionar **Dashboard.html** > Ctrl+A > pegar contenido de `gas-optimizado/Dashboard.html`
 4. Guardar con **Ctrl+S**
-5. Ejecutar **`setupTrigger()`** una vez (seleccionar en dropdown de funciones > Ejecutar)
-   - Esto crea `_dashboard_cache`, `_dashboard_slim` e `_incidencias` y configura trigger cada 10 min
-6. **Implementar > Administrar implementaciones > Editar (lapiz) > Nueva version > Implementar**
+5. **Implementar > Administrar implementaciones > Editar (lapiz) > Nueva version > Implementar**
 
-**CRITICO:** Despues de pegar codigo, SIEMPRE crear nueva version en el paso 6. El URL `/exec` usa la version desplegada, NO el codigo guardado en el editor.
+**CRITICO:** Despues de pegar codigo, SIEMPRE crear nueva version. El URL `/exec` usa la version desplegada, NO el codigo guardado en el editor.
 
 ### Configurar API Key de Gemini (requerido para el chat)
 1. En el Editor de Apps Script: **Configuracion** (engranaje) > **Propiedades de script**
 2. Agregar propiedades:
    - `GEMINI_API_KEY` = tu API key (formato `AIzaSy...`)
    - `GEMINI_MODEL` = `gemini-2.5-flash`
-3. Obtener key en: https://aistudio.google.com/apikey
-4. La key debe pertenecer a un proyecto GCP con facturacion habilitada
-
-### Errores comunes
-
-| Error | Causa | Solucion |
-|-------|-------|----------|
-| "API Key de Gemini no configurada" | Falta la propiedad de script | Agregar `GEMINI_API_KEY` en Propiedades de script |
-| "You exceeded your current quota, limit: 0" | Key de proyecto sin facturacion | Crear API key en proyecto GCP con facturacion habilitada |
-| "Error aplicando filtros: undefined" | Version desplegada desactualizada | Crear nueva version: Implementar > Administrar > Editar > Nueva version |
-| "Sin datos en cache" al filtrar | Hoja `_dashboard_slim` no existe | Ejecutar `setupTrigger()` en el editor de Apps Script |
-| "No cuentas con el permiso para llamar a DriveApp" | `exportSectionToSheet` usaba DriveApp | Corregido en v2.0: ahora usa solo `SpreadsheetApp.create()` |
-| "Tu navegador no soporta entrada de voz" | Navegador sin Web Speech API | Usar Chrome o Edge |
-
-## Bugs corregidos
-
-### v1.0 - Rondas 1-4 (2026-03-16)
-1. flagStartIdx apuntaba a columnas incorrectas (CRITICO)
-2. Cache JSON chunked para >50K chars/celda (CRITICO)
-3. Busqueda general no implementada en getTablePage
-4. HTML injection via `</script>` en JSON embebido
-5. Funciones JS faltantes + chat history + contexto Gemini mejorado
-6. 7 vulnerabilidades XSS
-7. Montos negativos en categoria "Negativo"
-8. Edades invalidas (<18) en categoria "N/D"
-9. Gauge max dinamico
-10. Batch read inteligente
-11. CHAT_BUSY flag anti-doble-envio
-12. Error handling para DB vacio
-13. Package 'bar' removido de Google Charts
-14. Graficas responsivas
-15. Listener `window.resize`
-16. Chart cards con flexbox
-17. Modelo leido de Script Properties
-18. Pagina de carga si no hay cache
-19. ensureTriggerExists_() async
-20. try/catch en getFilteredDashboard()
-21. Mejor manejo de error en applyFilters()
-22. Migracion a gemini-2.5-flash
-23. API Key migrada a proyecto GCP con facturacion
-
-### v2.0 - Nuevas features (2026-03-19)
-24. Chat flotante popup draggable con FAB y badge de notificacion
-25. Modal de registro de incidencias con validacion
-26. Seccion de seguimiento de incidencias con KPIs, filtros y cambio de estado
-27. Botones de exportacion a Google Sheet en cada seccion del dashboard
-28. Hoja `_incidencias` con CRUD completo (14 columnas)
-29. Funcion `exportSectionToSheet()` sin DriveApp (solo SpreadsheetApp.create)
-30. Toast notifications para feedback visual
-31. Entrada de voz con Web Speech API (es-MX) en chat flotante
-32. Fix error de permisos DriveApp.getRootFolder() en exportacion
-
-### v3.3 - Ajustes UI (2026-03-20)
-33. Logos SVG incorrectos removidos de la barra superior
-34. Barra superior, filtros y pestanas ya no son sticky/fixed (se desplazan con scroll)
-
-### v4.0 - Inteligencia Predictiva (2026-03-20)
-35. Regresion lineal (`linearRegression_`): pendiente, R2, proyecciones a 7/14/30 dias
-36. Deteccion de anomalias (`zScoreAnalysis_`): Z-Score por sucursal, umbral |Z|>2 anomalia, |Z|>3 critica
-37. Media movil + Bandas de Bollinger (`bollingerBands_`): ventana 7 dias, +/- 2 desviaciones
-38. Score predictivo compuesto (`computePredictiveData_`): 0-100 por sucursal (verde/amarillo/naranja/rojo)
-39. Formula: tendencia(0.35) + anomalia(0.30) + Bollinger(0.20) + flags alta(0.15)
-40. Heatmap sucursal vs banderas de riesgo (top 15 sucursales x 8 tipos de flag)
-41. Insights predictivos con Gemini AI (`generatePredictiveInsights_`): alertas + recomendaciones
-42. 6ta pestana "Inteligencia Predictiva" con: semaforo, proyecciones, Bollinger chart, scores, heatmap, Gemini
-
-### v4.1 - Guia Interactiva (2026-03-20)
-43. Tour de 17 pasos con boton "?" en esquina inferior izquierda
-44. Highlight de elementos con box-shadow purpura y tooltip explicativo
-45. Cubre las 6 pestanas, filtros, KPIs, graficas, riesgos, incidencias, tabla, chat, exportacion
-46. Compatible con elementos position:fixed (chat-fab, help-fab)
 
 ## Inteligencia Predictiva - Arquitectura
 
@@ -257,90 +251,39 @@ Boton de microfono en el chat flotante para dictar preguntas al agente.
                   -> [Cache en _cache] -> [Pestana "Inteligencia Predictiva"]
 ```
 
-### Funciones backend implementadas
+### Score predictivo por sucursal (0-100)
 
-| Funcion | Descripcion |
-|---------|-------------|
-| `linearRegression_(values)` | Minimos cuadrados: slope, intercept, R2, proyecciones 7/14/30d |
-| `zScoreAnalysis_(values)` | Z-Score por valor, isAnomaly (>2), isCritical (>3) |
-| `bollingerBands_(values, window, dev)` | Media movil + bandas superior/inferior, alerta si rompe banda |
-| `computePredictiveData_(...)` | Integra los 3 modelos + score compuesto 0-100 por sucursal |
-| `generatePredictiveInsights_(data)` | Gemini analiza scores/tendencias y genera reporte predictivo |
+```
+Score = Tendencia(0.35) + Anomalia(0.30) + Bollinger(0.20) + FlagsAlta(0.15)
+```
 
-### Componentes frontend (6ta pestana)
+| Score | Nivel | Accion |
+|-------|-------|--------|
+| 0-30 | Verde | Monitoreo rutinario semanal |
+| 31-60 | Amarillo | Monitoreo diario, revisar en comite |
+| 61-80 | Naranja | Revision presencial en 48h |
+| 81-100 | Rojo | Escalamiento inmediato |
 
-| Seccion | Contenido |
-|---------|-----------|
-| **Semaforo KPIs** | Conteo de sucursales por nivel: verde/amarillo/naranja/rojo + dias de historico |
-| **Proyecciones** | 3 cards con regresion: tasa, incidencias, monto — slope, R2, proyeccion 7/14/30d |
-| **Anomalias Z-Score** | Cards de alertas cuando flags actuales superan |Z|>2 |
-| **Alertas Bollinger** | Alerta cuando metrica rompe banda superior |
-| **Grafica Bollinger** | Linea de tasa de incidencia + media movil + bandas sup/inf |
-| **Tabla scores** | Top 20 sucursales: score, nivel, operaciones, incidencias, tasa, flags, Z-Scores |
-| **Mapa de calor** | Top 15 sucursales x 8 tipos de flag, intensidad por frecuencia |
-| **Gemini AI** | Reporte predictivo con estado general, alertas criticas, patrones, proyeccion, acciones |
-
-### Guia Interactiva - Tour de 17 pasos
-
-| Paso | Elemento | Tipo |
-|------|----------|------|
-| 1 | Bienvenida + barra superior | Highlight |
-| 2 | Boton Registrar Incidencia | Highlight |
-| 3 | Ultima actualizacion | Highlight |
-| 4 | Barra de filtros | Highlight |
-| 5 | Pestanas del monitor | Highlight |
-| 6 | KPIs principales | Highlight |
-| 7 | Graficas de analisis | Highlight |
-| 8 | Tarjetas de riesgo | Centrado |
-| 9 | Seguimiento de incidencias | Centrado |
-| 10 | Tabla de detalle | Centrado |
-| 11 | Chat agente IA | Highlight |
-| 12 | Pestana Resumen Ejecutivo | Centrado |
-| 13 | Pestana Mapa de Riesgo | Centrado |
-| 14 | Pestana Analisis Financiero | Centrado |
-| 15 | Pestana Tendencias | Centrado |
-| 16 | Pestana Inteligencia Predictiva | Centrado |
-| 17 | Exportacion + cierre | Highlight |
-
-### Tecnicas avanzadas (Nivel 3 - futuro, requiere Python/BigQuery)
-
-| Tecnica | Ventaja | Requisito |
-|---------|---------|-----------|
-| Isolation Forest | Detecta fraude sin datos etiquetados | Python + scikit-learn |
-| Prophet (Meta) | Forecasting con estacionalidad | Python + prophet |
-| XGBoost + SHAP | Explica POR QUE una operacion es riesgosa | Python + xgboost + shap |
-| Graph Neural Networks | Detecta redes de colusion entre sucursales/operadores | Python + PyTorch Geometric |
-
-## Roadmap futuro (evaluado 2026-03-20)
-
-Priorizado por valor e impacto:
+## Roadmap futuro
 
 | # | Feature | Complejidad | Estado |
 |---|---------|-------------|--------|
 | 1 | ~~Inteligencia Predictiva~~ | Media-Alta | **Implementado v4.0** |
 | 2 | ~~Guia Interactiva~~ | Media | **Implementado v4.1** |
-| 3 | **RAG para PDFs/Docs** | Alta | Pendiente — Gemini puede recibir contenido extraido como contexto |
-| 4 | **Reportes en Google Slides** | Alta | Pendiente — Slides API disponible desde GAS |
-| 5 | **Migracion a BigQuery** | Alta | Pendiente — Permisos: `bigquery.dataViewer`, `bigquery.dataEditor`, `bigquery.jobUser` en proyecto `ws-ctrol-interno` |
-
-### Migracion a BigQuery - Permisos necesarios
-
-Para migrar de Sheets a BigQuery como backend:
-- **Dataset existente:** `ws-ctrol-interno.CAJA_UNICA.disposicion`
-- **Roles IAM necesarios:** `bigquery.dataViewer` + `bigquery.dataEditor` + `bigquery.jobUser`
-- **Opcion hibrida:** Lectura de BigQuery + escritura de incidencias en Sheets (no requiere permisos de escritura en BQ)
-- **El frontend no cambia** - la migracion es transparente para el usuario
+| 3 | ~~Seguimiento de Eventos~~ | Alta | **Implementado v5.0** |
+| 4 | **RAG para PDFs/Docs** | Alta | Pendiente |
+| 5 | **Reportes en Google Slides** | Alta | Pendiente |
+| 6 | **Migracion a BigQuery** | Alta | Pendiente |
 
 ## Puntos de restauracion
 
 | Version | Commit | Restaurar |
 |---------|--------|-----------|
-| **v4.1 - Guia interactiva** | `HEAD` | `git checkout feature/monitor-chat-agent` |
+| **v5.0 - Seguimiento de Eventos** | `HEAD` | `git checkout feature/monitor-chat-agent` |
+| **v4.1 - Guia interactiva** | `0c7d9cb` | `git checkout 0c7d9cb` |
 | **v4.0 - Inteligencia Predictiva** | `21514f1` | `git checkout 21514f1` |
 | v3.3 - Sin logos + barras no fijas | `23307d8` | `git checkout 23307d8` |
-| v3.0 - 5 pestanas (Ejecutivo, Riesgo, Financiero, Tendencias) | `a799190` | `git checkout a799190` |
-| v2.0 - Chat flotante + Incidencias + Export + Voz | anterior | ver commits anteriores |
-| v1.0 - Monitor + Chat + Filtros fix | anterior | ver commits anteriores |
+| v3.0 - 5 pestanas | `a799190` | `git checkout a799190` |
 
 ## Para retomar trabajo
 

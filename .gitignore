@@ -15,3 +15,6 @@ creds.json
 # Screenshots
 *.png
 *.svg
+
+# Debug snapshots
+debug-snapshot*.txt
