@@ -18,3 +18,6 @@ creds.json
 
 # Debug snapshots
 debug-snapshot*.txt
+
+# MCP config (local)
+.mcp.json
