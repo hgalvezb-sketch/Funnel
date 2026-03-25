@@ -78,7 +78,8 @@ function buildVideoSection_(title, videos, accentColor) {
     html += '<div style="margin-bottom:14px;">';
     var pubDate = video.publishedAt ? formatDate_(video.publishedAt) : '';
     html += '<a href="' + escapeHtml_(video.url) + '" style="color:#2980b9;text-decoration:none;font-size:14px;font-weight:bold;">' + escapeHtml_(displayTitle) + '</a>';
-    html += '<span style="color:#888;font-size:12px;"> — ' + escapeHtml_(video.channel) + (pubDate ? ' · ' + pubDate : '') + '</span>';
+    var durationBadge = video.duration ? ' · &#9202; ' + escapeHtml_(video.duration) : '';
+    html += '<span style="color:#888;font-size:12px;"> — ' + escapeHtml_(video.channel) + (pubDate ? ' · ' + pubDate : '') + durationBadge + '</span>';
     if (video.titleEs && video.titleEs !== video.title) {
       html += '<div style="margin:2px 0 0 0;font-size:11px;color:#999;">' + escapeHtml_(video.title) + '</div>';
     }

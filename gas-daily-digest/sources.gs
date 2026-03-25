@@ -130,7 +130,7 @@ function generateGeminiSummary(subscriptionVideos, searchVideos, rssNews, likedC
 
   if (contentParts.length === 0) return '';
 
-  var prompt = 'Eres un curador tecnico especializado en Claude Code, herramientas de Google desde terminal (gcloud, clasp, Apps Script, Firebase CLI, Gemini CLI) y coding agents (Cursor, Copilot, Windsurf, Cline, Aider). '
+  var prompt = 'Eres un curador tecnico especializado en: ecosistema Claude (Code, CLI, Desktop, Artifacts, Projects), ecosistema Gemini (CLI, NotebookLM, AI Studio, Advanced), herramientas de Google Workspace (Apps Script, clasp, Google Sheets, AppSheet), coding agents (Cursor, Copilot, Windsurf, Cline, Aider), herramientas IA para desarrolladores/analistas/data scientists, y automatizaciones corporativas con Google Workspace. '
     + 'A continuacion tienes los titulos de videos y noticias del dia.\n\n'
     + contentParts.join('\n')
     + '\n\nGenera un resumen de maximo 3 parrafos en espanol. '
@@ -188,13 +188,19 @@ function generateVideoSummaries(allVideos) {
   var prompt = 'Para cada video de la lista, genera:\n'
     + '1. El titulo traducido al espanol (si ya esta en espanol, dejalo igual)\n'
     + '2. Un mini-resumen en espanol de 1-2 oraciones explicando de que trata el video\n'
-    + '3. El idioma ORIGINAL del contenido del video: "es" si es espanol, "en" si es ingles, etc.\n'
-    + '4. Si el video es RELEVANTE ("si" o "no"). Un video es relevante SOLO si trata sobre:\n'
-    + '   - Uso practico de Claude Code, Cursor, Copilot, Windsurf, Cline, Aider u otros coding agents desde terminal/CLI\n'
-    + '   - Uso de herramientas de Google desde consola (gcloud, clasp, Apps Script, Firebase CLI, Gemini CLI/API)\n'
-    + '   - Tutoriales tecnicos de programacion con IA desde terminal\n'
+    + '3. El idioma para el usuario: responde "es" si el video esta en espanol, si el canal es hispanohablante, o si el canal ofrece doblaje automatico al espanol (muchos canales grandes en ingles como Universe of AI, Fireship, etc. tienen doblaje automatico). En caso de duda, responde "es". Solo responde "en" si estas SEGURO de que el canal NO tiene version en espanol ni doblaje.\n'
+    + '4. Si el video es RELEVANTE ("si" o "no"). Un video es relevante si trata sobre:\n'
+    + '   - Ecosistema Claude: Claude Code, CLI, Desktop, Artifacts, Projects, API, novedades y updates de Anthropic\n'
+    + '   - Ecosistema Gemini: Gemini CLI, NotebookLM, Google AI Studio, Gemini Advanced, novedades y updates\n'
+    + '   - Uso de cualquier LLM desde terminal\n'
+    + '   - Coding agents: Cursor, Copilot, Windsurf, Cline, Aider\n'
     + '   - MCP servers, configuracion de agentes de codigo\n'
-    + '   NO es relevante si: es opinion general sobre IA, noticias de IA, filosofia, reciclaje, inversiones, animacion, o temas NO tecnicos.\n\n'
+    + '   - Google Workspace: Apps Script, clasp, Google Sheets automatizaciones, AppSheet, GWS APIs\n'
+    + '   - Herramientas IA para desarrolladores, analistas de datos o cientificos de datos\n'
+    + '   - Automatizaciones corporativas con Google Workspace (Apps Script, Sheets, Drive, Gmail)\n'
+    + '   - Nuevas herramientas o mejoras para terminales/CLIs de IA\n'
+    + '   - Tutoriales tecnicos de programacion, data science o productividad con IA\n'
+    + '   NO es relevante si: es opinion general sobre IA sin contenido practico, noticias sin demostracion, filosofia, inversiones, animacion, o temas NO tecnicos.\n\n'
     + videoList
     + '\n\nResponde SOLO con un JSON array de objetos con las propiedades "titulo", "resumen", "idioma" y "relevante". '
     + 'Ejemplo: [{"titulo":"Claude Code en 8 Minutos","resumen":"Resumen aqui...","idioma":"es","relevante":"si"}]\n'

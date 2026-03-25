@@ -93,7 +93,16 @@ function sendDailyDigest() {
     errors.push('Mini-resumenes: ' + e.message);
   }
 
-  // 8b. Filtrar: solo español + solo relevantes (Claude Code, Google CLI, coding agents)
+  // 8b. Enriquecer con duracion
+  try {
+    enrichVideosWithDuration(allVideos);
+    Logger.log('Duraciones obtenidas: ' + allVideos.filter(function(v) { return v.duration; }).length);
+  } catch (e) {
+    Logger.log('Error duraciones: ' + e.message);
+    errors.push('Duraciones: ' + e.message);
+  }
+
+  // 8c. Filtrar: solo español + solo relevantes
   var beforeFilter = { subs: subscriptionVideos.length, liked: likedChannelVideos.length, search: searchVideos.length };
   var esYRelevante = function(v) { return v.idioma === 'es' && v.relevante === 'si'; };
   subscriptionVideos = subscriptionVideos.filter(esYRelevante);
