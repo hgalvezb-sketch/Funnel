@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Google Sans', Arial, sans-serif;
+      background: #f8f9fa;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a73e8, #174ea6);
+      color: white;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .header h2 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .message {
+      max-width: 90%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: #1a73e8;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background: white;
+      color: #202124;
+      border: 1px solid #e0e0e0;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message.error {
+      background: #fce8e6;
+      color: #c5221f;
+      border-color: #f5c6cb;
+    }
+
+    .message.thinking {
+      background: white;
+      color: #80868b;
+      border: 1px solid #e0e0e0;
+      font-style: italic;
+    }
+
+    .input-area {
+      padding: 12px;
+      background: white;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-area input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #dadce0;
+      border-radius: 24px;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .input-area input:focus {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+    }
+
+    .input-area button {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .input-area button:hover { background: #1557b0; }
+    .input-area button:disabled { background: #dadce0; cursor: not-allowed; }
+
+    .suggestions {
+      padding: 8px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .suggestion-chip {
+      background: white;
+      border: 1px solid #dadce0;
+      border-radius: 16px;
+      padding: 6px 12px;
+      font-size: 11px;
+      cursor: pointer;
+      color: #1a73e8;
+      transition: background 0.2s;
+    }
+
+    .suggestion-chip:hover {
+      background: #e8f0fe;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>AI Coach</h2>
+    <p>Calculadora AI & CI & RO</p>
+  </div>
+
+  <div class="suggestions" id="suggestions">
+    <span class="suggestion-chip" onclick="askSuggestion(this)">Que sucursales tienen mayor riesgo?</span>
+    <span class="suggestion-chip" onclick="askSuggestion(this)">Resume el estado actual</span>
+    <span class="suggestion-chip" onclick="askSuggestion(this)">Alertas criticas hoy</span>
+    <span class="suggestion-chip" onclick="askSuggestion(this)">Tendencia de cartera</span>
+  </div>
+
+  <div class="chat-container" id="chat"></div>
+
+  <div class="input-area">
+    <input type="text" id="question" placeholder="Pregunta sobre tus datos..."
+           onkeydown="if(event.key==='Enter')sendQuestion()">
+    <button onclick="sendQuestion()" id="sendBtn">&#9654;</button>
+  </div>
+
+  <script>
+    var chat = document.getElementById('chat');
+    var input = document.getElementById('question');
+    var sendBtn = document.getElementById('sendBtn');
+    var suggestions = document.getElementById('suggestions');
+
+    function addMessage(text, type) {
+      var div = document.createElement('div');
+      div.className = 'message ' + type;
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      return div;
+    }
+
+    function askSuggestion(el) {
+      input.value = el.textContent;
+      suggestions.style.display = 'none';
+      sendQuestion();
+    }
+
+    function sendQuestion() {
+      var question = input.value.trim();
+      if (!question) return;
+
+      addMessage(question, 'user');
+      input.value = '';
+      sendBtn.disabled = true;
+
+      var thinking = addMessage('Analizando datos...', 'thinking');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          chat.removeChild(thinking);
+          addMessage(response, 'bot');
+          sendBtn.disabled = false;
+          input.focus();
+        })
+        .withFailureHandler(function(error) {
+          chat.removeChild(thinking);
+          addMessage('Error: ' + error.message, 'error');
+          sendBtn.disabled = false;
+          input.focus();
+        })
+        .processQuestion(question);
+    }
+
+    input.focus();
+  </script>
+</body>
+</html>
