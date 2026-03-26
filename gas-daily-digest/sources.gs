@@ -170,6 +170,77 @@ function generateGeminiSummary(subscriptionVideos, searchVideos, rssNews, likedC
 }
 
 /**
+ * Genera 10 consejos de innovacion personalizados basados en los videos del dia y el perfil del usuario.
+ * @param {Array} allVideos - Todos los videos del dia (con miniResumen)
+ * @param {Array} rssNews - Noticias RSS del dia
+ * @returns {Array<{numero: number, titulo: string, consejo: string}>}
+ */
+function generatePersonalTips(allVideos, rssNews) {
+  var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!apiKey) return [];
+
+  var videoContext = allVideos.map(function(v) {
+    return '- ' + (v.titleEs || v.title) + ' (canal: ' + v.channel + ')' + (v.miniResumen ? ' — ' + v.miniResumen : '');
+  }).join('\n');
+
+  var rssContext = (rssNews || []).map(function(n) {
+    return '- ' + n.title + ' (' + n.source + ')';
+  }).join('\n');
+
+  var prompt = 'Eres un consultor de innovacion tecnologica para un profesional con este perfil:\n\n'
+    + 'PERFIL:\n'
+    + '- Trabaja en FINDEP, empresa mexicana de microfinanzas con 1,500+ microservicios en Google Cloud\n'
+    + '- Full Stack: Java, JavaScript, HTML, Python, C#\n'
+    + '- Experto en Google Apps Script + Google Sheets como base de datos\n'
+    + '- Usa Claude Code y Gemini CLI diariamente desde terminal\n'
+    + '- Busca automatizar procesos corporativos con el ecosistema Google Workspace\n'
+    + '- Desarrolla dashboards operativos (React, Apps Script Web Apps)\n'
+    + '- Trabaja con BigQuery para analytics y reportes\n'
+    + '- Interesado en: coding agents, MCP servers, NotebookLM, herramientas IA para desarrolladores/analistas\n'
+    + '- Contexto: sector financiero regulado (LFPDPPP, BSA/AML), nunca logear PII\n\n'
+    + 'CONTENIDO DEL DIA:\n'
+    + videoContext + '\n'
+    + (rssContext ? '\nNOTICIAS:\n' + rssContext + '\n' : '')
+    + '\nBasandote en el contenido del dia y el perfil del usuario, genera exactamente 10 consejos de innovacion personal.\n'
+    + 'Cada consejo debe ser ACCIONABLE y ESPECIFICO para este perfil: algo que pueda implementar hoy o esta semana.\n'
+    + 'Conecta las novedades de los videos con su trabajo diario en FINDEP.\n'
+    + 'Prioriza: automatizaciones GWS, mejoras con Claude Code/Gemini, dashboards, BigQuery, Apps Script.\n\n'
+    + 'Responde SOLO con un JSON array de 10 objetos con "numero", "titulo" (max 8 palabras) y "consejo" (2-3 oraciones accionables en espanol).\n'
+    + 'Sin markdown, sin explicaciones, solo el JSON array.';
+
+  try {
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
+    var payload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    };
+
+    var response = UrlFetchApp.fetch(url, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+
+    if (response.getResponseCode() !== 200) {
+      Logger.log('Gemini tips error: ' + response.getResponseCode());
+      return [];
+    }
+
+    var data = JSON.parse(response.getContentText());
+    if (!data.candidates || !data.candidates.length || !data.candidates[0].content) return [];
+
+    var text = data.candidates[0].content.parts[0].text || '';
+    var tips = JSON.parse(text);
+    Logger.log('Tips personalizados generados: ' + tips.length);
+    return tips;
+  } catch (e) {
+    Logger.log('Error en generatePersonalTips: ' + e.message);
+    return [];
+  }
+}
+
+/**
  * Genera mini-resumenes en espanol para cada video usando Gemini.
  * Envia todos los titulos en un solo request para eficiencia.
  * Modifica los arrays in-place agregando propiedad 'miniResumen'.

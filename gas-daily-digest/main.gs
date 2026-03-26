@@ -120,13 +120,25 @@ function sendDailyDigest() {
     return;
   }
 
-  // 9. Construir y enviar email
+  // 9. Tips personalizados
+  var tips = [];
+  try {
+    var videosForTips = subscriptionVideos.concat(likedChannelVideos, searchVideos);
+    tips = generatePersonalTips(videosForTips, rssNews);
+    Logger.log('Tips: ' + tips.length);
+  } catch (e) {
+    Logger.log('Error tips: ' + e.message);
+    errors.push('Tips: ' + e.message);
+  }
+
+  // 10. Construir y enviar email
   var emailData = {
     summary: summary,
     subscriptionVideos: subscriptionVideos,
     searchVideos: searchVideos,
     likedChannelVideos: likedChannelVideos,
-    rssNews: rssNews
+    rssNews: rssNews,
+    tips: tips
   };
 
   var htmlBody = buildEmailHTML(emailData);

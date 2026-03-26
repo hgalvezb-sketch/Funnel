@@ -57,6 +57,19 @@ function buildEmailHTML(data) {
     html += '</div>';
   }
 
+  // Seccion: Tips personalizados
+  if (data.tips && data.tips.length > 0) {
+    html += '<div style="margin-bottom:24px;">';
+    html += '<h2 style="font-size:16px;color:#1a1a2e;border-bottom:2px solid #2ecc71;padding-bottom:6px;margin-bottom:12px;">10 CONSEJOS DE INNOVACION PARA TI</h2>';
+    data.tips.forEach(function(tip) {
+      html += '<div style="margin-bottom:12px;padding:10px;background:#fff;border-left:3px solid #2ecc71;border-radius:0 4px 4px 0;">';
+      html += '<div style="font-size:13px;font-weight:bold;color:#1a1a2e;">' + escapeHtml_(tip.numero + '. ' + tip.titulo) + '</div>';
+      html += '<p style="margin:4px 0 0;font-size:13px;color:#555;line-height:1.4;">' + escapeHtml_(tip.consejo) + '</p>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
   // Footer
   html += '<div style="text-align:center;padding-top:16px;border-top:1px solid #e0e0e0;color:#999;font-size:11px;">';
   html += 'Generado automaticamente por Daily AI Digest | Apps Script';
