@@ -255,3 +255,108 @@ function setupTrigger() {
 
   Logger.log('Trigger configurado: sendDailyDigest diario a las 8 AM CST');
 }
+
+// ============================================================
+// DAILY AI COACH - Webhook trigger
+// ============================================================
+
+/**
+ * Revisa si hay un email "Daily AI Digest" sin procesar
+ * y envia su contenido al pipeline Daily AI Coach.
+ * Trigger: cada 10 minutos.
+ */
+function onDigestArrive() {
+  var props = PropertiesService.getScriptProperties();
+  var webhookUrl = props.getProperty('COACH_WEBHOOK_URL');
+  var webhookSecret = props.getProperty('COACH_WEBHOOK_SECRET');
+
+  if (!webhookUrl || !webhookSecret) {
+    Logger.log('COACH: webhook URL o secret no configurados. Salteando.');
+    return;
+  }
+
+  // Buscar label o crearlo
+  var labelName = 'AI_Coach_Processed';
+  var label = GmailApp.getUserLabelByName(labelName);
+  if (!label) {
+    label = GmailApp.createLabel(labelName);
+    Logger.log('COACH: Label "' + labelName + '" creado.');
+  }
+
+  // Buscar threads con "Daily AI Digest" que NO tengan el label
+  var query = 'subject:"Daily AI Digest" -label:' + labelName;
+  var threads = GmailApp.search(query, 0, 5);
+
+  if (threads.length === 0) {
+    Logger.log('COACH: No hay digest nuevo sin procesar.');
+    return;
+  }
+
+  for (var i = 0; i < threads.length; i++) {
+    var thread = threads[i];
+    var message = thread.getMessages()[thread.getMessages().length - 1]; // ultimo mensaje
+    var htmlBody = message.getBody();
+    var subject = message.getSubject();
+    var dateStr = Utilities.formatDate(message.getDate(), 'America/Mexico_City', 'yyyy-MM-dd');
+
+    Logger.log('COACH: Procesando digest del ' + dateStr + ': ' + subject);
+
+    try {
+      var payload = {
+        html_content: htmlBody,
+        date: dateStr,
+        subject: subject,
+        secret: webhookSecret
+      };
+
+      var options = {
+        method: 'post',
+        contentType: 'application/json',
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true
+      };
+
+      var response = UrlFetchApp.fetch(webhookUrl, options);
+      var responseCode = response.getResponseCode();
+
+      if (responseCode === 202) {
+        thread.addLabel(label);
+        Logger.log('COACH: Digest enviado OK. Label aplicado. Response: ' + responseCode);
+      } else {
+        Logger.log('COACH: Error del webhook. Response: ' + responseCode + ' - ' + response.getContentText());
+      }
+    } catch (e) {
+      Logger.log('COACH: Error enviando webhook: ' + e.message);
+    }
+  }
+}
+
+/**
+ * Configura el trigger de onDigestArrive cada 10 minutos.
+ * Ejecutar UNA SOLA VEZ desde el editor.
+ */
+function setupCoachTrigger() {
+  // Eliminar triggers existentes para evitar duplicados
+  var triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(function(trigger) {
+    if (trigger.getHandlerFunction() === 'onDigestArrive') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+
+  ScriptApp.newTrigger('onDigestArrive')
+    .timeBased()
+    .everyMinutes(10)
+    .create();
+
+  Logger.log('COACH: Trigger configurado: onDigestArrive cada 10 min');
+}
+
+/**
+ * Test: ejecuta onDigestArrive manualmente para verificar.
+ */
+function testCoachWebhook() {
+  Logger.log('=== TEST COACH WEBHOOK ===');
+  onDigestArrive();
+  Logger.log('=== TEST COACH WEBHOOK END ===');
+}
