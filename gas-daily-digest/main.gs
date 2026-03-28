@@ -131,6 +131,16 @@ function sendDailyDigest() {
     errors.push('Tips: ' + e.message);
   }
 
+  // 9b. Obtener propuestas del Daily AI Coach
+  var coachData = null;
+  try {
+    coachData = fetchCoachProposals_();
+    Logger.log('Coach proposals: ' + (coachData ? coachData.propuestas.length + ' propuestas' : 'sin datos'));
+  } catch (e) {
+    Logger.log('Error coach proposals: ' + e.message);
+    errors.push('Coach proposals: ' + e.message);
+  }
+
   // 10. Construir y enviar email
   var emailData = {
     summary: summary,
@@ -138,7 +148,9 @@ function sendDailyDigest() {
     searchVideos: searchVideos,
     likedChannelVideos: likedChannelVideos,
     rssNews: rssNews,
-    tips: tips
+    tips: tips,
+    coachProposals: coachData ? coachData.propuestas : [],
+    coachRecommended: coachData ? coachData.proyecto_recomendado : null
   };
 
   var htmlBody = buildEmailHTML(emailData);
@@ -359,4 +371,42 @@ function testCoachWebhook() {
   Logger.log('=== TEST COACH WEBHOOK ===');
   onDigestArrive();
   Logger.log('=== TEST COACH WEBHOOK END ===');
+}
+
+/**
+ * Obtiene las propuestas del Daily AI Coach desde Render.
+ * @returns {Object|null} - { propuestas: [...], proyecto_recomendado: N }
+ */
+function fetchCoachProposals_() {
+  var coachUrl = 'https://daily-ai-coach.onrender.com/results/latest';
+
+  try {
+    var options = {
+      method: 'get',
+      muteHttpExceptions: true,
+      headers: {
+        'Accept': 'application/json'
+      }
+    };
+
+    var response = UrlFetchApp.fetch(coachUrl, options);
+    var code = response.getResponseCode();
+
+    if (code === 200) {
+      var data = JSON.parse(response.getContentText());
+      return {
+        propuestas: data.propuestas || [],
+        proyecto_recomendado: data.proyecto_recomendado || null
+      };
+    } else if (code === 404) {
+      Logger.log('COACH: No hay resultados recientes (404)');
+      return null;
+    } else {
+      Logger.log('COACH: Error obteniendo propuestas: ' + code);
+      return null;
+    }
+  } catch (e) {
+    Logger.log('COACH: Exception obteniendo propuestas: ' + e.message);
+    return null;
+  }
 }

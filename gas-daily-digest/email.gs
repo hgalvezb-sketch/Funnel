@@ -70,9 +70,17 @@ function buildEmailHTML(data) {
     html += '</div>';
   }
 
+  // Seccion: Propuestas del Daily AI Coach
+  if (data.coachProposals && data.coachProposals.length > 0) {
+    html += buildCoachProposalsSection_(data.coachProposals, data.coachRecommended);
+  }
+
+  // Seccion: URLs del Digest (para NotebookLM)
+  html += buildUrlsSection_(data);
+
   // Footer
   html += '<div style="text-align:center;padding-top:16px;border-top:1px solid #e0e0e0;color:#999;font-size:11px;">';
-  html += 'Generado automaticamente por Daily AI Digest | Apps Script';
+  html += 'Generado automaticamente por Daily AI Digest + AI Coach | Claude Code';
   html += '</div>';
 
   html += '</div></div>';
@@ -129,4 +137,97 @@ function escapeHtml_(text) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+/**
+ * Construye la seccion de propuestas del Daily AI Coach.
+ */
+function buildCoachProposalsSection_(proposals, recommended) {
+  var html = '<div style="margin-bottom:24px;">';
+  html += '<h2 style="font-size:16px;color:#1a1a2e;border-bottom:2px solid #9b59b6;padding-bottom:6px;margin-bottom:12px;">PROPUESTAS DEL DIA</h2>';
+
+  // Tabla de propuestas
+  html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+
+  // Header
+  html += '<tr style="background:#1a1a2e;color:#fff;">';
+  html += '<th style="padding:8px;text-align:left;">#</th>';
+  html += '<th style="padding:8px;text-align:left;">Propuesta</th>';
+  html += '<th style="padding:8px;text-align:left;">Conecta con</th>';
+  html += '<th style="padding:8px;text-align:center;">Impacto</th>';
+  html += '<th style="padding:8px;text-align:center;">Esfuerzo</th>';
+  html += '</tr>';
+
+  // Filas de propuestas
+  proposals.forEach(function(prop) {
+    var isRecommended = prop.id === recommended;
+    var rowStyle = isRecommended ? 'background:#f0fff0;' : '';
+    var idText = isRecommended ? '*' + prop.id : prop.id;
+    var fontWeight = isRecommended ? 'font-weight:bold;' : '';
+
+    html += '<tr style="' + rowStyle + '">';
+    html += '<td style="padding:8px;border-bottom:1px solid #eee;' + fontWeight + '">' + idText + '</td>';
+    html += '<td style="padding:8px;border-bottom:1px solid #eee;' + fontWeight + '">' + escapeHtml_(prop.titulo) + '</td>';
+    html += '<td style="padding:8px;border-bottom:1px solid #eee;' + fontWeight + '">' + escapeHtml_(prop.sheet_relacionado || prop.proyecto || '') + '</td>';
+    html += '<td style="padding:8px;text-align:center;border-bottom:1px solid #eee;">' + buildImpactBadge_(prop.impacto) + '</td>';
+    html += '<td style="padding:8px;text-align:center;border-bottom:1px solid #eee;' + fontWeight + '">' + escapeHtml_(prop.esfuerzo) + '</td>';
+    html += '</tr>';
+  });
+
+  html += '</table>';
+  html += '<p style="font-size:12px;color:#2ecc71;margin-top:8px;">* = recomendada (mejor ratio impacto/esfuerzo)</p>';
+  html += '</div>';
+
+  return html;
+}
+
+/**
+ * Construye badge de impacto con color.
+ */
+function buildImpactBadge_(impacto) {
+  var color = '#999';
+  if (impacto === 'alto') color = '#e74c3c';
+  else if (impacto === 'medio') color = '#f39c12';
+  else if (impacto === 'bajo') color = '#3498db';
+
+  return '<span style="background:' + color + ';color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;">' + escapeHtml_(impacto) + '</span>';
+}
+
+/**
+ * Construye la seccion de URLs del digest (para NotebookLM).
+ */
+function buildUrlsSection_(data) {
+  var urls = [];
+
+  // Extraer URLs de videos
+  if (data.subscriptionVideos) {
+    data.subscriptionVideos.forEach(function(v) { urls.push(v.url); });
+  }
+  if (data.likedChannelVideos) {
+    data.likedChannelVideos.forEach(function(v) { urls.push(v.url); });
+  }
+  if (data.searchVideos) {
+    data.searchVideos.forEach(function(v) { urls.push(v.url); });
+  }
+
+  // Extraer URLs de RSS
+  if (data.rssNews) {
+    data.rssNews.forEach(function(item) { urls.push(item.link); });
+  }
+
+  if (urls.length === 0) return '';
+
+  var html = '<div style="margin-bottom:24px;">';
+  html += '<h2 style="font-size:16px;color:#1a1a2e;border-bottom:2px solid #e67e22;padding-bottom:6px;margin-bottom:12px;">URLs DEL DIGEST</h2>';
+  html += '<div style="background:#fff;padding:12px;border-radius:4px;font-family:monospace;font-size:12px;line-height:2;">';
+
+  urls.forEach(function(url, index) {
+    html += escapeHtml_(url);
+    if (index < urls.length - 1) html += '<br>';
+  });
+
+  html += '</div>';
+  html += '</div>';
+
+  return html;
 }
