@@ -1,23 +1,14 @@
+# Archivos temporales de pruebas
+coach_email.html
+test_email_preview.html
+gas-daily-digest/email_body.json
+gas-daily-digest/temp_email.json
+gas-daily-digest/test_email.html
+
+# Scripts utilitarios locales
+send_email.py
+download.html
+
+# CLAUDE.md local (vacío, no se usa)
+CLAUDE.md
 node_modules
-dist
-.vite
-*.local
-
-# Playwright MCP logs/assets
-.playwright-mcp/
-
-# VS Code
-.vscode/
-
-# Credentials (NEVER commit)
-creds.json
-
-# Screenshots
-*.png
-*.svg
-
-# Debug snapshots
-debug-snapshot*.txt
-
-# MCP config (local)
-.mcp.json
