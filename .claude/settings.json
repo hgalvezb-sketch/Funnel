@@ -3,6 +3,9 @@
     "allow": [
       "Read(//c/Users/Administrador/.claude/**)",
       "Read(//c/Users/Administrador/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Administrador\\.claude\\commands"
     ]
   }
 }
