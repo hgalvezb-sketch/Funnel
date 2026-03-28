@@ -410,3 +410,51 @@ function fetchCoachProposals_() {
     return null;
   }
 }
+
+/**
+ * Test: Envia email con las nuevas secciones (Propuestas + URLs).
+ * Usa datos reales del digest mas reciente o datos mock.
+ */
+function testCoachEmailSections() {
+  Logger.log('=== TEST EMAIL COACH SECTIONS ===');
+
+  var props = PropertiesService.getScriptProperties();
+  var recipient = props.getProperty('RECIPIENT_EMAIL') || 'hgalvezb@findep.com.mx';
+
+  // Obtener propuestas del Coach
+  var coachData = fetchCoachProposals_();
+  Logger.log('Coach data: ' + (coachData ? coachData.propuestas.length + ' propuestas' : 'sin datos'));
+
+  // Datos mock para el test
+  var emailData = {
+    summary: 'Este es un test del Daily AI Digest con las nuevas secciones: PROPUESTAS DEL DIA y URLs DEL DIGEST.\n\nLas propuestas se obtienen desde el pipeline de Render y las URLs incluyen todos los videos y releases del digest.',
+    subscriptionVideos: [
+      { url: 'https://www.youtube.com/watch?v=J3n43K6i2z8', title: 'Test Video 1', channel: 'Google Cloud', publishedAt: new Date().toISOString(), duration: '3:00' }
+    ],
+    searchVideos: [
+      { url: 'https://www.youtube.com/watch?v=3vrn03I5Tss', title: 'Test Claude Code', channel: 'RoboNuggets', publishedAt: new Date().toISOString(), duration: '14:51' }
+    ],
+    likedChannelVideos: [],
+    rssNews: [
+      { link: 'https://github.com/anthropics/claude-code/releases/tag/v2.1.85', title: 'v2.1.85', source: 'Claude Code Releases' }
+    ],
+    tips: [
+      { numero: 1, titulo: 'Test Tip 1', consejo: 'Este es un consejo de prueba para verificar el formato.' },
+      { numero: 2, titulo: 'Test Tip 2', consejo: 'Otro consejo de prueba con formato correcto.' }
+    ],
+    coachProposals: coachData ? coachData.propuestas : [],
+    coachRecommended: coachData ? coachData.proyecto_recomendado : null
+  };
+
+  var htmlBody = buildEmailHTML(emailData);
+
+  var today = Utilities.formatDate(new Date(), 'America/Mexico_City', 'dd MMM yyyy');
+
+  GmailApp.sendEmail(recipient, '[TEST] Daily AI Digest - Nuevas Secciones - ' + today, '', {
+    htmlBody: htmlBody,
+    name: 'Daily AI Digest'
+  });
+
+  Logger.log('Email de prueba enviado a ' + recipient);
+  Logger.log('=== TEST EMAIL COACH SECTIONS END ===');
+}
