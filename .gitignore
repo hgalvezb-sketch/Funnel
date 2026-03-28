@@ -11,4 +11,19 @@ download.html
 
 # CLAUDE.md local (vacío, no se usa)
 CLAUDE.md
-node_modules
+
+# Dependencias y compilados
+node_modules/
+dist/
+
+# Screenshots y debug
+*.png
+debug-*.png
+
+# Credenciales y configuración local
+creds.json
+.mcp.json
+
+# IDE y herramientas
+.vscode/
+.playwright-mcp/
