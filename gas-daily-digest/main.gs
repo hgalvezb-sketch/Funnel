@@ -131,11 +131,18 @@ function sendDailyDigest() {
     errors.push('Tips: ' + e.message);
   }
 
-  // 9b. Obtener propuestas del Daily AI Coach
+  // 9b. Generar propuestas del Daily AI Coach con Gemini
   var coachData = null;
   try {
-    coachData = fetchCoachProposals_();
-    Logger.log('Coach proposals: ' + (coachData ? coachData.propuestas.length + ' propuestas' : 'sin datos'));
+    var digestDataForCoach = {
+      summary: summary,
+      subscriptionVideos: subscriptionVideos,
+      searchVideos: searchVideos,
+      likedChannelVideos: likedChannelVideos,
+      rssNews: rssNews
+    };
+    coachData = generateCoachProposalsWithGemini_(digestDataForCoach);
+    Logger.log('Coach proposals: ' + (coachData ? coachData.propuestas.length + ' propuestas generadas con Gemini' : 'sin datos'));
   } catch (e) {
     Logger.log('Error coach proposals: ' + e.message);
     errors.push('Coach proposals: ' + e.message);
@@ -374,46 +381,152 @@ function testCoachWebhook() {
 }
 
 /**
- * Obtiene las propuestas del Daily AI Coach desde Render.
+ * Genera propuestas del Daily AI Coach usando Gemini API directamente.
+ * @param {Object} digestData - Datos del digest (videos, summary, etc)
  * @returns {Object|null} - { propuestas: [...], proyecto_recomendado: N }
  */
-function fetchCoachProposals_() {
-  var coachUrl = 'https://daily-ai-coach.onrender.com/results/latest';
+function generateCoachProposalsWithGemini_(digestData) {
+  var props = PropertiesService.getScriptProperties();
+  var geminiApiKey = props.getProperty('GEMINI_API_KEY');
+
+  if (!geminiApiKey) {
+    Logger.log('COACH: GEMINI_API_KEY no configurado');
+    return null;
+  }
 
   try {
-    var options = {
-      method: 'get',
-      muteHttpExceptions: true,
-      headers: {
-        'Accept': 'application/json'
+    // Construir resumen del digest
+    var digestSummary = buildDigestSummary_(digestData);
+
+    // Construir prompt completo
+    var systemPrompt = 'Eres el Daily AI Coach de un desarrollador senior en FINDEP (microfinanciera mexicana).\n' +
+      'Tu rol es analizar el contenido del Daily AI Digest (videos, noticias) y cruzarlo con los proyectos actuales del usuario para generar propuestas de mejora accionables.\n\n' +
+      'El usuario trabaja con: Java, JavaScript, HTML (Full Stack), Google Apps Script, Python (FastAPI), React, Flutter, Claude Code, y Google Cloud.\n\n' +
+      'Proyectos conocidos:\n' +
+      '- Calculadora AI & CI & RO: analisis de riesgo crediticio e indicadores\n' +
+      '- bd_Agent_Disp: dashboard operativo con 7 pestanas en Apps Script\n' +
+      '- CIRO: auditoria crediticia con analisis de PDFs\n' +
+      '- Funnel Dashboard: React + Recharts para metricas\n' +
+      '- Cedula AROS: evaluacion de riesgo operativo en sucursales\n' +
+      '- Daily AI Digest: correo diario con videos y noticias de IA\n\n' +
+      'REGLAS:\n' +
+      '1. Genera EXACTAMENTE 5 propuestas\n' +
+      '2. Cada propuesta debe conectar contenido del digest con un proyecto existente\n' +
+      '3. Incluye motivacion persuasiva para arrancar HOY\n' +
+      '4. El plan_rapido debe tener 3-5 pasos concretos\n' +
+      '5. Varia el esfuerzo: al menos 1 propuesta de "1h" y al menos 1 de "1d" o mas\n\n' +
+      'Responde SOLO con JSON valido, sin markdown ni explicaciones.\n' +
+      'Formato: {"fecha":"YYYY-MM-DD","resumen_dia":"...","propuestas":[{"id":1,"titulo":"...","descripcion":"...","sheet_relacionado":"...","video_fuente":"...","impacto":"alto|medio|bajo","esfuerzo":"1h|4h|1d|3d","plan_rapido":["..."],"motivacion":"..."}],"proyecto_recomendado":1}';
+
+    var userPrompt = '## Digest del dia\n' + digestSummary;
+
+    var fullPrompt = systemPrompt + '\n\n' + userPrompt;
+
+    // Llamar a Gemini API
+    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + geminiApiKey;
+
+    var payload = {
+      contents: [{
+        parts: [{text: fullPrompt}]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 8192,
+        responseMimeType: 'application/json'
       }
     };
 
-    var response = UrlFetchApp.fetch(coachUrl, options);
-    var code = response.getResponseCode();
+    var options = {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
 
-    if (code === 200) {
-      var data = JSON.parse(response.getContentText());
-      return {
-        propuestas: data.propuestas || [],
-        proyecto_recomendado: data.proyecto_recomendado || null
-      };
-    } else if (code === 404) {
-      Logger.log('COACH: No hay resultados recientes (404)');
-      return null;
-    } else {
-      Logger.log('COACH: Error obteniendo propuestas: ' + code);
+    var response = UrlFetchApp.fetch(url, options);
+    var responseCode = response.getResponseCode();
+
+    if (responseCode !== 200) {
+      Logger.log('COACH: Gemini API error ' + responseCode + ': ' + response.getContentText());
       return null;
     }
+
+    var data = JSON.parse(response.getContentText());
+
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+      Logger.log('COACH: Gemini response incompleta');
+      return null;
+    }
+
+    var rawText = data.candidates[0].content.parts[0].text;
+
+    // Limpiar markdown si existe
+    if (rawText.indexOf('```') >= 0) {
+      rawText = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    }
+
+    var result = JSON.parse(rawText);
+
+    return {
+      propuestas: result.propuestas || [],
+      proyecto_recomendado: result.proyecto_recomendado || null
+    };
+
   } catch (e) {
-    Logger.log('COACH: Exception obteniendo propuestas: ' + e.message);
+    Logger.log('COACH: Error generando propuestas con Gemini: ' + e.message);
+    Logger.log('Stack: ' + e.stack);
     return null;
   }
 }
 
 /**
+ * Construye resumen del digest para el prompt de Gemini.
+ */
+function buildDigestSummary_(digestData) {
+  var lines = [];
+  var today = Utilities.formatDate(new Date(), 'America/Mexico_City', 'yyyy-MM-dd');
+
+  lines.push('Daily AI Digest del ' + today);
+
+  // Videos
+  var totalVideos = 0;
+  if (digestData.subscriptionVideos) totalVideos += digestData.subscriptionVideos.length;
+  if (digestData.searchVideos) totalVideos += digestData.searchVideos.length;
+  if (digestData.likedChannelVideos) totalVideos += digestData.likedChannelVideos.length;
+
+  if (totalVideos > 0) {
+    lines.push('\nVideos encontrados: ' + totalVideos);
+
+    var allVideos = [];
+    if (digestData.subscriptionVideos) allVideos = allVideos.concat(digestData.subscriptionVideos);
+    if (digestData.searchVideos) allVideos = allVideos.concat(digestData.searchVideos);
+    if (digestData.likedChannelVideos) allVideos = allVideos.concat(digestData.likedChannelVideos);
+
+    allVideos.forEach(function(v) {
+      var title = v.titleEs || v.title || v.videoId;
+      lines.push('- ' + title + ' (' + (v.channel || 'Unknown') + ')');
+    });
+  }
+
+  // Noticias RSS
+  if (digestData.rssNews && digestData.rssNews.length > 0) {
+    lines.push('\nNoticias RSS: ' + digestData.rssNews.length);
+    digestData.rssNews.forEach(function(item) {
+      lines.push('- ' + item.title);
+    });
+  }
+
+  // Resumen Gemini si existe
+  if (digestData.summary) {
+    lines.push('\n## Resumen del contenido\n' + digestData.summary);
+  }
+
+  return lines.join('\n');
+}
+
+/**
  * Test: Envia email con las nuevas secciones (Propuestas + URLs).
- * Usa datos reales del digest mas reciente o datos mock.
+ * Genera propuestas con Gemini en tiempo real.
  */
 function testCoachEmailSections() {
   Logger.log('=== TEST EMAIL COACH SECTIONS ===');
@@ -421,23 +534,31 @@ function testCoachEmailSections() {
   var props = PropertiesService.getScriptProperties();
   var recipient = props.getProperty('RECIPIENT_EMAIL') || 'hgalvezb@findep.com.mx';
 
-  // Obtener propuestas del Coach
-  var coachData = fetchCoachProposals_();
-  Logger.log('Coach data: ' + (coachData ? coachData.propuestas.length + ' propuestas' : 'sin datos'));
-
   // Datos mock para el test
-  var emailData = {
-    summary: 'Este es un test del Daily AI Digest con las nuevas secciones: PROPUESTAS DEL DIA y URLs DEL DIGEST.\n\nLas propuestas se obtienen desde el pipeline de Render y las URLs incluyen todos los videos y releases del digest.',
+  var mockDigestData = {
+    summary: 'Este es un test del Daily AI Digest con las nuevas secciones: PROPUESTAS DEL DIA y URLs DEL DIGEST.\n\nLas propuestas se generan con Gemini API directamente desde Apps Script, sin depender de Render.',
     subscriptionVideos: [
-      { url: 'https://www.youtube.com/watch?v=J3n43K6i2z8', title: 'Test Video 1', channel: 'Google Cloud', publishedAt: new Date().toISOString(), duration: '3:00' }
+      { url: 'https://www.youtube.com/watch?v=J3n43K6i2z8', title: 'Google Cloud Next Partner Spotlight', channel: 'Google Cloud', publishedAt: new Date().toISOString(), duration: '3:00' }
     ],
     searchVideos: [
-      { url: 'https://www.youtube.com/watch?v=3vrn03I5Tss', title: 'Test Claude Code', channel: 'RoboNuggets', publishedAt: new Date().toISOString(), duration: '14:51' }
+      { url: 'https://www.youtube.com/watch?v=3vrn03I5Tss', title: 'Claude Code Update Explained', channel: 'RoboNuggets', publishedAt: new Date().toISOString(), duration: '14:51' }
     ],
     likedChannelVideos: [],
     rssNews: [
-      { link: 'https://github.com/anthropics/claude-code/releases/tag/v2.1.85', title: 'v2.1.85', source: 'Claude Code Releases' }
-    ],
+      { link: 'https://github.com/anthropics/claude-code/releases/tag/v2.1.86', title: 'v2.1.86', source: 'Claude Code Releases' }
+    ]
+  };
+
+  // Generar propuestas con Gemini
+  var coachData = generateCoachProposalsWithGemini_(mockDigestData);
+  Logger.log('Coach data: ' + (coachData ? coachData.propuestas.length + ' propuestas generadas' : 'sin datos'));
+
+  var emailData = {
+    summary: mockDigestData.summary,
+    subscriptionVideos: mockDigestData.subscriptionVideos,
+    searchVideos: mockDigestData.searchVideos,
+    likedChannelVideos: mockDigestData.likedChannelVideos,
+    rssNews: mockDigestData.rssNews,
     tips: [
       { numero: 1, titulo: 'Test Tip 1', consejo: 'Este es un consejo de prueba para verificar el formato.' },
       { numero: 2, titulo: 'Test Tip 2', consejo: 'Otro consejo de prueba con formato correcto.' }
@@ -450,7 +571,7 @@ function testCoachEmailSections() {
 
   var today = Utilities.formatDate(new Date(), 'America/Mexico_City', 'dd MMM yyyy');
 
-  GmailApp.sendEmail(recipient, '[TEST] Daily AI Digest - Nuevas Secciones - ' + today, '', {
+  GmailApp.sendEmail(recipient, '[TEST] Daily AI Digest - Gemini Directo - ' + today, '', {
     htmlBody: htmlBody,
     name: 'Daily AI Digest'
   });
