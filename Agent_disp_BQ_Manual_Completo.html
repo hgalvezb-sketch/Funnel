@@ -633,30 +633,44 @@ RECOMENDACIONES PRIORITARIAS:
 
     <div class="section-break"></div>
 
-    <h2>🔐 7. Protección de Datos</h2>
+    <h2>🔐 7. Acceso a Datos para Auditoría Interna</h2>
 
-    <h3>El agente NUNCA expone:</h3>
+    <div class="alert-box" style="background: #e7f3ff; border-color: #0066cc;">
+        <div class="alert-title" style="color: #0066cc;">IMPORTANTE: Acceso Completo para Auditoría</div>
+        <p>Como <strong>Auditor Interno de FINDEP</strong>, tienes acceso autorizado a TODOS los datos incluyendo información personal para investigaciones forenses.</p>
+    </div>
+
+    <h3>El agente SÍ incluye en sus análisis:</h3>
     <ul>
-        <li>❌ Nombres completos de clientes</li>
-        <li>❌ Teléfonos completos</li>
-        <li>❌ CURP, RFC</li>
-        <li>❌ Datos personales sensibles</li>
+        <li>✅ <strong>Nombres completos</strong> de empleados y clientes</li>
+        <li>✅ <strong>Teléfonos completos</strong> (para verificación y contacto)</li>
+        <li>✅ <strong>CURP, RFC</strong> (para identificación precisa)</li>
+        <li>✅ <strong>Números de empleado</strong> (ej: #4521)</li>
+        <li>✅ <strong>Números de contrato</strong> (ej: CTR-88945)</li>
+        <li>✅ <strong>IDs de sucursal</strong> (ej: 127)</li>
+        <li>✅ <strong>Todos los datos</strong> necesarios para investigación de fraude</li>
     </ul>
 
-    <h3>Solo usa identificadores:</h3>
+    <h3>Protección de PII - Solo para Reportes Externos</h3>
+    <p>La protección de información personal <strong>solo aplica cuando compartes reportes con:</strong></p>
     <ul>
-        <li>✅ Números de empleado (ej: #4521)</li>
-        <li>✅ Números de contrato (ej: CTR-88945)</li>
-        <li>✅ IDs de sucursal (ej: 127)</li>
-        <li>✅ Montos agregados</li>
+        <li>Terceros externos a FINDEP</li>
+        <li>Reportes públicos o presentaciones generales</li>
+        <li>Documentación para reguladores (después de sanitizar)</li>
     </ul>
 
-    <h3>Logs Encriptados</h3>
-    <p>Todos los análisis se guardan en:</p>
+    <p><strong>Para uso interno de Auditoría:</strong> Toda la información está disponible sin restricciones.</p>
+
+    <h3>Logs Completos</h3>
+    <p>Todos los análisis con datos completos se guardan en:</p>
     <div class="code-block">Agent_disp_BQ_resources/logs/analisis_YYYYMMDD_HHMMSS.json</div>
 
     <p>Tracking de costos en:</p>
     <div class="code-block">Agent_disp_BQ_resources/logs/usage_monthly.json</div>
+
+    <div class="tip-box">
+        <strong>Responsabilidad:</strong> Como auditor, eres responsable de manejar esta información conforme a las políticas de FINDEP y regulaciones aplicables (LFPDPPP, CNBV).
+    </div>
 
     <div class="section-break"></div>
 
