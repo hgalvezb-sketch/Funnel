@@ -5,7 +5,8 @@
       "Read(//c/Users/Administrador/**)"
     ],
     "additionalDirectories": [
-      "c:\\Users\\Administrador\\.claude\\commands"
+      "c:\\Users\\Administrador\\.claude\\commands",
+      "C:\\Users\\Administrador\\.claude\\agents"
     ]
   }
 }
