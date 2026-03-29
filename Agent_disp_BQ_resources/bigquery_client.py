@@ -3,6 +3,7 @@ Cliente BigQuery para Agent_disp_BQ
 Ejecuta queries y retorna resultados en formato estructurado
 """
 import json
+from decimal import Decimal
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from google.cloud import bigquery
@@ -58,7 +59,7 @@ class BigQueryClient:
 
             # Obtener resultados
             results = []
-            for row in query_job.result(max_results=max_results):
+            for row in query_job.result(max_results=max_results, timeout=300):
                 # Convertir Row a dict
                 row_dict = dict(row.items())
                 # Convertir tipos no serializables
@@ -122,12 +123,16 @@ class BigQueryClient:
                 serialized[key] = None
             elif isinstance(value, (str, int, float, bool)):
                 serialized[key] = value
+            elif isinstance(value, Decimal):
+                serialized[key] = float(value)
             elif hasattr(value, "isoformat"):  # datetime, date
                 serialized[key] = value.isoformat()
             else:
                 serialized[key] = str(value)
         return serialized
 
+    # SECURITY NOTE: Template replacement bypasses parameterization - only use with trusted query files
+    # TODO: Replace with allowlist validation for table/column names or remove entirely
     def _replace_template_params(self, query: str, params: Dict[str, Any]) -> str:
         """Reemplaza parámetros template en SQL (ej: {dias_atras})"""
         for key, value in params.items():
