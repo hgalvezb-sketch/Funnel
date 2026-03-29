@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent_disp_BQ Predictivo - Manual Completo</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            page-break-after: avoid;
+        }
+
+        .header h1 {
+            color: #0066cc;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .metadata {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+
+        .metadata p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        h2 {
+            color: #0066cc;
+            font-size: 22px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #e0e0e0;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            color: #333;
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            page-break-after: avoid;
+        }
+
+        h4 {
+            color: #666;
+            font-size: 16px;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            page-break-after: avoid;
+        }
+
+        p {
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+
+        .alert-box {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border-left: 5px solid;
+            page-break-inside: avoid;
+        }
+
+        .alert-critical {
+            background: #fff5f5;
+            border-color: #dc3545;
+        }
+
+        .alert-high {
+            background: #fff9e6;
+            border-color: #ffc107;
+        }
+
+        .alert-medium {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .alert-low {
+            background: #f1f8f4;
+            border-color: #28a745;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            page-break-inside: avoid;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #0066cc;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        ul, ol {
+            margin: 10px 0 10px 25px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .tip-box {
+            background: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            page-break-inside: avoid;
+        }
+
+        .tip-box strong {
+            color: #0066cc;
+        }
+
+        .section-break {
+            border-top: 1px dashed #ccc;
+            margin: 30px 0;
+            page-break-before: always;
+        }
+
+        .command {
+            background: #2d2d2d;
+            color: #00ff00;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #0066cc;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            h2, h3, h4 {
+                page-break-after: avoid;
+            }
+
+            .alert-box, .code-block, table, .tip-box {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Agent_disp_BQ Modalidad Predictiva</h1>
+        <div class="subtitle">Sistema de Detección Predictiva de Fraudes en Disposiciones</div>
+        <div class="subtitle">Manual Completo de Usuario</div>
+    </div>
+
+    <div class="metadata">
+        <p><strong>Para:</strong> Heriberto Galvez (hgalvezb@findep.com.mx)</p>
+        <p><strong>Fecha:</strong> 29 de Marzo, 2026</p>
+        <p><strong>Versión:</strong> 1.0.0</p>
+        <p><strong>Stack Tecnológico:</strong> Python 3.11, BigQuery, Gemini 2.5 Flash, Claude Opus 4.6 (opcional)</p>
+        <p><strong>Estado:</strong> ✅ OPERATIVO CON GEMINI</p>
+    </div>
+
+    <div class="section-break"></div>
+
+    <h2>📋 Tabla de Contenidos</h2>
+    <ol>
+        <li>Inicio Rápido (ABC)</li>
+        <li>Tipos de Alertas</li>
+        <li>Cómo Interactuar con el Agente</li>
+        <li>Las 13 Banderas de Riesgo</li>
+        <li>Comandos Más Útiles</li>
+        <li>Rutina Recomendada</li>
+        <li>Protección de Datos</li>
+        <li>Troubleshooting</li>
+    </ol>
+
+    <div class="section-break"></div>
+
+    <h2>🚀 1. Inicio Rápido (ABC)</h2>
+
+    <h3>Cómo Invocar el Agente</h3>
+
+    <h4>Opción 1: Desde Claude Code (Recomendado)</h4>
+    <p>Simplemente escribe en Claude Code:</p>
+    <div class="code-block">Agent_disp_BQ analiza disposiciones últimos 3 días</div>
+
+    <p><strong>Variantes que funcionan:</strong></p>
+    <ul>
+        <li>"Agent_disp_BQ analiza disposiciones últimos 7 días"</li>
+        <li>"Agent_disp_BQ ¿hay algo atípico en las disposiciones?"</li>
+        <li>"Agent_disp_BQ briefing de riesgos última semana"</li>
+        <li>"Agent_disp_BQ detecta fraudes últimos 5 días"</li>
+    </ul>
+
+    <h4>Keywords que activan modo predictivo:</h4>
+    <ul>
+        <li>analiza, analizar</li>
+        <li>anomalías, atípico</li>
+        <li>riesgo, fraude</li>
+        <li>briefing, alerta</li>
+        <li>patrón, sospechoso</li>
+        <li>detecta, predice</li>
+    </ul>
+
+    <h4>Opción 2: CLI Directo</h4>
+    <div class="code-block">cd Agent_disp_BQ_resources
+python analyzer.py</div>
+    <p>Por defecto analiza <strong>últimos 3 días</strong>.</p>
+
+    <div class="section-break"></div>
+
+    <h2>🚨 2. Tipos de Alertas</h2>
+
+    <div class="alert-box alert-critical">
+        <div class="alert-title">🔴 NIVEL CRÍTICO (Score ≥80)</div>
+        <p><strong>Qué significa:</strong> Fraude altamente probable, requiere acción inmediata</p>
+
+        <p><strong>Ejemplo de alerta:</strong></p>
+        <div class="code-block" style="background: white; border: none; padding: 10px 0;">
+🔴 ALERTA CRÍTICA DE FRAUDE
+
+Detecté un patrón de Colusión empleado-cliente en Sucursal 127.
+
+Empleado #4521 procesó 8 disposiciones en 14 minutos.
+Todos los clientes comparten el mismo teléfono registrado.
+
+Impacto estimado: $127,400 MXN en 8 operaciones
+
+ACCIONES REQUERIDAS (INMEDIATAS):
+1. ⏱️ AHORA: Bloquear temporalmente operaciones del empleado #4521
+2. ⏱️ 2 horas: Revisar video vigilancia de caja, horario 14:00-15:30
+3. ⏱️ 24 horas: Auditoría completa de operaciones del empleado (últimos 30 días)
+
+¿Deseas que profundice en el histórico de este empleado?
+        </div>
+
+        <p><strong>Banderas que causan CRÍTICO:</strong></p>
+        <ul>
+            <li>Tel de Colaborador (35 pts)</li>
+            <li>Pago SPEI Colab (40 pts)</li>
+            <li>Contratos &lt;3min (35 pts)</li>
+            <li>Monto duplicado mismo día (30 pts)</li>
+            <li>Combinación de 3+ banderas</li>
+        </ul>
+
+        <p><strong>Qué hacer:</strong></p>
+        <ol>
+            <li>Leer el análisis completo</li>
+            <li>Verificar video vigilancia</li>
+            <li>Contactar a Seguridad/Auditoría Interna</li>
+            <li>Documentar caso</li>
+        </ol>
+    </div>
+
+    <div class="alert-box alert-high">
+        <div class="alert-title">🟡 NIVEL ALTO (Score 40-79)</div>
+        <p><strong>Qué significa:</strong> Anomalía sospechosa, requiere investigación en 24-48h</p>
+
+        <p><strong>Banderas que causan ALTO:</strong></p>
+        <ul>
+            <li>+1 mismo día (25 pts)</li>
+            <li>Fuera horario (20 pts)</li>
+            <li>Foráneas efectivo (20 pts)</li>
+            <li>Tel repetido (25 pts)</li>
+            <li>Combinación de 2 banderas</li>
+        </ul>
+
+        <p><strong>Qué hacer:</strong></p>
+        <ol>
+            <li>Revisar casos priorizados</li>
+            <li>Contactar a gerentes de sucursal</li>
+            <li>Validar justificaciones</li>
+            <li>Seguimiento en 24-48h</li>
+        </ol>
+    </div>
+
+    <div class="alert-box alert-medium">
+        <div class="alert-title">🟠 NIVEL MEDIO (Score 20-39)</div>
+        <p><strong>Qué significa:</strong> Riesgo moderado, monitoreo continuo</p>
+
+        <p><strong>Banderas que causan MEDIO:</strong></p>
+        <ul>
+            <li>En quincena (10 pts)</li>
+            <li>Calificación ≤5 (15 pts)</li>
+            <li>&gt;120 días vencidos (15 pts)</li>
+        </ul>
+
+        <p><strong>Qué hacer:</strong></p>
+        <ul>
+            <li>Monitorear tendencias</li>
+            <li>Incluir en reportes mensuales</li>
+            <li>Sin acciones inmediatas</li>
+        </ul>
+    </div>
+
+    <div class="alert-box alert-low">
+        <div class="alert-title">🟢 NIVEL BAJO (Score &lt;20)</div>
+        <p><strong>Qué significa:</strong> Operaciones normales, registro estadístico</p>
+
+        <p><strong>Qué hacer:</strong></p>
+        <ul>
+            <li>Registrar métricas</li>
+            <li>Sin acciones requeridas</li>
+        </ul>
+    </div>
+
+    <div class="section-break"></div>
+
+    <h2>💬 3. Cómo Interactuar con el Agente</h2>
+
+    <h3>Ejemplo 1: Análisis Inicial</h3>
+    <div class="code-block">
+<strong>TÚ:</strong> Agent_disp_BQ analiza disposiciones últimos 3 días
+
+<strong>AGENTE:</strong>
+Analizando disposiciones últimos 3 días...
+✓ 847 disposiciones obtenidas
+✓ Calculando scores de riesgo...
+⚠️ 23 anomalías detectadas
+
+🔴 2 ALERTA(S) CRÍTICA(S)
+🟡 8 caso(s) de riesgo ALTO
+🟢 13 caso(s) de riesgo MEDIO
+
+[Análisis detallado...]
+
+¿Deseas que profundice en algún caso específico?
+    </div>
+
+    <h3>Ejemplo 2: Profundizar en un Caso</h3>
+    <div class="code-block">
+<strong>TÚ:</strong> Sí, profundiza en el caso crítico del empleado #4521
+
+<strong>AGENTE:</strong>
+Ejecutando análisis forense del empleado #4521...
+
+Hallazgos:
+- 127 disposiciones procesadas en marzo 2026
+- 23 de ellas (18%) con banderas de riesgo
+- Patrón repetido: Operaciones fuera de horario (14 casos)
+- 8 clientes comparten mismo teléfono
+
+Mecánica del fraude detectada:
+[Análisis paso a paso...]
+
+¿Quieres que analice empleados con patrón similar?
+    </div>
+
+    <h3>Ejemplo 3: Solicitar Reporte Ejecutivo</h3>
+    <div class="code-block">
+<strong>TÚ:</strong> Dame un reporte ejecutivo para el Comité de Auditoría
+
+<strong>AGENTE:</strong>
+REPORTE EJECUTIVO - ANÁLISIS PREDICTIVO DE FRAUDES
+Periodo: 22-28 Marzo 2026
+Preparado para: Comité de Auditoría FINDEP
+
+RESUMEN EJECUTIVO:
+Se detectaron 2 casos críticos de fraude...
+
+IMPACTO FINANCIERO:
+- Monto en riesgo: $127,400 MXN
+- Operaciones afectadas: 8
+- Periodo: 25-27 Marzo 2026
+
+RECOMENDACIONES PRIORITARIAS:
+1. Acción inmediata: Suspensión empleado #4521
+2. Investigación forense: Sucursal 127
+3. Controles preventivos: [...]
+    </div>
+
+    <div class="section-break"></div>
+
+    <h2>🔢 4. Las 13 Banderas de Riesgo</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Bandera</th>
+                <th>Puntos</th>
+                <th>Categoría</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Tel de Colaborador</td>
+                <td>35</td>
+                <td>🔴 Crítico</td>
+            </tr>
+            <tr>
+                <td>Contratos &lt;3min</td>
+                <td>35</td>
+                <td>🔴 Crítico</td>
+            </tr>
+            <tr>
+                <td>Pago SPEI Colab</td>
+                <td>40</td>
+                <td>🔴 Crítico</td>
+            </tr>
+            <tr>
+                <td>Monto duplicado</td>
+                <td>30</td>
+                <td>🔴 Crítico</td>
+            </tr>
+            <tr>
+                <td>+1 mismo día</td>
+                <td>25</td>
+                <td>🟡 Alto</td>
+            </tr>
+            <tr>
+                <td>Fuera horario</td>
+                <td>20</td>
+                <td>🟡 Alto</td>
+            </tr>
+            <tr>
+                <td>Foráneas efectivo</td>
+                <td>20</td>
+                <td>🟡 Alto</td>
+            </tr>
+            <tr>
+                <td>Tel repetido</td>
+                <td>25</td>
+                <td>🟡 Alto</td>
+            </tr>
+            <tr>
+                <td>En quincena</td>
+                <td>10</td>
+                <td>🟠 Medio</td>
+            </tr>
+            <tr>
+                <td>Calificación ≤5</td>
+                <td>15</td>
+                <td>🟠 Medio</td>
+            </tr>
+            <tr>
+                <td>&gt;120 días</td>
+                <td>15</td>
+                <td>🟠 Medio</td>
+            </tr>
+            <tr>
+                <td>Disp &gt;1K</td>
+                <td>10</td>
+                <td>🟢 Bajo</td>
+            </tr>
+            <tr>
+                <td>Disp &gt;24K</td>
+                <td>12</td>
+                <td>🟢 Bajo</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Multiplicadores de Riesgo</h3>
+    <ul>
+        <li><strong>2+ flags activas:</strong> x1.5</li>
+        <li><strong>Mismo empleado múltiples flags:</strong> x2.0</li>
+        <li><strong>Sucursal con patrón repetido:</strong> x1.8</li>
+        <li><strong>Cluster temporal:</strong> x1.6</li>
+    </ul>
+
+    <div class="section-break"></div>
+
+    <h2>🎯 5. Comandos Más Útiles - Top 10</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Comando</th>
+                <th>Qué Hace</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Agent_disp_BQ analiza últimos 3 días</td>
+                <td>Análisis rápido estándar</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Agent_disp_BQ briefing últimas 24 horas</td>
+                <td>Check matutino diario</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Agent_disp_BQ analiza última semana</td>
+                <td>Reporte semanal</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Agent_disp_BQ ¿hay casos críticos?</td>
+                <td>Check rápido de emergencias</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Agent_disp_BQ analiza sucursal [NUM]</td>
+                <td>Análisis por sucursal</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>Profundiza en [caso]</td>
+                <td>Investigación profunda</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>Agent_disp_BQ compara esta semana vs anterior</td>
+                <td>Análisis de tendencias</td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td>Dame reporte ejecutivo</td>
+                <td>Para presentar a Comité</td>
+            </tr>
+            <tr>
+                <td>9</td>
+                <td>Agent_disp_BQ investiga empleado #[NUM]</td>
+                <td>Análisis de empleado</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>Agent_disp_BQ top 10 sucursales con más riesgo</td>
+                <td>Identificar hotspots</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-break"></div>
+
+    <h2>📅 6. Rutina Recomendada</h2>
+
+    <div class="tip-box">
+        <strong>🌅 LUNES 8:00 AM - Reporte Semanal</strong>
+        <div class="code-block">Agent_disp_BQ reporte semanal completo</div>
+    </div>
+
+    <div class="tip-box">
+        <strong>📊 DIARIO 8:30 AM - Briefing Matutino</strong>
+        <div class="code-block">Agent_disp_BQ briefing últimas 24 horas</div>
+    </div>
+
+    <div class="tip-box">
+        <strong>🚨 SEGÚN NECESIDAD - Check Rápido</strong>
+        <div class="code-block">Agent_disp_BQ ¿casos críticos hoy?</div>
+    </div>
+
+    <div class="tip-box">
+        <strong>📈 FIN DE MES - Análisis de Tendencias</strong>
+        <div class="code-block">Agent_disp_BQ tendencias último mes</div>
+    </div>
+
+    <div class="tip-box">
+        <strong>🔍 INVESTIGACIONES - Análisis Profundo</strong>
+        <div class="code-block">Agent_disp_BQ investiga [entidad] último trimestre</div>
+    </div>
+
+    <div class="section-break"></div>
+
+    <h2>🔐 7. Protección de Datos</h2>
+
+    <h3>El agente NUNCA expone:</h3>
+    <ul>
+        <li>❌ Nombres completos de clientes</li>
+        <li>❌ Teléfonos completos</li>
+        <li>❌ CURP, RFC</li>
+        <li>❌ Datos personales sensibles</li>
+    </ul>
+
+    <h3>Solo usa identificadores:</h3>
+    <ul>
+        <li>✅ Números de empleado (ej: #4521)</li>
+        <li>✅ Números de contrato (ej: CTR-88945)</li>
+        <li>✅ IDs de sucursal (ej: 127)</li>
+        <li>✅ Montos agregados</li>
+    </ul>
+
+    <h3>Logs Encriptados</h3>
+    <p>Todos los análisis se guardan en:</p>
+    <div class="code-block">Agent_disp_BQ_resources/logs/analisis_YYYYMMDD_HHMMSS.json</div>
+
+    <p>Tracking de costos en:</p>
+    <div class="code-block">Agent_disp_BQ_resources/logs/usage_monthly.json</div>
+
+    <div class="section-break"></div>
+
+    <h2>🆘 8. Troubleshooting</h2>
+
+    <h3>Error de BigQuery</h3>
+    <p><strong>Problema:</strong> "Access denied" o "Project not found"</p>
+    <p><strong>Solución:</strong></p>
+    <div class="code-block">gcloud auth application-default login
+gcloud config set project ws-ctrol-interno</div>
+
+    <h3>Error de Configuración</h3>
+    <p><strong>Problema:</strong> "GEMINI_API_KEY field required"</p>
+    <p><strong>Solución:</strong></p>
+    <div class="code-block">python test_agent_predictivo.py</div>
+    <p>Verifica que el archivo <span class="command">.env</span> esté configurado correctamente.</p>
+
+    <h3>Agregar Claude (Opcional)</h3>
+    <p><strong>Cuándo:</strong> Necesitas análisis forense profundo de casos críticos</p>
+    <p><strong>Cómo:</strong></p>
+    <div class="code-block">python setup_claude_key.py</div>
+    <p>O lee la guía completa en: <span class="command">Agent_disp_BQ_resources/COMO_AGREGAR_CLAUDE.md</span></p>
+
+    <h3>Costos</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Configuración</th>
+                <th>Costo Mensual</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Actual (Solo Gemini)</td>
+                <td>~$0.01/mes</td>
+            </tr>
+            <tr>
+                <td>Con Claude agregado</td>
+                <td>~$3.60/mes (20 análisis críticos)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-break"></div>
+
+    <h2>📊 Datos que Analiza</h2>
+
+    <h3>BigQuery Datasets Disponibles</h3>
+    <ul>
+        <li>✅ Disposiciones (CAJA_UNICA.disposicion)</li>
+        <li>✅ Validaciones OTP (CAJA_UNICA.validacion_otp)</li>
+        <li>✅ Empleados (DATA_OPERATIVA.plantilla_empleados)</li>
+        <li>✅ Clientes (DATA.evolucion_diaria_clientes)</li>
+        <li>✅ Líneas de crédito (DATA.evolucion_diaria_lineas_credito)</li>
+        <li>✅ Sucursales (BUO_FISA.c_sucursales_convergencia)</li>
+    </ul>
+
+    <h3>Datos Enriquecidos</h3>
+    <ul>
+        <li>Calificación cliente</li>
+        <li>Días vencidos</li>
+        <li>Capital insoluto</li>
+        <li>Historial de pagos</li>
+        <li>Datos demográficos</li>
+        <li>Información empleado</li>
+    </ul>
+
+    <div class="section-break"></div>
+
+    <h2>✅ Resumen Final</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Componente</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>BigQuery</td>
+                <td>✅ ws-ctrol-interno (US)</td>
+            </tr>
+            <tr>
+                <td>Gemini API</td>
+                <td>✅ Configurada (AIzaSyDmR...)</td>
+            </tr>
+            <tr>
+                <td>Claude API</td>
+                <td>⏳ Opcional (agregar después)</td>
+            </tr>
+            <tr>
+                <td>Tests</td>
+                <td>✅ 3/3 pasando</td>
+            </tr>
+            <tr>
+                <td>Costo</td>
+                <td>✅ ~$0.01/mes</td>
+            </tr>
+            <tr>
+                <td>Estado</td>
+                <td>✅ OPERATIVO</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="tip-box" style="margin-top: 30px;">
+        <strong>🚀 ¡Estás listo para comenzar!</strong>
+        <p style="margin-top: 10px;">Simplemente abre Claude Code mañana y escribe:</p>
+        <div class="code-block">Agent_disp_BQ analiza disposiciones últimos 3 días</div>
+        <p><strong>Tu analista de fraudes 24/7 está listo cuando lo necesites.</strong></p>
+    </div>
+
+    <div class="footer">
+        <p><strong>Desarrollado por:</strong> Heriberto Galvez (hgalvezb@findep.com.mx)</p>
+        <p><strong>Stack Tecnológico:</strong> Python 3.11, BigQuery, Gemini 2.5 Flash, Claude Opus 4.6 (opcional)</p>
+        <p><strong>Versión:</strong> 1.0.0 | <strong>Fecha:</strong> 29 de Marzo, 2026</p>
+        <p><strong>Commits:</strong> 21 | <strong>Archivos:</strong> 12 | <strong>Tests:</strong> 3/3 ✅</p>
+        <p style="margin-top: 10px; color: #0066cc;">
+            <strong>FINDEP - Financiera Independencia</strong><br>
+            Auditoría Interna / Control Interno
+        </p>
+    </div>
+
+</body>
+</html>
