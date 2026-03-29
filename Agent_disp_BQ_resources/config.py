@@ -4,6 +4,7 @@ Configuración del Agent_disp_BQ - Sistema Predictivo
 import os
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import model_validator
 from typing import Optional
 
 
@@ -43,23 +44,35 @@ class AgentConfig(BaseSettings):
 
     # Configuración de Pydantic
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=Path(__file__).parent / ".env",
         env_file_encoding="utf-8",
-        case_sensitive=False,
+        case_sensitive=True,
         extra="ignore"
     )
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # Resolver KNOWLEDGE_BASE_PATH si no está definido
+    @model_validator(mode='after')
+    def resolve_knowledge_base(self) -> 'AgentConfig':
+        """Resolver KNOWLEDGE_BASE_PATH si no está definido"""
         if self.KNOWLEDGE_BASE_PATH is None:
             self.KNOWLEDGE_BASE_PATH = str(self.RESOURCES_DIR / "knowledge_base")
+        return self
+
+    @model_validator(mode='after')
+    def validate_thresholds(self) -> 'AgentConfig':
+        """Validar que los thresholds estén en orden descendente"""
+        if not (self.CRITICAL_THRESHOLD > self.HIGH_THRESHOLD > self.MEDIUM_THRESHOLD > 0):
+            raise ValueError(
+                f"Thresholds must satisfy: CRITICAL ({self.CRITICAL_THRESHOLD}) > "
+                f"HIGH ({self.HIGH_THRESHOLD}) > MEDIUM ({self.MEDIUM_THRESHOLD}) > 0"
+            )
+        return self
 
 
 # Singleton global
 _config: Optional[AgentConfig] = None
 
 
+# NOTE: Singleton no es thread-safe - apropiado para POC, no para producción concurrente
 def get_config() -> AgentConfig:
     """
     Obtiene la configuración global del agente.
