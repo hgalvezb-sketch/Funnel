@@ -23,6 +23,7 @@ debug-*.png
 # Credenciales y configuración local
 creds.json
 .mcp.json
+*.env
 
 # IDE y herramientas
 .vscode/
