@@ -45,27 +45,39 @@ cp .env.example .env
 
 ## Configuración
 
-Edita `Agent_disp_BQ_resources/.env`:
+### Configuración Actual (Solo Gemini)
+
+El sistema está **100% funcional con Gemini 2.5 Flash** (sin costo).
+
+**Claude Opus 4.6 es OPCIONAL** - Ver `COMO_AGREGAR_CLAUDE.md` para instrucciones.
+
+Estado actual de `Agent_disp_BQ_resources/.env`:
 
 ```bash
-# BigQuery (ya configurado con gcloud)
+# BigQuery (configurado)
 BQ_PROJECT_ID=ws-ctrol-interno
 BQ_LOCATION=US
 
-# Claude API (obtener de https://console.anthropic.com)
-ANTHROPIC_API_KEY=sk-ant-api03-...
+# Gemini API (CONFIGURADA Y LISTA)
+GEMINI_API_KEY=AIzaSyD... ✓
 
-# Gemini API (obtener de https://aistudio.google.com/app/apikey)
-GEMINI_API_KEY=AIza...
+# Claude API (OPCIONAL - Agregar después si se necesita)
+ANTHROPIC_API_KEY=sk-ant-PENDIENTE... (ejecutar setup_claude_key.py)
 
-# Control de presupuesto
-FORCE_GEMINI_ONLY=false           # true = nunca usar Claude (ahorro)
-MAX_CLAUDE_CALLS_PER_MONTH=20     # Límite mensual Claude
-CONFIRM_BEFORE_CLAUDE=true        # Pedir confirmación antes Claude
+# Modo de operación
+FORCE_GEMINI_ONLY=true  # Solo Gemini por ahora
+MAX_CLAUDE_CALLS_PER_MONTH=20
+CONFIRM_BEFORE_CLAUDE=true
 
-# Umbrales de riesgo
+# Umbrales
 CRITICAL_THRESHOLD=80
 HIGH_THRESHOLD=40
+```
+
+**Para agregar Claude después:**
+```bash
+python setup_claude_key.py
+# O leer: Agent_disp_BQ_resources/COMO_AGREGAR_CLAUDE.md
 ```
 
 ## Uso
