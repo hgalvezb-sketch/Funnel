@@ -482,14 +482,24 @@ python Agent_disp_BQ_resources/analyzer.py > briefing_diario.txt
 
 ---
 
-## 🔐 Protección de Datos
+## 🔐 Acceso a Datos para Auditoría
 
-El agente:
-- ✅ **NUNCA expone** nombres completos de clientes
-- ✅ **NUNCA expone** teléfonos completos
-- ✅ **NUNCA expone** CURP, RFC
-- ✅ Usa solo **identificadores** (números de empleado, contratos)
-- ✅ Logs encriptados en `logs/`
+**IMPORTANTE:** Como Auditor Interno, tienes acceso COMPLETO a todos los datos:
+
+El agente **SÍ incluye** en sus análisis:
+- ✅ **Nombres completos** de empleados y clientes
+- ✅ **Teléfonos completos** (para verificación)
+- ✅ **CURP, RFC** (para identificación precisa)
+- ✅ **Todos los datos** necesarios para investigación forense
+
+**Nota:** La protección de PII solo aplica cuando compartes reportes con:
+- Terceros externos
+- Reportes públicos
+- Documentación para reguladores (después de sanitizar)
+
+**Para uso interno de Auditoría:** Toda la información está disponible.
+
+Logs completos guardados en: `logs/analisis_*.json`
 
 ---
 

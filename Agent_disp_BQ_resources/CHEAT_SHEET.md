@@ -157,19 +157,18 @@ Agent_disp_BQ investiga [entidad] último mes
 
 ---
 
-## 🔐 PROTECCIÓN DATOS
+## 🔐 ACCESO COMPLETO AUDITORÍA
 
-✅ **SÍ muestra:**
-- Números de empleado (#4521)
-- Números de contrato (CTR-88945)
-- IDs de sucursal (127)
-- Montos agregados
+✅ **TIENES ACCESO A TODO:**
+- ✅ Nombres completos (empleados y clientes)
+- ✅ Teléfonos completos
+- ✅ CURP / RFC
+- ✅ Números de empleado (#4521)
+- ✅ Números de contrato (CTR-88945)
+- ✅ IDs de sucursal (127)
+- ✅ Todos los datos para investigación
 
-❌ **NO muestra:**
-- Nombres completos
-- Teléfonos completos
-- CURP / RFC
-- Datos personales sensibles
+**Nota:** Protección PII solo para reportes externos
 
 ---
 
