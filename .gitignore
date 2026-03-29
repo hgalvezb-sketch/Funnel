@@ -4,6 +4,8 @@ test_email_preview.html
 gas-daily-digest/email_body.json
 gas-daily-digest/temp_email.json
 gas-daily-digest/test_email.html
+download.txt
+*.tmp
 
 # Scripts utilitarios locales
 send_email.py
@@ -15,6 +17,9 @@ CLAUDE.md
 # Dependencias y compilados
 node_modules/
 dist/
+__pycache__/
+*.pyc
+*.pyo
 
 # Screenshots y debug
 *.png
