@@ -1,0 +1,61 @@
+================================================================================
+            ANALISIS CLIENTES CALIFICACION 3 - RESUMEN EJECUTIVO
+================================================================================
+Fecha: 30 de marzo de 2026
+--------------------------------------------------------------------------------
+
+VOLUMETRIA GENERAL
+------------------
+Total clientes calificacion 3:           406 clientes
+Participacion en cartera:                1.77% del total
+Tendencia reciente:                      ALERTA (pico 15.48% el 22-mar)
+
+DISTRIBUCION POR STATUS
+-----------------------
+Status D (Deudor):       94 clientes  | Capital: $1,906,981 | Vencido: $1,467,087
+Status P (Pagado):      134 clientes  | Capital: $0         | Vencido: $0
+Status V (Vigente):      91 clientes  | Capital: $0         | Vencido: $0
+
+HALLAZGOS CRITICOS
+------------------
+1. CARTERA VENCIDA CRITICA
+   - 94 deudores con $1.9M en riesgo
+   - Morosidad promedio: 177 dias (5.9 meses)
+   - 87 casos con >180 dias (cartera irrecuperable)
+
+2. CASOS DE ALTO IMPACTO (Top 5)
+   Cliente 7836916: $98,703 capital | $50,958 vencido | 186 dias
+   Cliente 5078735: $77,426 capital | $33,492 vencido | 244 dias
+   Cliente 6577038: $76,679 capital | $39,756 vencido | 186 dias
+   Cliente 7670638: $56,337 capital | $38,120 vencido | 186 dias
+   Cliente 8608000: $12,910 capital | $14,905 vencido | 328 dias (EXTREMO)
+
+3. PATRONES DETECTADOS
+   - Concentracion anomala en 186-187 dias vencidos (94 casos)
+   - Posible cohorte problematica de sept 2025
+   - 55% de clientes rehabilitados (contratos P/V)
+
+RECOMENDACIONES INMEDIATAS
+---------------------------
+[URGENTE] Escalar Top 5 casos a cobranza especializada (48hrs)
+[CRITICO] Evaluar castigo de 87 contratos con >180 dias
+[ANALISIS] Investigar cohorte sept 2025 (Riesgos + Originacion)
+[CONTROL]  Limitar disposiciones a clientes cal 3 rehabilitados
+[MONITOR]  Dashboard diario con alerta >5% clientes cal 3
+
+METRICAS CLAVE
+--------------
+Tasa de cobertura:          77% (saldo vencido / capital)
+Cartera irrecuperable:      92.5% de deudores (>180 dias)
+Tasa de rehabilitacion:     55% (clientes P/V)
+Exposicion total:           $1.9M en capital insoluto
+
+CONCLUSION
+----------
+Riesgo sistemico identificado requiere accion ejecutiva inmediata.
+Oportunidad de recuperacion limitada pero existente.
+Patron de originacion requiere investigacion urgente.
+
+================================================================================
+Fuente: ws-buro-clientes.DATA | Generado por Agent_disp_BQ
+================================================================================

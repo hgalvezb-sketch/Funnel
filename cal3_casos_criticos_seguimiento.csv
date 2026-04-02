@@ -1,0 +1,11 @@
+prioridad,cliente,contrato,status,dias_vencidos,capital_insoluto,saldo_vencido,categoria_riesgo,accion_recomendada,timeline
+1,7836916,2829489,D,186,98702.63,50957.52,CRITICO_ALTO_MONTO,Cobranza especializada + negociacion quita,48 horas
+2,5078735,2774506,D,244,77425.76,33491.53,CRITICO_ALTO_MONTO,Cobranza especializada + reestructuracion,48 horas
+3,6577038,2807592,D,186,76678.52,39755.75,CRITICO_ALTO_MONTO,Cobranza especializada + plan de pagos,48 horas
+4,7670638,2791187,D,186,56337.47,38120.34,CRITICO_ALTO_MONTO,Cobranza especializada,48 horas
+5,8608000,2787029,D,328,12910.42,14904.85,CRITICO_MOROSIDAD,Evaluar castigo - morosidad extrema,72 horas
+6,6062571,2831869,D,186,38051.21,24306.32,CRITICO_MOROSIDAD,Cobranza judicial,1 semana
+7,7465215,1000480232,D,186,37883.10,23268.82,CRITICO_MOROSIDAD,Cobranza judicial,1 semana
+8,3379661,2808828,D,186,35251.48,24890.00,CRITICO_MOROSIDAD,Cobranza judicial,1 semana
+9,4948476,1000380970,D,186,31421.01,21514.05,CRITICO_MOROSIDAD,Cobranza especializada,1 semana
+10,8395571,2796949,D,186,29324.34,27720.00,ALTO_PORCENTAJE_VENCIDO,Revision de garantias,1 semana

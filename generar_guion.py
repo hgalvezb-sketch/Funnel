@@ -1,0 +1,104 @@
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
+guion = """DAILY AI COACH — Guion para NotebookLM
+Fecha: 31 de marzo de 2026
+
+[INTRO - Tono conversacional, dos colegas técnicos]
+
+Hola, bienvenido a tu Daily AI Coach del 31 de marzo. Hoy vamos a hablar de algo que me tiene bastante emocionado: la cantidad de contenido práctico que salió sobre Claude Code y Gemini en las últimas 24 horas. Y no estoy hablando de teoría, sino de cosas que puedes implementar HOY mismo en tus proyectos.
+
+[RESUMEN DEL DIGEST]
+
+Mira, el digest de hoy trajo 14 videos y un release importante. La mayoría del contenido se centra en tres áreas: primero, funcionalidades prácticas de Google Workspace y Apps Script, como crear copias de documentos de manera eficiente. Segundo, el ecosistema Gemini con una API que te da un millón de tokens gratis por minuto cuando la integras con N8N. Y tercero, una avalancha de actualizaciones y tutoriales sobre Claude Code, incluyendo el Computer Use que permite que Claude controle tu computadora.
+
+Lo que me llamó la atención es que todos estos videos tienen algo en común: no son tutoriales genéricos de "qué es la IA", sino implementaciones específicas que puedes replicar en menos de un día. Y eso es oro puro cuando tienes proyectos activos como bd_Agent_Disp, CIRO, o la Calculadora de Riesgos.
+
+[TEMA PRINCIPAL: Las integraciones revolucionarias]
+
+Hablemos primero de Firecrawl Browser. Hay un video titulado "Claude Code + Firecrawl Browser ACABAN de cambiar Internet para siempre". Ese es un título grande, pero cuando piensas en lo que significa tener capacidades de navegación web automatizadas integradas directamente en tu flujo de desarrollo con Claude Code, empiezas a entender la magnitud. Puedes auditar sitios web competidores, extraer políticas publicadas, validar compliance, todo de forma programática y con la inteligencia de Claude interpretando el contenido.
+
+Esto no es solo scraping tradicional. Es navegación inteligente donde Claude entiende el contexto de lo que está viendo. Para alguien que trabaja en fintech o en auditoría crediticia, esto abre posibilidades enormes. Imagina poder validar automáticamente que las tasas publicadas por competidores cumplen con regulaciones, o extraer términos y condiciones de decenas de sitios para análisis comparativo. Todo eso que antes requería trabajo manual ahora puede ser automatizado con inteligencia contextual.
+
+Luego tenemos Paperclip. Hay DOS videos sobre la combinación de Claude Code y Paperclip. Uno dice que "acaban de ELIMINAR a OpenClaw" y otro simplemente dice que "es INCREÍBLE". Paperclip parece ser una herramienta para gestionar contexto y memoria en proyectos de código. Si estás trabajando en proyectos grandes donde mantener coherencia es difícil, esto podría ser transformador. La integración con Claude Code significaría que tu asistente de IA tiene memoria persistente de decisiones arquitectónicas, patrones establecidos, y contexto del proyecto que va más allá de una sola conversación.
+
+[ANÁLISIS DE VIDEOS CLAVE]
+
+Hay un video que me parece particularmente valioso: "Del Prompt al Producto en una Sesión". Dura treinta y tres minutos, así que probablemente es un walkthrough completo de cómo tomar una idea, usar Claude Code, y terminar con algo funcional en una sola sesión de trabajo. Este tipo de contenido es oro para entender flujos de trabajo reales, no solo features aisladas.
+
+Y luego está "Construí una Habilidad de Claude Code Sin Experiencia en Codificación". Este es importante porque demuestra que las skills personalizadas no son solo para desarrolladores senior. Si puedes definir claramente lo que necesitas, Claude Code puede ayudarte a construir la automatización. Esto democratiza la creación de herramientas personalizadas.
+
+También hay un video largo de cincuenta y un minutos sobre "La Forma Correcta de Construir Sitios Web con Claude Code". Si estás construyendo dashboards, aplicaciones React, o cualquier interfaz web, este probablemente cubre mejores prácticas, estructura de proyecto, y cómo evitar antipatrones comunes cuando trabajas con IA como copiloto.
+
+[TRANSICIÓN A PROPUESTAS]
+
+Ahora, con todo este contexto del digest, generamos cinco propuestas concretas que conectan estas tecnologías y técnicas con proyectos reales en los que ya estás trabajando. La idea no es solo consumir información, sino convertirla en acción HOY.
+
+[PROPUESTA 1 - LA RECOMENDADA]
+
+La propuesta número uno, y la que más recomendamos, es crear skills personalizados para bd_Agent_Disp con Claude Code. bd_Agent_Disp es tu dashboard operativo en Apps Script con siete pestañas que monitorean agentes FINDEP. Ya está funcionando, pero es reactivo. Tú miras los datos y luego actúas.
+
+La propuesta es crear tres skills de Claude Code específicos para este proyecto. Primero, un skill que analice automáticamente las siete pestañas buscando anomalías: valores atípicos, tendencias preocupantes, métricas que se salen del rango esperado. Segundo, un skill que genere reportes ejecutivos automáticos en Markdown que puedas compartir en un clic. Tercero, un skill de validación para migrar datos entre la versión 1.0 y 2.0 del dashboard con checks de integridad.
+
+¿Por qué esta es la recomendada? Porque combina esfuerzo razonable - estimamos cuatro horas - con impacto alto. Ya tienes los datos, ya tienes la estructura. Solo estás añadiendo inteligencia automatizada encima. Y el timing es perfecto porque el video "Construí una Habilidad de Claude Code Sin Experiencia" te da el roadmap exacto de cómo hacerlo, incluso si no eres desarrollador experto en TypeScript o lo que sea que usen las skills.
+
+El plan rápido es: invocar /write-skill para cada uno de los tres casos de uso, testear con datos reales del Sheet, y documentar en CLAUDE.md. En una tarde tienes un sistema que pasa de dashboard reactivo a asistente predictivo. La motivación aquí es aprovechar que Claude Code 2.0 acaba de salir y tiene características optimizadas para esto.
+
+[PROPUESTA 2 - ALTO IMPACTO]
+
+La propuesta número dos es integrar Firecrawl Browser en CIRO. CIRO es tu aplicación de auditoría crediticia que ya usa Claude API para analizar PDFs. La idea aquí es añadir una dimensión completamente nueva: auditoría web.
+
+Podrías auditar sitios web de competidores extrayendo sus políticas de crédito publicadas. Podrías validar compliance de proveedores financieros revisando sus términos publicados contra regulaciones LFPDPPP. Podrías monitorear cambios en tasas de interés publicadas por otras instituciones. Todo esto automáticamente, con Claude interpretando el contenido.
+
+Este es un proyecto de un día completo. Requiere instalar Firecrawl MCP server, crear un nuevo endpoint en tu FastAPI backend, implementar la extracción inteligente, añadir validación de compliance, y construir un dashboard React para mostrar hallazgos. Es más trabajo que la propuesta uno, pero el impacto también es alto.
+
+La motivación única aquí es que la integración Claude Code + Firecrawl es TAN nueva que casi nadie la está usando en producción. Implementarla hoy te posiciona como early adopter antes de que se vuelva mainstream. Y en auditoría financiera, tener capacidades que otros no tienen puede ser ventaja competitiva significativa.
+
+[PROPUESTA 3 - QUICK WIN]
+
+Propuesta tres: aplicar veintisiete trucos de Claude Code al Daily Coach. Daily Coach es literalmente el pipeline que está generando estas propuestas ahora mismo. Ya funciona. Busca el digest en Gmail, lo parsea, genera propuestas, crea un guion para podcast. Pero "funciona" no es lo mismo que "es excepcional".
+
+El video de veintisiete consejos probablemente cubre optimizaciones de performance, mejores prácticas de prompting, técnicas de manejo de errores, trucos de configuración. Aplicar aunque sea diez de esos trucos podría hacer que Daily Coach sea dos veces más rápido y genere propuestas tres veces más relevantes.
+
+Este es un quick win de una hora. Ver el video que dura doce minutos, documentar los consejos, identificar los diez más relevantes, aplicarlos al código del skill. Una hora de inversión para meses de beneficio compuesto porque usas Daily Coach todos los días.
+
+[PROPUESTA 4 - MARKETING INTELIGENTE]
+
+Propuesta cuatro es añadir marketing predictivo al Funnel Dashboard. Funnel Dashboard es tu aplicación React con Recharts que visualiza datos del embudo. La idea es conectarlo a BigQuery, implementar un modelo predictivo simple con Vertex AI que identifique qué leads están más cerca de convertir, y añadir sugerencias de acciones basadas en IA.
+
+El video sobre marketing con IA en Google Cloud muestra exactamente este patrón: datos conectados a modelos que personalizan campañas. En tu caso, no es campaña masiva sino priorización inteligente de leads individuales. El dashboard mostraría no solo métricas históricas sino predicciones: "estos cinco leads tienen 80% probabilidad de convertir en las próximas 48 horas si los contactas ahora".
+
+Este es un proyecto de cuatro horas. Conectar a BigQuery, entrenar un modelo simple o usar uno preentrenado, crear la sección de marketing inteligente en React, integrar visualizaciones con Recharts. Impacto medio porque mejora un dashboard existente pero no es un cambio fundamental.
+
+[PROPUESTA 5 - INNOVACIÓN RÁPIDA]
+
+Propuesta cinco es generar videos resumen automáticos para el Monitor Disposiciones. Monitor Disposiciones v4.1 ya tiene datos en tiempo real con Gemini 2.0. La idea es usar Remotion para generar un video de dos minutos cada día resumiendo métricas clave.
+
+Este es otro quick win de una hora. Instalar Remotion, crear un template de video básico con título y gráficas, renderizar el MP4 con datos del día, configurar un trigger diario. El impacto es bajo en términos de funcionalidad core, pero el impacto de innovación puede ser alto. Algunos stakeholders prefieren consumir video que dashboards. Llegar a una reunión y decir "aquí está el video resumen de ayer" puede cambiar percepciones.
+
+El video "Creé una app que crea y edita videos de YouTube automáticamente" con Antigravity y Remotion muestra el camino. No necesitas producción Hollywood, solo automatización funcional.
+
+[RECOMENDACIÓN FINAL]
+
+De las cinco propuestas, nuestra recomendación es la número uno: skills personalizados para bd_Agent_Disp. ¿Por qué? Porque tiene el mejor ratio impacto sobre esfuerzo. Cuatro horas te dan tres herramientas que usarás constantemente. Detectar anomalías automáticamente puede prevenir problemas antes de que se vuelvan crisis. Generar reportes automáticos te ahorra horas semanales. Y migración validada entre versiones te da confianza para evolucionar el sistema sin romper nada.
+
+Además, los skills son reutilizables. Una vez que domines crear skills personalizados, puedes aplicar el mismo patrón a CIRO, a Funnel Dashboard, a Monitor Disposiciones, a cualquier proyecto. Estás invirtiendo en una habilidad multiplicadora.
+
+Y finalmente, el timing. Claude Code 2.0 está fresco, los videos explicando características ocultas están saliendo ahora, el ecosistema está en plena ebullición. Aprender esto hoy en lugar de en tres meses significa tres meses de ventaja compuesta.
+
+[CIERRE]
+
+Entonces esa es nuestra recomendación para hoy treinta de marzo. Revisa las cinco propuestas, mira los videos relevantes - especialmente el de construir skills sin experiencia y los veintisiete consejos - y considera arrancar con bd_Agent_Disp esta tarde.
+
+Recuerda que todas estas propuestas están diseñadas para conectar con proyectos que ya tienes en marcha. No es agregar más cosas a tu backlog, es acelerar y mejorar lo que ya estás construyendo. Y con las herramientas que están saliendo ahora, el momento de actuar es ahora.
+
+Nos vemos mañana con nuevas propuestas basadas en lo que el siguiente digest traiga. ¡Éxito!
+
+[FIN - 2,180 palabras]
+"""
+
+with open(r'C:\Users\Administrador\Funnel\guion_notebooklm.txt', 'w', encoding='utf-8') as f:
+    f.write(guion)
+
+print(f"Guion generado: {len(guion)} caracteres ({len(guion.split())} palabras)")
+print("\n✓ Archivo guardado: C:\\Users\\Administrador\\Funnel\\guion_notebooklm.txt")

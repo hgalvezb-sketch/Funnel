@@ -1,0 +1,13 @@
+Métrica,Valor,Descripción
+Universo Base,406,Clientes con calificación 3 analizados
+Clientes con Dispo 30d,3,0.7% del universo
+Clientes con Dispo 90d,8,2.0% del universo
+Monto Total 30d,"$3,095.00",Exposición últimos 30 días
+Monto Total 90d,"$12,371.27",Exposición últimos 90 días
+Casos CRÍTICOS,0,Disposiciones DESPUÉS de Cal3
+Casos GRAVES,1,Disposiciones 7 días antes de Cal3 (cliente 8356203)
+Casos MODERADOS,7,Disposiciones antes de ventana de riesgo
+Sucursales Involucradas,4,Sucursales 8 (50%), 624, 292, 304
+Operadores Involucrados,6,6 empleados procesaron operaciones
+Autorizadores Involucrados,5,5 gerentes/ejecutivos autorizaron
+Sin Autorizador,3,3 operaciones sin usuario_auth registrado

@@ -1,0 +1,146 @@
+================================================================================
+REPORTE DE AUDITORÍA: DISPOSICIONES A CLIENTES CON CALIFICACIÓN 3
+================================================================================
+Fecha de análisis: 2026-03-30
+Periodo analizado: Últimos 90 días (2025-12-30 a 2026-03-30)
+Universo base: 406 clientes con calificación 3
+================================================================================
+
+1. RESUMEN EJECUTIVO
+================================================================================
+
+De los 406 clientes con calificación 3 identificados:
+
+• Últimos 30 días:  3 clientes (0.7%) recibieron disposiciones
+• Últimos 90 días:  8 clientes (2.0%) recibieron disposiciones
+
+Monto total expuesto:
+• Últimos 30 días:  $3,095.00 MXN
+• Últimos 90 días:  $12,371.27 MXN
+
+HALLAZGO CRÍTICO:
+✓ 0 disposiciones realizadas DESPUÉS de que el cliente obtuvo Cal3
+✓ 1 disposición realizada en ventana de 7 días ANTES de Cal3 (cliente 8356203)
+
+================================================================================
+2. DISTRIBUCIÓN DE RESPONSABILIDADES
+================================================================================
+
+SUCURSALES INVOLUCRADAS (4):
+┌────────┬─────────────────────────────┬────────────┬───────────┬─────────────┐
+│ Sucursal│ Nombre                    │ Num Dispos │ Clientes  │ Monto Total │
+├────────┼─────────────────────────────┼────────────┼───────────┼─────────────┤
+│ 624    │ PEÑON                       │     1      │     1     │  $4,500.27  │
+│ 8      │ SAN LUIS POTOSI             │     4      │     4     │  $4,003.00  │
+│ 292    │ AGUASCALIENTES SIGLO XXI    │     2      │     2     │  $2,618.00  │
+│ 304    │ SAN LUIS POTOSÍ MUÑOZ       │     1      │     1     │  $1,250.00  │
+└────────┴─────────────────────────────┴────────────┴───────────┴─────────────┘
+
+EMPLEADOS OPERADORES (6):
+┌────────────┬────────────────────────────────────────┬────────────┬─────────────┐
+│ No Empleado│ Nombre                                 │ Num Dispos │ Monto Total │
+├────────────┼────────────────────────────────────────┼────────────┼─────────────┤
+│ 727876075  │ CARMELA  VAZQUEZ BAUTISTA              │     1      │  $4,500.27  │
+│ 726607452  │ ANA LUISA RODRIGUEZ GARCIA             │     3      │  $2,703.00  │
+│ 725698969  │ AVIGAIL GUTIERREZ ROBLEDO              │     1      │  $1,659.00  │
+│ 728646497  │ BRISEIDA NAYELI QUISTIAN MARTINEZ      │     1      │  $1,300.00  │
+│ 728690101  │ DULCE NATALI RODRIGUEZ CASTRO          │     1      │  $1,250.00  │
+│ 720816458  │ BEATRIZ CRISTELA SALAZAR ESQUIVEL      │     1      │    $959.00  │
+└────────────┴────────────────────────────────────────┴────────────┴─────────────┘
+
+EMPLEADOS AUTORIZADORES (5):
+┌────────────┬────────────────────────────────────────┬────────────┬─────────────┐
+│ No Empleado│ Nombre                                 │ Num Dispos │ Monto Total │
+├────────────┼────────────────────────────────────────┼────────────┼─────────────┤
+│ 726286559  │ SAMUEL  HERNANDEZ PEREZ                │     1      │  $4,500.27  │
+│ 727436713  │ NANCY LIZETH VALENZUELA RODRIGUEZ      │     1      │  $1,659.00  │
+│ 728286788  │ JUAN OSCAR RAMIREZ ARRUTI              │     1      │  $1,500.00  │
+│ 726176623  │ CAROLINA ALBA REYES                    │     1      │  $1,300.00  │
+│ 080888813  │ ERNESTO NERI GUTIERREZ                 │     1      │  $1,250.00  │
+└────────────┴────────────────────────────────────────┴────────────┴─────────────┘
+
+================================================================================
+3. CASOS MÁS GRAVES (PRIORIDAD DE INVESTIGACIÓN)
+================================================================================
+
+CASO 1 - SEVERIDAD: GRAVE
+Cliente: 8356203
+• Fecha Cal3: 2026-03-19
+• Fecha Disposición: 2026-03-17 (2 días ANTES de Cal3)
+• Monto: $1,300.00 EFECTIVO
+• Sucursal: 8 - SAN LUIS POTOSI
+• Operador: 728646497 - BRISEIDA NAYELI QUISTIAN MARTINEZ (EJECUTIVO DE CREDITO)
+• Autorizador: 726176623 - CAROLINA ALBA REYES (EJECUTIVO DE CREDITO)
+• Estado actual: Capital insoluto $59,996.48, 4 días de atraso
+
+CASO 2 - SEVERIDAD: MODERADO (Mayor Monto)
+Cliente: 2716052
+• Fecha Cal3: 2026-03-19
+• Fecha Disposición: 2026-01-24 (54 días ANTES de Cal3)
+• Monto: $4,500.27 EFECTIVO
+• Sucursal: 624 - PEÑON
+• Operador: 727876075 - CARMELA  VAZQUEZ BAUTISTA (EJECUTIVO ADMINISTRATIVO)
+• Autorizador: 726286559 - SAMUEL  HERNANDEZ PEREZ (GERENTE DE NEGOCIO)
+• Estado actual: Capital insoluto $19,547.15, 19 días de atraso, $1,280.40 vencido
+
+CASO 3 - SEVERIDAD: MODERADO
+Cliente: 6533655
+• Fecha Cal3: 2026-03-19
+• Fecha Disposición: 2026-01-21 (57 días ANTES de Cal3)
+• Monto: $1,659.00 CHEQUE
+• Sucursal: 292 - AGUASCALIENTES SIGLO XXI
+• Operador: 725698969 - AVIGAIL GUTIERREZ ROBLEDO (EJECUTIVO ADMINISTRATIVO)
+• Autorizador: 727436713 - NANCY LIZETH VALENZUELA RODRIGUEZ (EJECUTIVO DE CREDITO)
+• Estado actual: Capital insoluto $28,342.26, 1 día de adelanto
+
+================================================================================
+4. EVALUACIÓN DE CONTROLES
+================================================================================
+
+HALLAZGOS POSITIVOS:
+✓ El 98% de clientes Cal3 NO recibieron disposiciones en últimos 90 días
+✓ Los montos son relativamente bajos (máximo $4,500.27)
+✓ NO se detectaron disposiciones posteriores a la calificación Cal3
+✓ La mayoría de disposiciones ocurrieron 17-75 días ANTES de Cal3
+
+HALLAZGOS DE RIESGO:
+⚠ 1 caso GRAVE: Disposición 2 días antes de Cal3 (cliente 8356203)
+⚠ Sucursal 8 (San Luis Potosí) concentra 50% de las operaciones
+⚠ 3 disposiciones sin autorizador registrado en sistema
+⚠ Todos los créditos tienen saldo vigente con días de atraso
+
+RECOMENDACIONES:
+1. Investigar caso 8356203: validar si existían señales de deterioro
+   crediticio 2 días antes de la disposición
+
+2. Revisar proceso de autorización en operaciones sin usuario_auth
+   registrado (clientes 6536409, 8761515, 8717532)
+
+3. Validar controles preventivos en Sucursal 8 (San Luis Potosí)
+   por concentración de casos
+
+4. Evaluar sistema de alertas tempranas: ¿existían señales previas
+   al otorgamiento que pudieran predecir Cal3?
+
+5. Auditar proceso de validación de capacidad de pago previo a
+   disposiciones (especialmente caso de cliente 2716052 con $4,500.27)
+
+================================================================================
+CONCLUSIÓN
+================================================================================
+
+La exposición de riesgo es BAJA en términos absolutos (2% de clientes Cal3,
+$12,371.27 total). Sin embargo, se identificó 1 caso GRAVE que requiere
+investigación inmediata.
+
+El hecho de que NO se detectaran disposiciones POSTERIORES a Cal3 indica que
+los controles preventivos están funcionando. No obstante, el caso grave
+sugiere que podrían existir ventanas de oportunidad en los días previos a
+que un cliente sea reclasificado.
+
+ACCIÓN INMEDIATA REQUERIDA:
+→ Investigar expediente de cliente 8356203 (disposición 2 días antes de Cal3)
+→ Entrevistar a operador 728646497 y autorizador 726176623
+→ Revisar bitácora de validaciones de crédito en fechas 15-17 marzo 2026
+
+================================================================================
